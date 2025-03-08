@@ -4,6 +4,9 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        // Builder constants
+        const string allowClientPolicyName = "AllowClient";
+        
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
@@ -15,7 +18,7 @@ public class Program
         // Create CORS policy
         builder.Services.AddCors(options =>
         {
-            options.AddPolicy("AllowClient",
+            options.AddPolicy(allowClientPolicyName,
                 policy =>
                 {
                     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
@@ -38,7 +41,7 @@ public class Program
 
         app.UseAuthorization();
         
-        app.UseCors("AllowClient");
+        app.UseCors(allowClientPolicyName);
 
         var summaries = new[]
         {
