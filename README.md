@@ -27,24 +27,8 @@ Resellio API is the backend service for the Resellio application, providing an i
 3. Set up environment variables:
 
    Create an `appsettings.json` file in the root of the project, following the structure
-   of `appsettings.example.json` found in the project. Alternatively, you can use the 
-   example below:
+   of `appsettings.example.json` found in `TickAPI/TickAPI/appsettings.example.json`.
 
-   ```json
-   {
-      "Logging": {
-         "LogLevel": {
-         "Default": "Information",
-         "Microsoft.AspNetCore": "Warning"
-         }
-      },
-      "AllowedHosts": "*",
-      "AllowedOrigins": [
-         "https://example.com",
-         "https://another-site.com"
-      ]
-   }
-   ```
 
 4. Run application:
 
