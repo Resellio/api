@@ -23,8 +23,14 @@ Resellio API is the backend service for the Resellio application, providing an i
    ```bash
    docker compose up
    ```
+   
+3. Set up environment variables:
 
-3. Run application:
+   Create an `appsettings.json` file in the root of the project, following the structure
+   of `appsettings.example.json` found in `TickAPI/TickAPI/appsettings.example.json`.
+
+
+4. Run application:
 
    ```bash
    cd TickAPI/TickAPI
