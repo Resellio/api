@@ -11,6 +11,20 @@ public class Program
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+        
+        // Create CORS policy
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowClient",
+                policy =>
+                {
+                    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+                    policy.WithOrigins(allowedOrigins!)
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
+                });
+        });
 
         var app = builder.Build();
 
@@ -23,6 +37,8 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseAuthorization();
+        
+        app.UseCors("AllowClient");
 
         var summaries = new[]
         {
