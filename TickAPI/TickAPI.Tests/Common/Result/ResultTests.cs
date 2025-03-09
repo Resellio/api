@@ -1,0 +1,34 @@
+﻿using TickAPI.Common.Result;
+
+namespace TickAPI.Tests.Common.Result;
+
+public class ResultTests
+{
+    [Fact]
+    public void Success_ShouldReturnResultWithValue()
+    {
+        const int value = 123;
+        
+        var result = Result<int>.Success(value);
+        
+        Assert.Equal(value, result.Value);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Equal("", result.ErrorMsg);
+        Assert.Equal(200, result.StatusCode);
+    }
+
+    [Fact]
+    public void Failure_ShouldReturnResultWithError()
+    {
+        const int statusCode = 500;
+        const string errorMsg = "example error msg";
+        
+        var result = Result<int>.Failure(500, errorMsg);
+        
+        Assert.True(result.IsError);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorMsg, result.ErrorMsg);
+        Assert.Equal(statusCode, result.StatusCode);
+    }
+}
