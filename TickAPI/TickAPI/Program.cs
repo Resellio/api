@@ -1,23 +1,23 @@
 using TickAPI;
-using TickAPI.Admin.Abstractions;
-using TickAPI.Admin.Repositories;
-using TickAPI.Admin.Services;
+using TickAPI.Admins.Abstractions;
+using TickAPI.Admins.Repositories;
+using TickAPI.Admins.Services;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Services;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Services;
-using TickAPI.Customer.Abstractions;
-using TickAPI.Customer.Repositories;
-using TickAPI.Customer.Services;
-using TickAPI.Event.Abstractions;
-using TickAPI.Event.Repositories;
-using TickAPI.Event.Services;
-using TickAPI.Organizer.Abstractions;
-using TickAPI.Organizer.Repositories;
-using TickAPI.Organizer.Services;
-using TickAPI.Ticket.Abstractions;
-using TickAPI.Ticket.Repositories;
-using TickAPI.Ticket.Services;
+using TickAPI.Customers.Abstractions;
+using TickAPI.Customers.Repositories;
+using TickAPI.Customers.Services;
+using TickAPI.Events.Abstractions;
+using TickAPI.Events.Repositories;
+using TickAPI.Events.Services;
+using TickAPI.Organizers.Abstractions;
+using TickAPI.Organizers.Repositories;
+using TickAPI.Organizers.Services;
+using TickAPI.Tickets.Abstractions;
+using TickAPI.Tickets.Repositories;
+using TickAPI.Tickets.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
