@@ -1,6 +1,0 @@
-@TickAPI_HostAddress = http://localhost:5124
-
-GET {{TickAPI_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
