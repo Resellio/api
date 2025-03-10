@@ -6,11 +6,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TickAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class UpdatedPasswordHashAnGuids : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Addresses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Country = table.Column<string>(type: "text", nullable: false),
+                    City = table.Column<string>(type: "text", nullable: false),
+                    Street = table.Column<string>(type: "text", nullable: false),
+                    HouseNumber = table.Column<long>(type: "bigint", nullable: false),
+                    FlatNumber = table.Column<long>(type: "bigint", nullable: false),
+                    PostalCode = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Addresses", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Admins",
                 columns: table => new
@@ -18,7 +35,6 @@ namespace TickAPI.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Login = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -44,10 +60,9 @@ namespace TickAPI.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Login = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -61,10 +76,9 @@ namespace TickAPI.Migrations
                 name: "Organizers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Login = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -86,39 +100,23 @@ namespace TickAPI.Migrations
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     MinimumAge = table.Column<long>(type: "bigint", nullable: false),
-                    OrganizerId = table.Column<string>(type: "text", nullable: true),
-                    EventStatus = table.Column<int>(type: "integer", nullable: false)
+                    OrganizerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    EventStatus = table.Column<int>(type: "integer", nullable: false),
+                    AddressId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Events", x => x.Id);
                     table.ForeignKey(
+                        name: "FK_Events_Addresses_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Addresses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Events_Organizers_OrganizerId",
                         column: x => x.OrganizerId,
                         principalTable: "Organizers",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Addresses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Country = table.Column<string>(type: "text", nullable: false),
-                    City = table.Column<string>(type: "text", nullable: false),
-                    Street = table.Column<string>(type: "text", nullable: false),
-                    HouseNumber = table.Column<long>(type: "bigint", nullable: false),
-                    FlatNumber = table.Column<long>(type: "bigint", nullable: false),
-                    PostalCode = table.Column<string>(type: "text", nullable: false),
-                    EventId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Addresses", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Addresses_Events_EventId",
-                        column: x => x.EventId,
-                        principalTable: "Events",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -155,7 +153,7 @@ namespace TickAPI.Migrations
                     EventId = table.Column<Guid>(type: "uuid", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     MaxCount = table.Column<long>(type: "bigint", nullable: false),
-                    Price = table.Column<long>(type: "bigint", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
                     AvailableForm = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -176,7 +174,7 @@ namespace TickAPI.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TypeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    OwnerId = table.Column<string>(type: "text", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOnTicket = table.Column<string>(type: "text", nullable: false),
                     Seats = table.Column<string>(type: "text", nullable: false),
                     ForResell = table.Column<bool>(type: "boolean", nullable: false)
@@ -199,14 +197,14 @@ namespace TickAPI.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Addresses_EventId",
-                table: "Addresses",
-                column: "EventId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_CategoryEvent_EventsId",
                 table: "CategoryEvent",
                 column: "EventsId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Events_AddressId",
+                table: "Events",
+                column: "AddressId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Events_OrganizerId",
@@ -233,9 +231,6 @@ namespace TickAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Addresses");
-
-            migrationBuilder.DropTable(
                 name: "Admins");
 
             migrationBuilder.DropTable(
@@ -255,6 +250,9 @@ namespace TickAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Events");
+
+            migrationBuilder.DropTable(
+                name: "Addresses");
 
             migrationBuilder.DropTable(
                 name: "Organizers");

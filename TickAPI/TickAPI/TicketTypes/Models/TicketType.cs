@@ -9,7 +9,7 @@ public class TicketType
     public Event Event { get; set; }
     public String Description { get; set; }
     public uint MaxCount { get; set; }
-    public uint Price { get; set; }
+    public decimal Price { get; set; }
     public String Currency { get; set; }
     public DateTime AvailableForm { get; set; }
     public ICollection<Ticket> Tickets { get; set; }    

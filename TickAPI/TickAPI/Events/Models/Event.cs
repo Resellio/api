@@ -16,6 +16,7 @@ public class Event
     public ICollection<Category> Categories { get; set; }
     public ICollection<TicketType> TicketTypes { get; set; }
     public EventStatus EventStatus { get; set; }
+    public Address Address { get; set; }
 }
 
 public enum EventStatus

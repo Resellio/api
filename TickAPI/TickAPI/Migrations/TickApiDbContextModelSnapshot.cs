@@ -62,10 +62,6 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
@@ -88,8 +84,9 @@ namespace TickAPI.Migrations
 
             modelBuilder.Entity("TickAPI.Customers.Models.Customer", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -107,10 +104,6 @@ namespace TickAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Login")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -133,9 +126,6 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("EventId")
-                        .HasColumnType("uuid");
-
                     b.Property<long>("FlatNumber")
                         .HasColumnType("bigint");
 
@@ -152,8 +142,6 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId");
-
                     b.ToTable("Addresses");
                 });
 
@@ -161,6 +149,9 @@ namespace TickAPI.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AddressId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Description")
@@ -180,13 +171,15 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("OrganizerId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("OrganizerId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AddressId");
 
                     b.HasIndex("OrganizerId");
 
@@ -195,8 +188,9 @@ namespace TickAPI.Migrations
 
             modelBuilder.Entity("TickAPI.Organizers.Models.Organizer", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreationDate")
                         .HasColumnType("timestamp with time zone");
@@ -221,10 +215,6 @@ namespace TickAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("OrganizerName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -256,8 +246,8 @@ namespace TickAPI.Migrations
                     b.Property<long>("MaxCount")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("Price")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("numeric");
 
                     b.HasKey("Id");
 
@@ -279,9 +269,8 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("OwnerId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("OwnerId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Seats")
                         .IsRequired()
@@ -314,22 +303,21 @@ namespace TickAPI.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TickAPI.Events.Models.Address", b =>
+            modelBuilder.Entity("TickAPI.Events.Models.Event", b =>
                 {
-                    b.HasOne("TickAPI.Events.Models.Event", "Event")
+                    b.HasOne("TickAPI.Events.Models.Address", "Address")
                         .WithMany()
-                        .HasForeignKey("EventId")
+                        .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Event");
-                });
-
-            modelBuilder.Entity("TickAPI.Events.Models.Event", b =>
-                {
                     b.HasOne("TickAPI.Organizers.Models.Organizer", "Organizer")
                         .WithMany("Events")
-                        .HasForeignKey("OrganizerId");
+                        .HasForeignKey("OrganizerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Address");
 
                     b.Navigation("Organizer");
                 });

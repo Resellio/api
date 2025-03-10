@@ -9,5 +9,4 @@ public class Address
     public uint HouseNumber { get; set; }
     public uint FlatNumber { get; set; }
     public String PostalCode { get; set; }
-    public Event Event { get; set; }
 }
