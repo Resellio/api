@@ -21,8 +21,8 @@ public class Event
 
 public enum EventStatus
 {
-    TICKETS_AVAILABE,
-    SOLD_OUT,
-    IN_PROGRESS,
-    FINISHED
+    TicketsAvailable,
+    SoldOut,
+    InProgress,
+    Finished
 }

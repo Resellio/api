@@ -43,18 +43,7 @@ namespace TickAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -103,10 +92,6 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Login")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
@@ -126,10 +111,10 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("FlatNumber")
+                    b.Property<long?>("FlatNumber")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("HouseNumber")
+                    b.Property<long?>("HouseNumber")
                         .HasColumnType("bigint");
 
                     b.Property<string>("PostalCode")
@@ -137,7 +122,6 @@ namespace TickAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Street")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -229,7 +213,7 @@ namespace TickAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("AvailableForm")
+                    b.Property<DateTime>("AvailableFrom")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")

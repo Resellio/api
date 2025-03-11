@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TickAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdatedPasswordHashAnGuids : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,9 +18,9 @@ namespace TickAPI.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Country = table.Column<string>(type: "text", nullable: false),
                     City = table.Column<string>(type: "text", nullable: false),
-                    Street = table.Column<string>(type: "text", nullable: false),
-                    HouseNumber = table.Column<long>(type: "bigint", nullable: false),
-                    FlatNumber = table.Column<long>(type: "bigint", nullable: false),
+                    Street = table.Column<string>(type: "text", nullable: true),
+                    HouseNumber = table.Column<long>(type: "bigint", nullable: true),
+                    FlatNumber = table.Column<long>(type: "bigint", nullable: true),
                     PostalCode = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
@@ -34,10 +34,7 @@ namespace TickAPI.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    Login = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Login = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -62,7 +59,6 @@ namespace TickAPI.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    Login = table.Column<string>(type: "text", nullable: false),
                     FirstName = table.Column<string>(type: "text", nullable: false),
                     LastName = table.Column<string>(type: "text", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -155,7 +151,7 @@ namespace TickAPI.Migrations
                     MaxCount = table.Column<long>(type: "bigint", nullable: false),
                     Price = table.Column<decimal>(type: "numeric", nullable: false),
                     Currency = table.Column<string>(type: "text", nullable: false),
-                    AvailableForm = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    AvailableFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

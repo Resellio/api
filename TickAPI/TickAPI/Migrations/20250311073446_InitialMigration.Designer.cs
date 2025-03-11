@@ -12,8 +12,8 @@ using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Migrations
 {
     [DbContext(typeof(TickApiDbContext))]
-    [Migration("20250310210825_UpdatedPasswordHashAnGuids")]
-    partial class UpdatedPasswordHashAnGuids
+    [Migration("20250311073446_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -46,18 +46,7 @@ namespace TickAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreationDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -106,10 +95,6 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Login")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
@@ -129,10 +114,10 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("FlatNumber")
+                    b.Property<long?>("FlatNumber")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("HouseNumber")
+                    b.Property<long?>("HouseNumber")
                         .HasColumnType("bigint");
 
                     b.Property<string>("PostalCode")
@@ -140,7 +125,6 @@ namespace TickAPI.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Street")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -232,7 +216,7 @@ namespace TickAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("AvailableForm")
+                    b.Property<DateTime>("AvailableFrom")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Currency")
