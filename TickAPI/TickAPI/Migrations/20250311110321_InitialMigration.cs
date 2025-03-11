@@ -95,7 +95,7 @@ namespace TickAPI.Migrations
                     Description = table.Column<string>(type: "text", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    MinimumAge = table.Column<long>(type: "bigint", nullable: false),
+                    MinimumAge = table.Column<long>(type: "bigint", nullable: true),
                     OrganizerId = table.Column<Guid>(type: "uuid", nullable: false),
                     EventStatus = table.Column<int>(type: "integer", nullable: false),
                     AddressId = table.Column<Guid>(type: "uuid", nullable: false)
@@ -172,7 +172,7 @@ namespace TickAPI.Migrations
                     TypeId = table.Column<Guid>(type: "uuid", nullable: false),
                     OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
                     NameOnTicket = table.Column<string>(type: "text", nullable: false),
-                    Seats = table.Column<string>(type: "text", nullable: false),
+                    Seats = table.Column<string>(type: "text", nullable: true),
                     ForResell = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>

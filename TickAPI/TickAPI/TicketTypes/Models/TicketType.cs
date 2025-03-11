@@ -7,10 +7,10 @@ public class TicketType
 {
     public Guid Id { get; set; }
     public Event Event { get; set; }
-    public String Description { get; set; }
+    public string Description { get; set; }
     public uint MaxCount { get; set; }
     public decimal Price { get; set; }
-    public String Currency { get; set; }
+    public string Currency { get; set; }
     public DateTime AvailableFrom { get; set; }
-    public ICollection<Ticket> Tickets { get; set; }    
+    public ICollection<Ticket> Tickets { get; set; } 
 }

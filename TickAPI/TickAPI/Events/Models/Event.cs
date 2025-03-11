@@ -7,11 +7,11 @@ namespace TickAPI.Events.Models;
 public class Event
 {
     public Guid Id { get; set; }
-    public String Name { get; set; }
-    public String Description { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
-    public uint MinimumAge { get; set; }
+    public uint? MinimumAge { get; set; }
     public Organizer Organizer { get; set; }
     public ICollection<Category> Categories { get; set; }
     public ICollection<TicketType> TicketTypes { get; set; }

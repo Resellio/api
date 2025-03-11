@@ -148,7 +148,7 @@ namespace TickAPI.Migrations
                     b.Property<int>("EventStatus")
                         .HasColumnType("integer");
 
-                    b.Property<long>("MinimumAge")
+                    b.Property<long?>("MinimumAge")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
@@ -257,7 +257,6 @@ namespace TickAPI.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Seats")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid>("TypeId")
