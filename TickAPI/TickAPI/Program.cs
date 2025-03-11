@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TickAPI;
 using TickAPI.Admins.Abstractions;
 using TickAPI.Admins.Repositories;
@@ -6,6 +7,7 @@ using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Services;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Services;
+using TickAPI.Common.TickApiDbContext;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Repositories;
 using TickAPI.Customers.Services;
@@ -58,6 +60,11 @@ builder.Services.AddScoped<IPaginationService, PaginationService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<TickApiDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ResellioDatabase"));
+});
 
 // Create CORS policy
 builder.Services.AddCors(options =>
