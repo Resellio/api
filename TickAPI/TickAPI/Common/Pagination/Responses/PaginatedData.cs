@@ -1,4 +1,4 @@
-﻿namespace TickAPI.Common.Pagination;
+﻿namespace TickAPI.Common.Pagination.Responses;
 
 public record PaginatedData<T>(
     List<T> Data,
@@ -6,5 +6,6 @@ public record PaginatedData<T>(
     int PageNumber,
     int PageSize,
     bool HasNextPage,
-    bool HasPreviousPage
+    bool HasPreviousPage,
+    PaginationDetails PaginationDetails 
 );
