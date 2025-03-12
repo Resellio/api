@@ -2,5 +2,5 @@
 
 public interface IJwtService
 {
-    
+    public string GenerateJwtToken(string userEmail, string role);
 }
