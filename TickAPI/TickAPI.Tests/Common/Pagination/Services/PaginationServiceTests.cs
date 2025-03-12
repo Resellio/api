@@ -52,6 +52,8 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.False(result.Value?.HasNextPage);
         Assert.False(result.Value?.HasPreviousPage);
+        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(0, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
@@ -69,6 +71,8 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.True(result.Value?.HasNextPage);
         Assert.False(result.Value?.HasPreviousPage);
+        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
@@ -86,27 +90,12 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.True(result.Value?.HasNextPage);
         Assert.True(result.Value?.HasPreviousPage);
+        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
-    public void Paginate_WhenPageNumberTimesPageSizeIsMoreThanCollectionLength_ShouldReturnEmptyList()
-    {
-        var data = new List<int> { 1, 2, 3, 4, 5 };
-        const int pageSize = 2;
-        const int pageNumber = 5;
-        
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
-        
-        Assert.True(result.IsSuccess);
-        Assert.Equal(new List<int>(), result.Value?.Data);
-        Assert.Equal(pageNumber, result.Value?.PageNumber);
-        Assert.Equal(pageSize, result.Value?.PageSize);
-        Assert.False(result.Value?.HasNextPage);
-        Assert.False(result.Value?.HasPreviousPage);
-    }
-
-    [Fact]
-    public void Paginate_WhenOnOneAfterLastPage_ShouldReturnHasPreviousPageSetToTrue()
+    public void Paginate_WhenExceededMaxPageNumber_ShouldReturnFailure()
     {
         var data = new List<int> { 1, 2, 3, 4, 5 };
         const int pageSize = 2;
@@ -114,14 +103,11 @@ public class PaginationServiceTests
         
         var result = _paginationService.Paginate(data, pageSize, pageNumber);
         
-        Assert.True(result.IsSuccess);
-        Assert.Equal(new List<int>(), result.Value?.Data);
-        Assert.Equal(pageNumber, result.Value?.PageNumber);
-        Assert.Equal(pageSize, result.Value?.PageSize);
-        Assert.False(result.Value?.HasNextPage);
-        Assert.True(result.Value?.HasPreviousPage);
+        Assert.True(result.IsError);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+        Assert.Equal("'page' param must be <= 2, got: 3", result.ErrorMsg);
     }
-
+    
     [Fact]
     public void Paginate_WhenOnLastPage_ShouldReturnHasNextPageSetToFalse()
     {
@@ -137,5 +123,26 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.False(result.Value?.HasNextPage);
         Assert.True(result.Value?.HasPreviousPage);
+        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
+    }
+
+    [Fact]
+    public void Paginate_WhenCollectionEmptyAndFirstPageIsRequested_ShouldReturnSuccess()
+    {
+        var data = new List<int>();
+        const int pageSize = 2;
+        const int pageNumber = 0;
+        
+        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(new List<int>(), result.Value?.Data);
+        Assert.Equal(pageNumber, result.Value?.PageNumber);
+        Assert.Equal(pageSize, result.Value?.PageSize);
+        Assert.False(result.Value?.HasNextPage);
+        Assert.False(result.Value?.HasPreviousPage);
+        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(0, result.Value?.PaginationDetails.MaxPageNumber);
     }
 }
