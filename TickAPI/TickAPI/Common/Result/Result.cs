@@ -25,4 +25,14 @@ public record Result<T>
     {
         return new Result<T>(false, default, statusCode, errorMsg);
     }
+
+    public static Result<T> PropagateError<TE>(Result<TE> other)
+    {
+        if (other.IsSuccess)
+        {
+            throw new ArgumentException("Trying to propagate error from successful value");
+        }
+
+        return Failure(other.StatusCode, other.ErrorMsg);
+    }
 }
