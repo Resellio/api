@@ -1,5 +1,9 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using TickAPI;
+using Microsoft.IdentityModel.Tokens;
 using TickAPI.Admins.Abstractions;
 using TickAPI.Admins.Repositories;
 using TickAPI.Admins.Services;
@@ -31,6 +35,20 @@ builder.Services.AddAuthorization();
 
 // Add controllers to the container.
 builder.Services.AddControllers();
+
+// Add Google authentication.
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+    })
+    .AddCookie()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["Google:ClientId"];
+        options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+    });
 
 // Add admin services.
 builder.Services.AddScoped<IAdminService, AdminService>();
