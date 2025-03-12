@@ -48,8 +48,8 @@ public class PaginationService : IPaginationService
         }
         
         var data = collection.Skip(page * pageSize).Take(pageSize).ToList();
-        var hasPreviousPage = page > 0 && ((page - 1) * pageSize) < paginationDetails.AllElementsCount;
-        var hasNextPage = ((page + 1) * pageSize) < paginationDetails.AllElementsCount;
+        var hasPreviousPage = page > 0;
+        var hasNextPage = page < paginationDetails.MaxPageNumber;
 
         var paginatedData = new PaginatedData<T>(data, page, pageSize, hasNextPage, hasPreviousPage, paginationDetails);
 
