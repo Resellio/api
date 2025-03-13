@@ -25,7 +25,7 @@ public class GoogleAuthService : IAuthService
             
             return Result<string>.Success(payload.Email);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Result<string>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google token");
         }
