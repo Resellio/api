@@ -16,14 +16,14 @@ public class AuthController : ControllerBase
         _jwtService = jwtService;
     }
     
-    // TODO: this is a placeholder method that shows of the general structure of how logging in through Google works
+    // TODO: this is a placeholder method that shows off the general structure of how logging in through Google works
     // in the application. It should be replaced with appropriate login/register endpoints.
     [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
         var result = await _authService.LoginAsync(request.IdToken);
         
-        if(!result.IsSuccess)
+        if(result.IsError)
             return Unauthorized(result.ErrorMsg);
 
         var jwtToken = _jwtService.GenerateJwtToken(result.Value, "Customer");
