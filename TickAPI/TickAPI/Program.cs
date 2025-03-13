@@ -84,6 +84,7 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // Add common services.
 builder.Services.AddScoped<IAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -6,28 +6,23 @@ namespace TickAPI.Common.Auth.Services;
 
 public class GoogleAuthService : IAuthService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IGoogleTokenValidator _googleTokenValidator;
 
-    public GoogleAuthService(IConfiguration configuration)
+    public GoogleAuthService(IGoogleTokenValidator googleTokenValidator)
     {
-        _configuration = configuration;
+        _googleTokenValidator = googleTokenValidator;
     }
 
     public async Task<Result<string>> LoginAsync(string idToken)
     {
         try
         {
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken,
-                new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = [_configuration["Authentication:Google:ClientId"]]
-                });
-            
+            var payload = await _googleTokenValidator.ValidateAsync(idToken);
             return Result<string>.Success(payload.Email);
         }
         catch (Exception)
         {
-            return Result<string>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google token");
+            return Result<string>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google ID token");
         }
     }
 }
