@@ -31,4 +31,29 @@ public class ResultTests
         Assert.Equal(errorMsg, result.ErrorMsg);
         Assert.Equal(statusCode, result.StatusCode);
     }
+
+    [Fact]
+    public void PropagateError_WhenResultWithErrorPassed_ShouldReturnResultWithError()
+    {
+        const int statusCode = 500;
+        const string errorMsg = "error message";
+        var resultWithError = Result<string>.Failure(statusCode, errorMsg);
+
+        var result = Result<int>.PropagateError(resultWithError);
+        
+        Assert.True(result.IsError);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorMsg, result.ErrorMsg);
+        Assert.Equal(statusCode, result.StatusCode);
+    }
+
+    [Fact]
+    public void PropagateError_WhenResultWithSuccessPassed_ShouldThrowArgumentException()
+    {
+        var resultWithSuccess = Result<string>.Success("abc");
+
+        var act = () => Result<int>.PropagateError(resultWithSuccess);
+
+        Assert.Throws<ArgumentException>(act);
+    }
 }

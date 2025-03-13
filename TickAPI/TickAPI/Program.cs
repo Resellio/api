@@ -129,6 +129,10 @@ builder.Services.AddCors(options =>
         });
 });
 
+// TODO: when we start using redis we should probably also check here if we can connect to it
+// Setup healtcheck
+builder.Services.AddHealthChecks().AddNpgSql(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -143,5 +147,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.UseCors(allowClientPolicyName);
+
+app.MapHealthChecks("/health");
 
 app.Run();
