@@ -33,9 +33,6 @@ const string allowClientPolicyName = "AllowClient";
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddAuthorization();
-
 // Add controllers to the container.
 builder.Services.AddControllers();
 
