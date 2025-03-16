@@ -1,8 +1,9 @@
 ﻿using TickAPI.Common.Auth.Enums;
+using TickAPI.Common.Result;
 
 namespace TickAPI.Common.Auth.Abstractions;
 
 public interface IJwtService
 {
-    public string GenerateJwtToken(string userEmail, UserRole role);
+    public Result<string> GenerateJwtToken(string? userEmail, UserRole role);
 }

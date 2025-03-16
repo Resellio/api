@@ -22,14 +22,17 @@ public class AuthController : ControllerBase
     [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
-        var result = await _authService.LoginAsync(request.IdToken);
+        var loginResult = await _authService.LoginAsync(request.IdToken);
         
-        if(result.IsError)
-            return Unauthorized(result.ErrorMsg);
+        if(loginResult.IsError)
+            return StatusCode(loginResult.StatusCode, loginResult.ErrorMsg);
 
-        var jwtToken = _jwtService.GenerateJwtToken(result.Value, UserRole.Customer);
+        var jwtTokenResult = _jwtService.GenerateJwtToken(loginResult.Value, UserRole.Customer);
         
-        return Ok(new { token = jwtToken });
+        if(jwtTokenResult.IsError)
+            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+        
+        return Ok(new { token = jwtTokenResult.Value });
     }
     
     public class GoogleLoginRequest
