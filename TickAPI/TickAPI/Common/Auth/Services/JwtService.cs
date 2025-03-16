@@ -4,16 +4,19 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
+using TickAPI.Common.Time.Abstractions;
 
 namespace TickAPI.Common.Auth.Services;
 
 public class JwtService : IJwtService
 {
     private readonly IConfiguration _configuration;
+    private readonly IDateTimeService _dateTimeService;
 
-    public JwtService(IConfiguration configuration)
+    public JwtService(IConfiguration configuration, IDateTimeService dateTimeService)
     {
         _configuration = configuration;
+        _dateTimeService = dateTimeService;
     }
     
     public string GenerateJwtToken(string userEmail, UserRole role)
@@ -29,10 +32,12 @@ public class JwtService : IJwtService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Authentication:Jwt:SecurityKey"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         
+        int.TryParse(_configuration["Authentication:Jwt:ExpirySeconds"], out var addedSeconds);
+        
         var token = new JwtSecurityToken(
             issuer: _configuration["Authentication:Jwt:Issuer"],
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: _dateTimeService.GetCurrentDateTime().AddSeconds(addedSeconds),
             signingCredentials: creds
             );
         
