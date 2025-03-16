@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Enums;
 
 namespace TickAPI.Common.Auth.Services;
 
@@ -15,14 +16,14 @@ public class JwtService : IJwtService
         _configuration = configuration;
     }
     
-    public string GenerateJwtToken(string userEmail, string role)
+    public string GenerateJwtToken(string userEmail, UserRole role)
     {
         // TODO: add some sort of userEmail/Role validation after adding new users is implemented + appropriate tests
         
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Email, userEmail),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.Role, role.ToString())
         };
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Authentication:Jwt:SecurityKey"]));

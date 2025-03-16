@@ -8,6 +8,7 @@ using TickAPI.Admins.Abstractions;
 using TickAPI.Admins.Repositories;
 using TickAPI.Admins.Services;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Auth.Services;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Services;
@@ -64,12 +65,12 @@ builder.Services.AddAuthentication(options =>
 // Add authorization.
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("OrganizerPolicy", policy => policy.RequireRole("Organizer"));
-    options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole(UserRole.Admin.ToString()));
+    options.AddPolicy("OrganizerPolicy", policy => policy.RequireRole(UserRole.Organizer.ToString()));
+    options.AddPolicy("CustomerPolicy", policy => policy.RequireRole(UserRole.Customer.ToString()));
     
-    options.AddPolicy("NewOrganizerPolicy", policy => policy.RequireRole("NewOrganizer"));
-    options.AddPolicy("NewUserPolicy", policy => policy.RequireRole("NewUser"));
+    options.AddPolicy("NewOrganizerPolicy", policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
+    options.AddPolicy("NewCustomerPolicy", policy => policy.RequireRole(UserRole.NewCustomer.ToString()));
 });
 
 // Add admin services.

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Enums;
 
 namespace TickAPI.Common.Auth.Controllers;
 
@@ -26,7 +27,7 @@ public class AuthController : ControllerBase
         if(result.IsError)
             return Unauthorized(result.ErrorMsg);
 
-        var jwtToken = _jwtService.GenerateJwtToken(result.Value, "Customer");
+        var jwtToken = _jwtService.GenerateJwtToken(result.Value, UserRole.Customer);
         
         return Ok(new { token = jwtToken });
     }
