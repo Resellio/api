@@ -17,6 +17,8 @@ public class JwtService : IJwtService
     
     public string GenerateJwtToken(string userEmail, string role)
     {
+        // TODO: add some sort of userEmail/Role validation after adding new users is implemented + appropriate tests
+        
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Email, userEmail),
