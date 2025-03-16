@@ -65,12 +65,12 @@ builder.Services.AddAuthentication(options =>
 // Add authorization.
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminPolicy", policy => policy.RequireRole(UserRole.Admin.ToString()));
-    options.AddPolicy("OrganizerPolicy", policy => policy.RequireRole(UserRole.Organizer.ToString()));
-    options.AddPolicy("CustomerPolicy", policy => policy.RequireRole(UserRole.Customer.ToString()));
+    options.AddPolicy(AuthPolicies.AdminPolicy.ToString(), policy => policy.RequireRole(UserRole.Admin.ToString()));
+    options.AddPolicy(AuthPolicies.OrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.Organizer.ToString()));
+    options.AddPolicy(AuthPolicies.CustomerPolicy.ToString(), policy => policy.RequireRole(UserRole.Customer.ToString()));
     
-    options.AddPolicy("NewOrganizerPolicy", policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
-    options.AddPolicy("NewCustomerPolicy", policy => policy.RequireRole(UserRole.NewCustomer.ToString()));
+    options.AddPolicy(AuthPolicies.NewOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
+    options.AddPolicy(AuthPolicies.NewCustomerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewCustomer.ToString()));
 });
 
 // Add admin services.
