@@ -13,6 +13,8 @@ using TickAPI.Common.Auth.Services;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Services;
 using TickAPI.Common.TickApiDbContext;
+using TickAPI.Common.Time.Abstractions;
+using TickAPI.Common.Time.Services;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Repositories;
 using TickAPI.Customers.Services;
@@ -98,6 +100,7 @@ builder.Services.AddScoped<IAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
+builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
