@@ -26,4 +26,10 @@ public class CustomerRepository : ICustomerRepository
 
         return Result<Customer>.Success(customer);
     }
+
+    public async Task AddNewCustomerAsync(Customer customer)
+    {
+        _tickApiDbContext.Customers.Add(customer);
+        await _tickApiDbContext.SaveChangesAsync();
+    }
 }
