@@ -165,4 +165,6 @@ app.UseCors(allowClientPolicyName);
 
 app.MapHealthChecks("/health");
 
+app.MapControllers();
+
 app.Run();
