@@ -24,9 +24,9 @@ public class JwtService : IJwtService
     {
         // TODO: add some sort of userEmail/Role validation after adding new users is implemented + appropriate tests
         
-        var validationResult = ValidateJwtSettings(userEmail);
-        if (validationResult.IsError)
-            return Result<string>.PropagateError(validationResult);
+        var configurationDataResult = ValidateConfigurationData(userEmail);
+        if (configurationDataResult.IsError)
+            return Result<string>.PropagateError(configurationDataResult);
         
         var claims = new List<Claim>
         {
@@ -34,12 +34,12 @@ public class JwtService : IJwtService
             new Claim(ClaimTypes.Role, role.ToString())
         };
         
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Authentication:Jwt:SecurityKey"]));
+        var key = configurationDataResult.Value.SecurityKey;
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        var addedSeconds = int.Parse(_configuration["Authentication:Jwt:ExpirySeconds"]);
+        var addedSeconds = configurationDataResult.Value.ExpirySeconds;
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["Authentication:Jwt:Issuer"],
+            issuer: configurationDataResult.Value.Issuer,
             claims: claims,
             expires: _dateTimeService.GetCurrentDateTime().AddSeconds(addedSeconds),
             signingCredentials: creds
@@ -48,18 +48,32 @@ public class JwtService : IJwtService
         return Result<string>.Success(new JwtSecurityTokenHandler().WriteToken(token));
     }
     
-    private Result<string> ValidateJwtSettings(string? userEmail)
+    private Result<ConfigurationData> ValidateConfigurationData(string? userEmail)
     {
         if (string.IsNullOrWhiteSpace(userEmail))
-            return Result<string>.Failure(StatusCodes.Status400BadRequest, "'userEmail' parameter cannot be null or empty");
+            return Result<ConfigurationData>.Failure(StatusCodes.Status400BadRequest, "'userEmail' parameter cannot be null or empty");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Authentication:Jwt:SecurityKey"]!));
         if (key.KeySize < 256)
-            return Result<string>.Failure(StatusCodes.Status500InternalServerError, "'SecurityKey' must be at least 256 bits");
+            return Result<ConfigurationData>.Failure(StatusCodes.Status500InternalServerError, "'SecurityKey' must be at least 256 bits");
 
-        if (!int.TryParse(_configuration["Authentication:Jwt:ExpirySeconds"], out var addedSeconds) || addedSeconds <= 0)
-            return Result<string>.Failure(StatusCodes.Status500InternalServerError, "'ExpirySeconds' must be a positive integer");
+        if (!int.TryParse(_configuration["Authentication:Jwt:ExpirySeconds"], out var expirySeconds) || expirySeconds <= 0)
+            return Result<ConfigurationData>.Failure(StatusCodes.Status500InternalServerError, "'ExpirySeconds' must be a positive integer");
+        
+        var issuer = _configuration["Authentication:Jwt:Issuer"];
+        
+        return Result<ConfigurationData>.Success(new ConfigurationData
+        {
+            SecurityKey = key,
+            ExpirySeconds = expirySeconds,
+            Issuer = issuer,
+        });
+    }
 
-        return Result<string>.Success(string.Empty);
+    private struct ConfigurationData
+    {
+        public SymmetricSecurityKey SecurityKey;
+        public int ExpirySeconds;
+        public string Issuer;
     }
 }
