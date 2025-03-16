@@ -61,6 +61,17 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+// Add authorization.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminPolicy", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("OrganizerPolicy", policy => policy.RequireRole("Organizer"));
+    options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+    
+    options.AddPolicy("NewOrganizerPolicy", policy => policy.RequireRole("NewOrganizer"));
+    options.AddPolicy("NewUserPolicy", policy => policy.RequireRole("NewUser"));
+});
+
 // Add admin services.
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
