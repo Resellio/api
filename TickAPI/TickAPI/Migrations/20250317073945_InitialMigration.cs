@@ -15,13 +15,13 @@ namespace TickAPI.Migrations
                 name: "Addresses",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Country = table.Column<string>(type: "text", nullable: false),
-                    City = table.Column<string>(type: "text", nullable: false),
-                    Street = table.Column<string>(type: "text", nullable: true),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Street = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     HouseNumber = table.Column<long>(type: "bigint", nullable: true),
                     FlatNumber = table.Column<long>(type: "bigint", nullable: true),
-                    PostalCode = table.Column<string>(type: "text", nullable: false)
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -32,9 +32,9 @@ namespace TickAPI.Migrations
                 name: "Admins",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Login = table.Column<string>(type: "text", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Login = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -45,8 +45,8 @@ namespace TickAPI.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    CategoryName = table.Column<string>(type: "text", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    CategoryName = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,11 +57,11 @@ namespace TickAPI.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -72,14 +72,14 @@ namespace TickAPI.Migrations
                 name: "Organizers",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    Login = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    CreationDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    OrganizerName = table.Column<string>(type: "text", nullable: false),
-                    IsVerified = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Login = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    OrganizerName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsVerified = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -90,15 +90,15 @@ namespace TickAPI.Migrations
                 name: "Events",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     MinimumAge = table.Column<long>(type: "bigint", nullable: true),
-                    OrganizerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    EventStatus = table.Column<int>(type: "integer", nullable: false),
-                    AddressId = table.Column<Guid>(type: "uuid", nullable: false)
+                    OrganizerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventStatus = table.Column<int>(type: "int", nullable: false),
+                    AddressId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -121,8 +121,8 @@ namespace TickAPI.Migrations
                 name: "CategoryEvent",
                 columns: table => new
                 {
-                    CategoriesId = table.Column<Guid>(type: "uuid", nullable: false),
-                    EventsId = table.Column<Guid>(type: "uuid", nullable: false)
+                    CategoriesId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -145,13 +145,13 @@ namespace TickAPI.Migrations
                 name: "TicketTypes",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    EventId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EventId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MaxCount = table.Column<long>(type: "bigint", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: false),
-                    Currency = table.Column<string>(type: "text", nullable: false),
-                    AvailableFrom = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AvailableFrom = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -168,12 +168,12 @@ namespace TickAPI.Migrations
                 name: "Tickets",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    TypeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
-                    NameOnTicket = table.Column<string>(type: "text", nullable: false),
-                    Seats = table.Column<string>(type: "text", nullable: true),
-                    ForResell = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    NameOnTicket = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Seats = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ForResell = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

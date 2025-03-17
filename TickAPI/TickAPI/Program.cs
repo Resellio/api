@@ -128,7 +128,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<TickApiDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ResellioDatabase"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ResellioDatabase"));
 });
 
 // Create CORS policy
@@ -147,7 +147,7 @@ builder.Services.AddCors(options =>
 
 // TODO: when we start using redis we should probably also check here if we can connect to it
 // Setup healtcheck
-builder.Services.AddHealthChecks().AddNpgSql(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
+builder.Services.AddHealthChecks().AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
 
 var app = builder.Build();
 
