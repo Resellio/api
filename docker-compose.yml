@@ -1,17 +1,22 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:latest
-    container_name: resellio_postgres
+  azuresqledge:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: resellio_azuresqledge
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: resellioDB
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Rese11io
+      MSSQL_PID: Developer                  
+      MSSQL_DATABASE: resellioDB
+      MSSQL_USER: sqluser                  
+      MSSQL_PASSWORD: Rese11io
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - azuresqledge_data:/var/opt/mssql
     ports:
-      - 5432:5432
+      - 1433:1433
+    cap_add:
+      - SYS_PTRACE
   
   redis:
     image: redis:latest
@@ -23,7 +28,7 @@ services:
       - 6379:6379
       
 volumes:
-  pg_data:
-    driver: local
   redis_data:
+    driver: local
+  azuresqledge_data:
     driver: local
