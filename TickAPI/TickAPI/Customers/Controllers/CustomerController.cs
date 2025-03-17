@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.DTOs.Request;
@@ -45,9 +47,27 @@ public class CustomerController : ControllerBase
         }
         
         var jwtTokenResult = _jwtService.GenerateJwtToken(loginResult.Value, role);
-        if(jwtTokenResult.IsError)
+        if (jwtTokenResult.IsError)
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
         
         return new ActionResult<GoogleLoginResponseDto>(new GoogleLoginResponseDto(jwtTokenResult.Value!, isNewCustomer));
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.NewCustomerPolicy)]
+    public async Task<ActionResult<GoogleCreateNewAccountResponseDto>> GoogleCreateNewAccount([FromBody] GoogleCreateNewAccountDto request)
+    {
+        var email = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
+        if (email == null)
+            return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+
+        var newCustomerResult = await _customerService.CreateNewCustomerAsync(email, request.FirstName, request.LastName);
+        if (newCustomerResult.IsError)
+            return StatusCode(newCustomerResult.StatusCode, newCustomerResult.ErrorMsg);
+        
+        var jwtTokenResult = _jwtService.GenerateJwtToken(newCustomerResult.Value!.Email, UserRole.Customer);
+        if (jwtTokenResult.IsError)
+            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+        
+        return new ActionResult<GoogleCreateNewAccountResponseDto>(new GoogleCreateNewAccountResponseDto(jwtTokenResult.Value!));
     }
 }
