@@ -4,8 +4,6 @@
 name: Build and test .NET API
 
 on:
-  push:
-    branches: [ "main", "develop" ]
   pull_request:
     branches: [ "main", "develop" ]
   workflow_dispatch:
