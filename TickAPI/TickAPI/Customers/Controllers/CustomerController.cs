@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.JsonWebTokens;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
@@ -54,9 +54,10 @@ public class CustomerController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.NewCustomerPolicy)]
+    [HttpPost("google-create-new-account")]
     public async Task<ActionResult<GoogleCreateNewAccountResponseDto>> GoogleCreateNewAccount([FromBody] GoogleCreateNewAccountDto request)
     {
-        var email = User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
+        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         if (email == null)
             return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
 
