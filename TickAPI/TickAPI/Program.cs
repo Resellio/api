@@ -128,7 +128,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<TickApiDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ResellioLocalDB"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ResellioDatabase"));
 });
 
 // Create CORS policy
