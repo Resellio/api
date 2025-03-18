@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
@@ -85,5 +87,93 @@ public class CustomerControllerTests
         
         // Assert
         Assert.Equal(jwtToken, result.Value?.Token);
+    }
+    
+    [Fact]
+    public async Task AboutMe_WithValidEmailClaim_ShouldReturnCustomerDetails()
+    {
+        // Arrange
+        const string email = "test@example.com";
+        const string firstName = "John";
+        const string lastName = "Doe";
+        var creationDate = DateTime.UtcNow.AddDays(-30);
+        
+        var customer = new Customer
+        {
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            CreationDate = creationDate
+        };
+        
+        var customerServiceMock = new Mock<ICustomerService>();
+        customerServiceMock.Setup(m => m.GetCustomerByEmailAsync(email))
+            .ReturnsAsync(Result<Customer>.Success(customer));
+        
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        var jwtServiceMock = new Mock<IJwtService>();
+        
+        var sut = new CustomerController(
+            googleAuthServiceMock.Object,
+            jwtServiceMock.Object,
+            customerServiceMock.Object);
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        var identity = new ClaimsIdentity(claims);
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        
+        sut.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = claimsPrincipal
+            }
+        };
+        
+        // Act
+        var result = await sut.AboutMe();
+        
+        // Assert
+        Assert.Equal(email, result.Value?.Email);
+        Assert.Equal(firstName, result.Value?.FirstName);
+        Assert.Equal(lastName, result.Value?.LastName);
+        Assert.Equal(creationDate, result.Value?.CreationDate);
+    }
+
+    [Fact]
+    public async Task AboutMe_WithMissingEmailClaim_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var customerServiceMock = new Mock<ICustomerService>();
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        var jwtServiceMock = new Mock<IJwtService>();
+        
+        var sut = new CustomerController(
+            googleAuthServiceMock.Object,
+            jwtServiceMock.Object,
+            customerServiceMock.Object);
+        
+        var claims = new List<Claim>();
+        var identity = new ClaimsIdentity(claims);
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        
+        sut.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = claimsPrincipal
+            }
+        };
+        
+        // Act
+        var result = await sut.AboutMe();
+        
+        // Assert
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
+        Assert.Equal("missing email claim", objectResult.Value);
     }
 }
