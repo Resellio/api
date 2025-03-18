@@ -1,10 +1,10 @@
-﻿using Google.Apis.Auth;
-using TickAPI.Common.Auth.Abstractions;
+﻿using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Responses;
 using TickAPI.Common.Result;
 
 namespace TickAPI.Common.Auth.Services;
 
-public class GoogleAuthService : IAuthService
+public class GoogleAuthService : IGoogleAuthService
 {
     private readonly IGoogleTokenValidator _googleTokenValidator;
 
@@ -13,16 +13,17 @@ public class GoogleAuthService : IAuthService
         _googleTokenValidator = googleTokenValidator;
     }
 
-    public async Task<Result<string>> LoginAsync(string idToken)
+    public async Task<Result<GoogleUserData>> GetUserDataFromToken(string idToken)
     {
         try
         {
             var payload = await _googleTokenValidator.ValidateAsync(idToken);
-            return Result<string>.Success(payload.Email);
+            var userData = new GoogleUserData(payload.Email, payload.GivenName, payload.FamilyName);
+            return Result<GoogleUserData>.Success(userData);
         }
         catch (Exception)
         {
-            return Result<string>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google ID token");
+            return Result<GoogleUserData>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google ID token");
         }
     }
 }
