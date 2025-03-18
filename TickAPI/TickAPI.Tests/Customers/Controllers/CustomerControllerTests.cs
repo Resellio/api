@@ -96,7 +96,7 @@ public class CustomerControllerTests
         const string email = "test@example.com";
         const string firstName = "John";
         const string lastName = "Doe";
-        var creationDate = DateTime.UtcNow.AddDays(-30);
+        var creationDate = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
         
         var customer = new Customer
         {
