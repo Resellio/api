@@ -69,7 +69,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AuthPolicies.CustomerPolicy.ToString(), policy => policy.RequireRole(UserRole.Customer.ToString()));
     
     options.AddPolicy(AuthPolicies.NewOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
-    options.AddPolicy(AuthPolicies.NewCustomerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewCustomer.ToString()));
 });
 
 // Add admin services.
@@ -93,7 +92,7 @@ builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 
 // Add common services.
-builder.Services.AddScoped<IAuthService, GoogleAuthService>();
+builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
