@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.DTOs.Request;
@@ -44,5 +46,25 @@ public class CustomerController : ControllerBase
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
         
         return new ActionResult<GoogleLoginResponseDto>(new GoogleLoginResponseDto(jwtTokenResult.Value!));
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("about-me")]
+    public async Task<ActionResult<AboutMeResponseDto>> AboutMe()
+    {
+        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        if (email == null)
+            return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+        
+        var customerResult = await _customerService.GetCustomerByEmailAsync(email);
+        if (customerResult.IsError)
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "cannot find customer in database for authorized customer request");
+
+        var customer = customerResult.Value!;
+
+        var aboutMeResponse =
+            new AboutMeResponseDto(customer.Email, customer.FirstName, customer.LastName, customer.CreationDate);
+        return new ActionResult<AboutMeResponseDto>(aboutMeResponse);
     }
 }
