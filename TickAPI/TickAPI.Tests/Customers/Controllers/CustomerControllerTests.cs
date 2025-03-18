@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
+using TickAPI.Common.Auth.Responses;
 using TickAPI.Common.Result;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Controllers;
@@ -15,15 +16,16 @@ namespace TickAPI.Tests.Customers.Controllers;
 public class CustomerControllerTests
 {
     [Fact]
-    public async Task GoogleLogin_WhenAuthSuccessAndCustomerExists_ShouldReturnTokenAndNotNewCustomer()
+    public async Task GoogleLogin_WhenAuthSuccessAndCustomerExists_ShouldReturnToken()
     {
+        // Arrange
         const string email = "existing@test.com";
         const string idToken = "valid-google-token";
         const string jwtToken = "valid-jwt-token";
         
-        var authServiceMock = new Mock<IAuthService>();
-        authServiceMock.Setup(m => m.LoginAsync(idToken))
-            .ReturnsAsync(Result<string>.Success(email));
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        googleAuthServiceMock.Setup(m => m.GetUserDataFromToken(idToken))
+            .ReturnsAsync(Result<GoogleUserData>.Success(new GoogleUserData(email, "First", "Last")));
     
         var customerServiceMock = new Mock<ICustomerService>();
         customerServiceMock.Setup(m => m.GetCustomerByEmailAsync(email))
@@ -34,56 +36,34 @@ public class CustomerControllerTests
             .Returns(Result<string>.Success(jwtToken));
     
         var sut = new CustomerController(
-            authServiceMock.Object, 
+            googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             customerServiceMock.Object);
     
+        // Act
         var actionResult = await sut.GoogleLogin(new GoogleLoginDto(idToken));
     
+        // Assert
         Assert.Equal(jwtToken, actionResult.Value?.Token);
-        Assert.False(actionResult.Value?.IsNewCustomer);
     }
     
     [Fact]
-    public async Task GoogleLogin_WhenAuthSuccessAndCustomerDoesNotExist_ShouldReturnTokenAndNewCustomer()
+    public async Task GoogleLogin_WhenAuthSuccessAndCustomerDoesNotExist_ShouldCreateCustomerAndReturnToken()
     {
+        // Arrange
         const string email = "new@test.com";
         const string idToken = "valid-google-token";
-        const string jwtToken = "valid-jwt-token";
-        
-        var authServiceMock = new Mock<IAuthService>();
-        authServiceMock.Setup(m => m.LoginAsync(idToken))
-            .ReturnsAsync(Result<string>.Success(email));
-        
-        var customerServiceMock = new Mock<ICustomerService>();
-        customerServiceMock.Setup(m => m.GetCustomerByEmailAsync(email))
-            .ReturnsAsync(Result<Customer>.Failure(StatusCodes.Status404NotFound, $"customer with email '{email}' not found"));
-        
-        var jwtServiceMock = new Mock<IJwtService>();
-        jwtServiceMock.Setup(m => m.GenerateJwtToken(email, UserRole.NewCustomer))
-            .Returns(Result<string>.Success(jwtToken));
-        
-        var sut = new CustomerController(
-            authServiceMock.Object, 
-            jwtServiceMock.Object, 
-            customerServiceMock.Object);
-        
-        var result = await sut.GoogleLogin(new GoogleLoginDto(idToken));
-        
-        Assert.Equal(jwtToken, result.Value?.Token);
-        Assert.True(result.Value?.IsNewCustomer);
-    }
-    
-    [Fact]
-    public async Task GoogleCreateNewAccount_WhenCreatingAccountIsSuccessful_ShouldReturnToken()
-    {
-        const string email = "new@test.com";
         const string firstName = "First";
         const string lastName = "Last";
         const string jwtToken = "valid-jwt-token";
         
-        var authServiceMock = new Mock<IAuthService>();
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        googleAuthServiceMock.Setup(m => m.GetUserDataFromToken(idToken))
+            .ReturnsAsync(Result<GoogleUserData>.Success(new GoogleUserData(email, "First", "Last")));
+        
         var customerServiceMock = new Mock<ICustomerService>();
+        customerServiceMock.Setup(m => m.GetCustomerByEmailAsync(email))
+            .ReturnsAsync(Result<Customer>.Failure(StatusCodes.Status404NotFound, $"customer with email '{email}' not found"));
         customerServiceMock.Setup(m => m.CreateNewCustomerAsync(email, firstName, lastName))
             .ReturnsAsync(Result<Customer>.Success(new Customer
             {
@@ -98,51 +78,100 @@ public class CustomerControllerTests
             .Returns(Result<string>.Success(jwtToken));
         
         var sut = new CustomerController(
-            authServiceMock.Object, 
+            googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
+            customerServiceMock.Object);
+        
+        // Act
+        var result = await sut.GoogleLogin(new GoogleLoginDto( idToken ));
+        
+        // Assert
+        Assert.Equal(jwtToken, result.Value?.Token);
+    }
+    
+    [Fact]
+    public async Task AboutMe_WithValidEmailClaim_ShouldReturnCustomerDetails()
+    {
+        // Arrange
+        const string email = "test@example.com";
+        const string firstName = "John";
+        const string lastName = "Doe";
+        var creationDate = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
+        
+        var customer = new Customer
+        {
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            CreationDate = creationDate
+        };
+        
+        var customerServiceMock = new Mock<ICustomerService>();
+        customerServiceMock.Setup(m => m.GetCustomerByEmailAsync(email))
+            .ReturnsAsync(Result<Customer>.Success(customer));
+        
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        var jwtServiceMock = new Mock<IJwtService>();
+        
+        var sut = new CustomerController(
+            googleAuthServiceMock.Object,
+            jwtServiceMock.Object,
             customerServiceMock.Object);
         
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email)
         };
+        var identity = new ClaimsIdentity(claims);
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        
         sut.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
-                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+                User = claimsPrincipal
             }
         };
         
-        var result = await sut.GoogleCreateNewAccount(
-            new GoogleCreateNewAccountDto( firstName, lastName ));
+        // Act
+        var result = await sut.AboutMe();
         
-        Assert.Equal(jwtToken, result.Value?.Token);
+        // Assert
+        Assert.Equal(email, result.Value?.Email);
+        Assert.Equal(firstName, result.Value?.FirstName);
+        Assert.Equal(lastName, result.Value?.LastName);
+        Assert.Equal(creationDate, result.Value?.CreationDate);
     }
-    
+
     [Fact]
-    public async Task GoogleCreateNewAccount_WhenEmailClaimIsMissing_ShouldReturnBadRequest()
+    public async Task AboutMe_WithMissingEmailClaim_ShouldReturnBadRequest()
     {
-        var authServiceMock = new Mock<IAuthService>();
-        var jwtServiceMock = new Mock<IJwtService>();
+        // Arrange
         var customerServiceMock = new Mock<ICustomerService>();
-    
+        var googleAuthServiceMock = new Mock<IGoogleAuthService>();
+        var jwtServiceMock = new Mock<IJwtService>();
+        
         var sut = new CustomerController(
-            authServiceMock.Object, 
-            jwtServiceMock.Object, 
+            googleAuthServiceMock.Object,
+            jwtServiceMock.Object,
             customerServiceMock.Object);
-    
+        
+        var claims = new List<Claim>();
+        var identity = new ClaimsIdentity(claims);
+        var claimsPrincipal = new ClaimsPrincipal(identity);
+        
         sut.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
-                User = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>()))
+                User = claimsPrincipal
             }
         };
-    
-        var result = await sut.GoogleCreateNewAccount(
-            new GoogleCreateNewAccountDto("First","Last"));
-    
+        
+        // Act
+        var result = await sut.AboutMe();
+        
+        // Assert
         var objectResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         Assert.Equal("missing email claim", objectResult.Value);

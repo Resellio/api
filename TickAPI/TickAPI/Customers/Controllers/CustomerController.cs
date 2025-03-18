@@ -13,13 +13,13 @@ namespace TickAPI.Customers.Controllers;
 [Route("api/[controller]")]
 public class CustomerController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
     private readonly ICustomerService _customerService;
     
-    public CustomerController(IAuthService authService, IJwtService jwtService, ICustomerService customerService)
+    public CustomerController(IGoogleAuthService googleAuthService, IJwtService jwtService, ICustomerService customerService)
     {
-        _authService = authService;
+        _googleAuthService = googleAuthService;
         _jwtService = jwtService;
         _customerService = customerService;
     }
@@ -27,48 +27,44 @@ public class CustomerController : ControllerBase
     [HttpPost("google-login")]
     public async Task<ActionResult<GoogleLoginResponseDto>> GoogleLogin([FromBody] GoogleLoginDto request)
     {
-        var loginResult = await _authService.LoginAsync(request.IdToken);
-        if(loginResult.IsError)
-            return StatusCode(loginResult.StatusCode, loginResult.ErrorMsg);
+        var userDataResult = await _googleAuthService.GetUserDataFromToken(request.IdToken);
+        if(userDataResult.IsError)
+            return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
 
-        UserRole role;
-        bool isNewCustomer;
+        var userData = userDataResult.Value!;
         
-        var existingCustomerResult = await _customerService.GetCustomerByEmailAsync(loginResult.Value!);
-        if (existingCustomerResult.IsSuccess)
+        var existingCustomerResult = await _customerService.GetCustomerByEmailAsync(userData.Email);
+        if (existingCustomerResult.IsError)
         {
-            role = UserRole.Customer;
-            isNewCustomer = false;
-        }
-        else
-        {
-            role = UserRole.NewCustomer;
-            isNewCustomer = true;
+            var newCustomerResult = await _customerService.CreateNewCustomerAsync(userData.Email, userData.FirstName, userData.LastName);
+            if (newCustomerResult.IsError)
+                return StatusCode(newCustomerResult.StatusCode, newCustomerResult.ErrorMsg);
         }
         
-        var jwtTokenResult = _jwtService.GenerateJwtToken(loginResult.Value, role);
+        var jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.Customer);
         if (jwtTokenResult.IsError)
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
         
-        return new ActionResult<GoogleLoginResponseDto>(new GoogleLoginResponseDto(jwtTokenResult.Value!, isNewCustomer));
+        return new ActionResult<GoogleLoginResponseDto>(new GoogleLoginResponseDto(jwtTokenResult.Value!));
     }
 
-    [AuthorizeWithPolicy(AuthPolicies.NewCustomerPolicy)]
-    [HttpPost("google-create-new-account")]
-    public async Task<ActionResult<GoogleCreateNewAccountResponseDto>> GoogleCreateNewAccount([FromBody] GoogleCreateNewAccountDto request)
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("about-me")]
+    public async Task<ActionResult<AboutMeResponseDto>> AboutMe()
     {
         var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         if (email == null)
             return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+        
+        var customerResult = await _customerService.GetCustomerByEmailAsync(email);
+        if (customerResult.IsError)
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                "cannot find customer in database for authorized customer request");
 
-        var newCustomerResult = await _customerService.CreateNewCustomerAsync(email, request.FirstName, request.LastName);
-        if (newCustomerResult.IsError)
-            return StatusCode(newCustomerResult.StatusCode, newCustomerResult.ErrorMsg);
-        
-        var jwtTokenResult = _jwtService.GenerateJwtToken(newCustomerResult.Value!.Email, UserRole.Customer);
-        if (jwtTokenResult.IsError)
-            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
-        
-        return new ActionResult<GoogleCreateNewAccountResponseDto>(new GoogleCreateNewAccountResponseDto(jwtTokenResult.Value!));
+        var customer = customerResult.Value!;
+
+        var aboutMeResponse =
+            new AboutMeResponseDto(customer.Email, customer.FirstName, customer.LastName, customer.CreationDate);
+        return new ActionResult<AboutMeResponseDto>(aboutMeResponse);
     }
 }

@@ -6,5 +6,4 @@ public enum AuthPolicies
     OrganizerPolicy,
     CustomerPolicy,
     NewOrganizerPolicy,
-    NewCustomerPolicy,
 }

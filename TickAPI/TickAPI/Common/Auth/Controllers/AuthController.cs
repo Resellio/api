@@ -8,12 +8,12 @@ namespace TickAPI.Common.Auth.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IAuthService _authService;
+    private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
 
-    public AuthController(IAuthService authService, IJwtService jwtService)
+    public AuthController(IGoogleAuthService googleAuthService, IJwtService jwtService)
     {
-        _authService = authService;
+        _googleAuthService = googleAuthService;
         _jwtService = jwtService;
     }
     
@@ -22,12 +22,12 @@ public class AuthController : ControllerBase
     [HttpPost("google-login")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
-        var loginResult = await _authService.LoginAsync(request.IdToken);
+        var userDataResult = await _googleAuthService.GetUserDataFromToken(request.IdToken);
         
-        if(loginResult.IsError)
-            return StatusCode(loginResult.StatusCode, loginResult.ErrorMsg);
+        if(userDataResult.IsError)
+            return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
 
-        var jwtTokenResult = _jwtService.GenerateJwtToken(loginResult.Value, UserRole.Customer);
+        var jwtTokenResult = _jwtService.GenerateJwtToken(userDataResult.Value?.Email, UserRole.Customer);
         
         if(jwtTokenResult.IsError)
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
