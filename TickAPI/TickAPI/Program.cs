@@ -94,7 +94,7 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
+builder.Services.AddScoped<IGoogleDataFetcher, GoogleDataFetcher>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 

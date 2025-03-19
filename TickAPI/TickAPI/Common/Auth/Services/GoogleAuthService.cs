@@ -7,30 +7,26 @@ namespace TickAPI.Common.Auth.Services;
 
 public class GoogleAuthService : IGoogleAuthService
 {
-    private IConfiguration _configuration;
-    private IHttpClientFactory _httpClientFactory;
+    private IGoogleDataFetcher _googleDataFetcher;
 
-    public GoogleAuthService(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public GoogleAuthService(IGoogleDataFetcher googleDataFetcher)
     {
-        _configuration = configuration;
-        _httpClientFactory = httpClientFactory;
+        _googleDataFetcher = googleDataFetcher;
     }
 
     public async Task<Result<GoogleUserData>> GetUserDataFromAccessToken(string accessToken)
     {
         try
         {
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
-            
-            var response = client.GetAsync(_configuration["Authentication:Google:UserInfoEndpoint"]).Result;
+            var response = await _googleDataFetcher.FetchUserDataAsync(accessToken);
+
             if (!response.IsSuccessStatusCode)
             {
                 return Result<GoogleUserData>.Failure(StatusCodes.Status401Unauthorized, "Invalid Google access token");
             }
-            
+
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var userInfo = JsonSerializer.Deserialize<GoogleUserData>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var userInfo = JsonSerializer.Deserialize<GoogleUserData>(jsonResponse, new JsonSerializerOptions());
             
             if (userInfo == null)
             {

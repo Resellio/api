@@ -1,44 +1,93 @@
-﻿using Google.Apis.Auth;
+﻿using System.Net;
 using Microsoft.AspNetCore.Http;
 using Moq;
+using System.Text.Json;
 using TickAPI.Common.Auth.Abstractions;
+using TickAPI.Common.Auth.Responses;
 using TickAPI.Common.Auth.Services;
-using TickAPI.Common.Result;
 
 namespace TickAPI.Tests.Common.Auth.Services;
 
 public class GoogleAuthServiceTests
 {
-    [Fact]
-    public async Task GetUserDataFromToken_WhenTokenValidatorReturnsPayload_ShouldReturnEmailFromPayload()
+    private readonly Mock<IGoogleDataFetcher> _googleDataFetcherMock;
+    
+    public GoogleAuthServiceTests()
     {
-        var googleTokenValidatorMock = new Mock<IGoogleTokenValidator>();
-        googleTokenValidatorMock
-            .Setup(m => m.ValidateAsync("validToken"))
-            .ReturnsAsync(new GoogleJsonWebSignature.Payload { Email = "example@test.com", GivenName = "First", FamilyName = "Last"});
-        var sut = new GoogleAuthService(googleTokenValidatorMock.Object);
+        var validMessage = new HttpResponseMessage(HttpStatusCode.OK);
+        validMessage.Content = new StringContent(JsonSerializer.Serialize(new GoogleUserData("example@test.com", "Name", "Surname")));
         
-        var result = await sut.GetUserDataFromToken("validToken");
+        var unauthorizedMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
         
+        var wrongContentMessage = new HttpResponseMessage(HttpStatusCode.OK);
+        wrongContentMessage.Content = new StringContent("This content is wrong");
+        
+        _googleDataFetcherMock = new Mock<IGoogleDataFetcher>();
+        _googleDataFetcherMock
+            .Setup(m => m.FetchUserDataAsync("validToken"))
+            .ReturnsAsync(validMessage);
+        _googleDataFetcherMock
+            .Setup(m => m.FetchUserDataAsync("invalidToken"))
+            .ReturnsAsync(unauthorizedMessage);
+        _googleDataFetcherMock
+            .Setup(m => m.FetchUserDataAsync("wrongContentToken"))
+            .ReturnsAsync(wrongContentMessage);
+        _googleDataFetcherMock
+            .Setup(m => m.FetchUserDataAsync("throwToken"))
+            .ThrowsAsync(new Exception("An exception occurred"));
+    }
+    
+    [Fact]
+    public async Task GetUserDataFromAccessToken_WhenDataFetcherReturnsValidResponse_ShouldReturnUserDataFromResponse()
+    {
+        var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
+        
+        var result = await sut.GetUserDataFromAccessToken("validToken");
+        
+        Assert.NotNull(result);
         Assert.True(result.IsSuccess);
-        Assert.Equal("example@test.com", result.Value?.Email);
-        Assert.Equal("First", result.Value?.FirstName);
-        Assert.Equal("Last", result.Value?.LastName);
+        Assert.Equal("example@test.com", result.Value!.Email);
+        Assert.Equal("Name", result.Value!.GivenName);
+        Assert.Equal("Surname", result.Value!.FamilyName);
     }
 
     [Fact]
-    public async Task GetUserDataFromToken_WhenTokenValidatorThrowsException_ShouldReturnFailure()
+    public async Task
+        GetUserDataFromAccessToken_WhenDataFetcherReturnsResponseWithErrorStatusCode_ShouldReturnFailure()
     {
-        var googleTokenValidatorMock = new Mock<IGoogleTokenValidator>();
-        googleTokenValidatorMock
-            .Setup(m => m.ValidateAsync("invalidToken"))
-            .Throws(new InvalidJwtException("Invalid Google ID token"));
-        var sut = new GoogleAuthService(googleTokenValidatorMock.Object);
+        var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
         
-        var result = await sut.GetUserDataFromToken("invalidToken");
+        var result = await sut.GetUserDataFromAccessToken("invalidToken");
         
+        Assert.NotNull(result);
         Assert.True(result.IsError);
         Assert.Equal(StatusCodes.Status401Unauthorized, result.StatusCode);
-        Assert.Equal("Invalid Google ID token", result.ErrorMsg);
+        Assert.Equal("Invalid Google access token", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task GetUserDataFromAccessToken_WhenDataFetcherReturnsResponseWithInvalidJson_ShouldReturnFailure()
+    {
+        var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
+        
+        var result = await sut.GetUserDataFromAccessToken("wrongContentToken");
+        
+        Assert.NotNull(result);
+        Assert.True(result.IsError);
+        Assert.Equal(StatusCodes.Status500InternalServerError, result.StatusCode);
+        Assert.Equal("Failed to parse Google user info", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task GetUserDataFromAccessToken_WhenDataFetcherThrowsAnException_ShouldReturnFailure()
+    {
+        var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
+        
+        var result = await sut.GetUserDataFromAccessToken("wrongContentToken");
+        
+        Assert.NotNull(result);
+        Assert.True(result.IsError);
+        Assert.Equal(StatusCodes.Status500InternalServerError, result.StatusCode);
+        Assert.Equal($"Error fetching user data: An exception occured", result.ErrorMsg);
     }
 }
