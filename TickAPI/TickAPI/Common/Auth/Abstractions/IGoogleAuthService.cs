@@ -5,5 +5,5 @@ namespace TickAPI.Common.Auth.Abstractions;
 
 public interface IGoogleAuthService
 {
-    Task<Result<GoogleUserData>> GetUserDataFromToken(string token); 
+    Task<Result<GoogleUserData>> GetUserDataFromAccessToken(string accessToken); 
 }

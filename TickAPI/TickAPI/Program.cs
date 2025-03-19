@@ -148,6 +148,9 @@ builder.Services.AddCors(options =>
 // Setup healtcheck
 builder.Services.AddHealthChecks().AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
 
+// Add http client
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
