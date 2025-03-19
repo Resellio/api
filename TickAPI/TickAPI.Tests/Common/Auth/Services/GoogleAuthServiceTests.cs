@@ -20,7 +20,7 @@ public class GoogleAuthServiceTests
         var unauthorizedMessage = new HttpResponseMessage(HttpStatusCode.Unauthorized);
         
         var wrongContentMessage = new HttpResponseMessage(HttpStatusCode.OK);
-        wrongContentMessage.Content = new StringContent("This content is wrong");
+        wrongContentMessage.Content = new StringContent("null");
         
         _googleDataFetcherMock = new Mock<IGoogleDataFetcher>();
         _googleDataFetcherMock
@@ -30,11 +30,11 @@ public class GoogleAuthServiceTests
             .Setup(m => m.FetchUserDataAsync("invalidToken"))
             .ReturnsAsync(unauthorizedMessage);
         _googleDataFetcherMock
-            .Setup(m => m.FetchUserDataAsync("wrongContentToken"))
+            .Setup(m => m.FetchUserDataAsync("nullToken"))
             .ReturnsAsync(wrongContentMessage);
         _googleDataFetcherMock
             .Setup(m => m.FetchUserDataAsync("throwToken"))
-            .ThrowsAsync(new Exception("An exception occurred"));
+            .ThrowsAsync(new Exception("An exception occured"));
     }
     
     [Fact]
@@ -66,11 +66,11 @@ public class GoogleAuthServiceTests
     }
 
     [Fact]
-    public async Task GetUserDataFromAccessToken_WhenDataFetcherReturnsResponseWithInvalidJson_ShouldReturnFailure()
+    public async Task GetUserDataFromAccessToken_WhenDataFetcherReturnsNullResponse_ShouldReturnFailure()
     {
         var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
         
-        var result = await sut.GetUserDataFromAccessToken("wrongContentToken");
+        var result = await sut.GetUserDataFromAccessToken("nullToken");
         
         Assert.NotNull(result);
         Assert.True(result.IsError);
@@ -83,7 +83,7 @@ public class GoogleAuthServiceTests
     {
         var sut = new GoogleAuthService(_googleDataFetcherMock.Object);
         
-        var result = await sut.GetUserDataFromAccessToken("wrongContentToken");
+        var result = await sut.GetUserDataFromAccessToken("throwToken");
         
         Assert.NotNull(result);
         Assert.True(result.IsError);
