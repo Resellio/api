@@ -20,11 +20,11 @@ public class CustomerControllerTests
     {
         // Arrange
         const string email = "existing@test.com";
-        const string idToken = "valid-google-token";
+        const string accessToken = "valid-google-token";
         const string jwtToken = "valid-jwt-token";
         
         var googleAuthServiceMock = new Mock<IGoogleAuthService>();
-        googleAuthServiceMock.Setup(m => m.GetUserDataFromToken(idToken))
+        googleAuthServiceMock.Setup(m => m.GetUserDataFromAccessToken(accessToken))
             .ReturnsAsync(Result<GoogleUserData>.Success(new GoogleUserData(email, "First", "Last")));
     
         var customerServiceMock = new Mock<ICustomerService>();
@@ -41,7 +41,7 @@ public class CustomerControllerTests
             customerServiceMock.Object);
     
         // Act
-        var actionResult = await sut.GoogleLogin(new GoogleLoginDto(idToken));
+        var actionResult = await sut.GoogleLogin(new GoogleLoginDto(accessToken));
     
         // Assert
         Assert.Equal(jwtToken, actionResult.Value?.Token);
@@ -52,13 +52,13 @@ public class CustomerControllerTests
     {
         // Arrange
         const string email = "new@test.com";
-        const string idToken = "valid-google-token";
+        const string accessToken = "valid-google-token";
         const string firstName = "First";
         const string lastName = "Last";
         const string jwtToken = "valid-jwt-token";
         
         var googleAuthServiceMock = new Mock<IGoogleAuthService>();
-        googleAuthServiceMock.Setup(m => m.GetUserDataFromToken(idToken))
+        googleAuthServiceMock.Setup(m => m.GetUserDataFromAccessToken(accessToken))
             .ReturnsAsync(Result<GoogleUserData>.Success(new GoogleUserData(email, "First", "Last")));
         
         var customerServiceMock = new Mock<ICustomerService>();
@@ -83,7 +83,7 @@ public class CustomerControllerTests
             customerServiceMock.Object);
         
         // Act
-        var result = await sut.GoogleLogin(new GoogleLoginDto( idToken ));
+        var result = await sut.GoogleLogin(new GoogleLoginDto( accessToken ));
         
         // Assert
         Assert.Equal(jwtToken, result.Value?.Token);
