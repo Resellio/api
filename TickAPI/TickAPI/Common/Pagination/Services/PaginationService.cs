@@ -1,6 +1,6 @@
 ﻿using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 
 namespace TickAPI.Common.Pagination.Services;
 

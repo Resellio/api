@@ -5,7 +5,7 @@ using Moq;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Auth.Responses;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Controllers;
 using TickAPI.Customers.DTOs.Request;

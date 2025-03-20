@@ -4,7 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 using TickAPI.Common.Time.Abstractions;
 
 namespace TickAPI.Common.Auth.Services;
