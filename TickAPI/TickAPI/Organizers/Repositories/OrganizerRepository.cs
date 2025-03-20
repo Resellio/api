@@ -36,13 +36,13 @@ public class OrganizerRepository : IOrganizerRepository
 
     public async Task<Result> VerifyOrganizerByEmailAsync(string organizerEmail)
     {
-        var organizer = await _tickApiDbContext.Organizers.FirstOrDefaultAsync(organizer => organizer.Email == organizerEmail);
-
-        if (organizer == null)
-        {
-            return Result.Failure(StatusCodes.Status404NotFound, $"organizer with email '{organizerEmail}' not found");
-        }
-
+        var organizerResult = await GetOrganizerByEmailAsync(organizerEmail);
+        
+        if(organizerResult.IsError)
+            return Result.PropagateError(organizerResult);
+        
+        var organizer = organizerResult.Value!;
+        
         if (organizer.IsVerified)
         {
             return Result.Failure(StatusCodes.Status400BadRequest, $"organizer with email '{organizerEmail}' is already verified");
