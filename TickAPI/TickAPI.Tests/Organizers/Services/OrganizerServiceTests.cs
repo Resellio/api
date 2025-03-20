@@ -46,7 +46,6 @@ public class OrganizerServiceTests
     public async Task GetOrganizerByEmailAsync_WhenOrganizerWithEmailIsNotReturnedFromRepository_ShouldReturnFailure()
     {
         // Arrange
-        Guid id = Guid.NewGuid();
         const string email = "example@test.com";
 
         var organizerRepositoryMock = new Mock<IOrganizerRepository>();
@@ -122,7 +121,6 @@ public class OrganizerServiceTests
         const string firstName = "First";
         const string lastName = "Last";
         const string displayName = "Display";
-        DateTime currentDate = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
 
         var organizerRepositoryMock = new Mock<IOrganizerRepository>();
         organizerRepositoryMock
