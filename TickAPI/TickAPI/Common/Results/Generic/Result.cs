@@ -1,4 +1,4 @@
-﻿namespace TickAPI.Common.Result;
+﻿namespace TickAPI.Common.Results.Generic;
 
 public record Result<T>
 {
@@ -24,6 +24,16 @@ public record Result<T>
     public static Result<T> Failure(int statusCode, string errorMsg)
     {
         return new Result<T>(false, default, statusCode, errorMsg);
+    }
+    
+    public static Result<T> PropagateError(Result other)
+    {
+        if (other.IsSuccess)
+        {
+            throw new ArgumentException("Trying to propagate error from successful value");
+        }
+
+        return Failure(other.StatusCode, other.ErrorMsg);
     }
 
     public static Result<T> PropagateError<TE>(Result<TE> other)
