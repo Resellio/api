@@ -46,24 +46,16 @@ public class OrganizerController : ControllerBase
             
             return new ActionResult<GoogleOrganizerLoginResponseDto>(new GoogleOrganizerLoginResponseDto(jwtTokenResult.Value!, true, false));
         }
-        
+
         var isVerified = existingOrganizerResult.Value!.IsVerified;
 
-        if (isVerified)
-        {
-            jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.Organizer);
-            
-            if(jwtTokenResult.IsError)
-                return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
-        }
-        else
-        {
-            jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.UnverifiedOrganizer);
-            
-            if(jwtTokenResult.IsError)
-                return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
-        }
-
+        var role = isVerified ? UserRole.Organizer : UserRole.UnverifiedOrganizer;
+        
+        jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, role);
+        
+        if(jwtTokenResult.IsError)
+            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+        
         return new ActionResult<GoogleOrganizerLoginResponseDto>(new GoogleOrganizerLoginResponseDto(jwtTokenResult.Value!, false, isVerified));
     }
 
@@ -79,7 +71,7 @@ public class OrganizerController : ControllerBase
         if(newOrganizerResult.IsError)
             return StatusCode(newOrganizerResult.StatusCode, newOrganizerResult.ErrorMsg);
         
-        var jwtTokenResult = _jwtService.GenerateJwtToken(newOrganizerResult.Value!.Email, UserRole.UnverifiedOrganizer);
+        var jwtTokenResult = _jwtService.GenerateJwtToken(newOrganizerResult.Value!.Email, newOrganizerResult.Value!.IsVerified ? UserRole.Organizer : UserRole.UnverifiedOrganizer);
         if(jwtTokenResult.IsError)
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
         
