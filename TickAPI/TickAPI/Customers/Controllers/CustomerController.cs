@@ -25,7 +25,7 @@ public class CustomerController : ControllerBase
     }
     
     [HttpPost("google-login")]
-    public async Task<ActionResult<GoogleLoginResponseDto>> GoogleLogin([FromBody] GoogleLoginDto request)
+    public async Task<ActionResult<GoogleCustomerLoginResponseDto>> GoogleLogin([FromBody] GoogleCustomerLoginDto request)
     {
         var userDataResult = await _googleAuthService.GetUserDataFromAccessToken(request.AccessToken);
         if(userDataResult.IsError)
@@ -45,12 +45,12 @@ public class CustomerController : ControllerBase
         if (jwtTokenResult.IsError)
             return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
         
-        return new ActionResult<GoogleLoginResponseDto>(new GoogleLoginResponseDto(jwtTokenResult.Value!));
+        return new ActionResult<GoogleCustomerLoginResponseDto>(new GoogleCustomerLoginResponseDto(jwtTokenResult.Value!));
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet("about-me")]
-    public async Task<ActionResult<AboutMeResponseDto>> AboutMe()
+    public async Task<ActionResult<AboutMeCustomerResponseDto>> AboutMe()
     {
         var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         if (email == null)
@@ -64,7 +64,7 @@ public class CustomerController : ControllerBase
         var customer = customerResult.Value!;
 
         var aboutMeResponse =
-            new AboutMeResponseDto(customer.Email, customer.FirstName, customer.LastName, customer.CreationDate);
-        return new ActionResult<AboutMeResponseDto>(aboutMeResponse);
+            new AboutMeCustomerResponseDto(customer.Email, customer.FirstName, customer.LastName, customer.CreationDate);
+        return new ActionResult<AboutMeCustomerResponseDto>(aboutMeResponse);
     }
 }

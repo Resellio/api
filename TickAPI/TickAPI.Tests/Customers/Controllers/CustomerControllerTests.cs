@@ -41,7 +41,7 @@ public class CustomerControllerTests
             customerServiceMock.Object);
     
         // Act
-        var actionResult = await sut.GoogleLogin(new GoogleLoginDto(accessToken));
+        var actionResult = await sut.GoogleLogin(new GoogleCustomerLoginDto(accessToken));
     
         // Assert
         Assert.Equal(jwtToken, actionResult.Value?.Token);
@@ -83,7 +83,7 @@ public class CustomerControllerTests
             customerServiceMock.Object);
         
         // Act
-        var result = await sut.GoogleLogin(new GoogleLoginDto( accessToken ));
+        var result = await sut.GoogleLogin(new GoogleCustomerLoginDto( accessToken ));
         
         // Assert
         Assert.Equal(jwtToken, result.Value?.Token);
