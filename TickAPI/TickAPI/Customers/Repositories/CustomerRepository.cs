@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Models;

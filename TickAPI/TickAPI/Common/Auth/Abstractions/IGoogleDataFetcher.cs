@@ -1,5 +1,4 @@
 ﻿using Google.Apis.Auth;
-using TickAPI.Common.Result;
 
 namespace TickAPI.Common.Auth.Abstractions;
 

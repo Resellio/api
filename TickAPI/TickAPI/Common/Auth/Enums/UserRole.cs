@@ -6,4 +6,5 @@ public enum UserRole
     Organizer,
     Customer,
     NewOrganizer,
+    UnverifiedOrganizer,
 }

@@ -3,7 +3,8 @@
 public enum AuthPolicies
 {
     AdminPolicy,
-    OrganizerPolicy,
+    VerifiedOrganizerPolicy,
     CustomerPolicy,
     NewOrganizerPolicy,
+    CreatedOrganizerPolicy,
 }

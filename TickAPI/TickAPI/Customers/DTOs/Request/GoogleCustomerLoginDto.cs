@@ -1,5 +1,5 @@
 ﻿namespace TickAPI.Customers.DTOs.Request;
 
-public record GoogleLoginDto(
+public record GoogleCustomerLoginDto(
     string AccessToken
 );

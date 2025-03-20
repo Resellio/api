@@ -1,17 +1,15 @@
-﻿using TickAPI.Common.Result;
+﻿using TickAPI.Common.Results;
+using TickAPI.Common.Results.Generic;
 
-namespace TickAPI.Tests.Common.Result;
+namespace TickAPI.Tests.Common.Results;
 
 public class ResultTests
 {
     [Fact]
-    public void Success_ShouldReturnResultWithValue()
+    public void Success_ShouldReturnResultWithSuccess()
     {
-        const int value = 123;
+        var result = Result.Success();
         
-        var result = Result<int>.Success(value);
-        
-        Assert.Equal(value, result.Value);
         Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
         Assert.Equal("", result.ErrorMsg);
@@ -24,33 +22,33 @@ public class ResultTests
         const int statusCode = 500;
         const string errorMsg = "example error msg";
         
-        var result = Result<int>.Failure(500, errorMsg);
+        var result = Result.Failure(500, errorMsg);
         
         Assert.True(result.IsError);
         Assert.False(result.IsSuccess);
         Assert.Equal(errorMsg, result.ErrorMsg);
         Assert.Equal(statusCode, result.StatusCode);
     }
-
+    
     [Fact]
-    public void PropagateError_WhenResultWithErrorPassed_ShouldReturnResultWithError()
+    public void PropagateError_WhenGenericResultWithErrorPassed_ShouldReturnResultWithError()
     {
         const int statusCode = 500;
         const string errorMsg = "error message";
-        var resultWithError = Result<string>.Failure(statusCode, errorMsg);
+        var resultWithError = Result<int>.Failure(statusCode, errorMsg);
 
-        var result = Result<int>.PropagateError(resultWithError);
+        var result = Result.PropagateError(resultWithError);
         
         Assert.True(result.IsError);
         Assert.False(result.IsSuccess);
         Assert.Equal(errorMsg, result.ErrorMsg);
         Assert.Equal(statusCode, result.StatusCode);
     }
-
+    
     [Fact]
-    public void PropagateError_WhenResultWithSuccessPassed_ShouldThrowArgumentException()
+    public void PropagateError_WhenGenericResultWithSuccessPassed_ShouldThrowArgumentException()
     {
-        var resultWithSuccess = Result<string>.Success("abc");
+        var resultWithSuccess = Result<int>.Success(123);
 
         var act = () => Result<int>.PropagateError(resultWithSuccess);
 

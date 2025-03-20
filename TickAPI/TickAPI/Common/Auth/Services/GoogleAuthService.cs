@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Responses;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 
 namespace TickAPI.Common.Auth.Services;
 

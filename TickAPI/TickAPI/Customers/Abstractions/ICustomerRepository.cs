@@ -1,4 +1,4 @@
-﻿using TickAPI.Common.Result;
+﻿using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Models;
 
 namespace TickAPI.Customers.Abstractions;

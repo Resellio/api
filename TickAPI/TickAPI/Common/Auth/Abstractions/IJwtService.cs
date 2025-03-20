@@ -1,5 +1,5 @@
 ﻿using TickAPI.Common.Auth.Enums;
-using TickAPI.Common.Result;
+using TickAPI.Common.Results.Generic;
 
 namespace TickAPI.Common.Auth.Abstractions;
 
