@@ -27,7 +27,7 @@ public class CustomerController : ControllerBase
     [HttpPost("google-login")]
     public async Task<ActionResult<GoogleLoginResponseDto>> GoogleLogin([FromBody] GoogleLoginDto request)
     {
-        var userDataResult = await _googleAuthService.GetUserDataFromToken(request.IdToken);
+        var userDataResult = await _googleAuthService.GetUserDataFromAccessToken(request.AccessToken);
         if(userDataResult.IsError)
             return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
 
@@ -36,7 +36,7 @@ public class CustomerController : ControllerBase
         var existingCustomerResult = await _customerService.GetCustomerByEmailAsync(userData.Email);
         if (existingCustomerResult.IsError)
         {
-            var newCustomerResult = await _customerService.CreateNewCustomerAsync(userData.Email, userData.FirstName, userData.LastName);
+            var newCustomerResult = await _customerService.CreateNewCustomerAsync(userData.Email, userData.GivenName, userData.FamilyName);
             if (newCustomerResult.IsError)
                 return StatusCode(newCustomerResult.StatusCode, newCustomerResult.ErrorMsg);
         }

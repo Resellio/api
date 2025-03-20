@@ -94,7 +94,7 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IGoogleTokenValidator, GoogleTokenValidator>();
+builder.Services.AddScoped<IGoogleDataFetcher, GoogleDataFetcher>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 
@@ -147,6 +147,9 @@ builder.Services.AddCors(options =>
 // TODO: when we start using redis we should probably also check here if we can connect to it
 // Setup healtcheck
 builder.Services.AddHealthChecks().AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
+
+// Add http client
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
