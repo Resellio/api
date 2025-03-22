@@ -27,16 +27,18 @@ public class EventController : ControllerBase
     [HttpPost("create-event")]
     public async Task<ActionResult<CreateEventResponseDto>> CreateEvent([FromBody] CreateEventDto request)
     {
-        DateTime startDate, endDate;
         var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         if (email == null)
             return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
-        Console.WriteLine(request.StartDate);
-        if (!DateTime.TryParse(request.StartDate, out startDate))
+
+        if (!DateTime.TryParse(request.StartDate, out DateTime startDate))
             return BadRequest("Invalid start date format");
         
-        if (!DateTime.TryParse(request.EndDate, out endDate))
+        if (!DateTime.TryParse(request.EndDate, out DateTime endDate))
             return BadRequest("Invalid end date format");
+        
+        if(endDate < startDate)
+            return BadRequest("End date must be after start date");
         
         var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, startDate, endDate, request.MinimumAge, email, Address.FromDto(request.Address));
         
@@ -44,6 +46,6 @@ public class EventController : ControllerBase
             return StatusCode(newEventResult.StatusCode, newEventResult.ErrorMsg);
         
         
-        return new ActionResult<CreateEventResponseDto>(new CreateEventResponseDto());
+        return StatusCode(200, "Event created succesfully");
     }
 }
