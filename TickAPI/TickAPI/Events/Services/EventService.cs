@@ -9,18 +9,16 @@ namespace TickAPI.Events.Services;
 
 public class EventService : IEventService
 {
-    private readonly IDateTimeService  _dateTimeService;
     private readonly  IOrganizerService _organizerService;
     private readonly IEventRepository _eventRepository;
 
-    public EventService(IDateTimeService dateTimeService, IEventRepository eventRepository, IOrganizerService organizerService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService)
     {
-        _dateTimeService = dateTimeService;
         _eventRepository = eventRepository;
         _organizerService = organizerService;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  string startDate, string endDate, uint? minimumAge, AddressDto address, string organizerEmail)
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  string startDate, string endDate, uint? minimumAge, AddressDto address, EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
@@ -44,7 +42,8 @@ public class EventService : IEventService
             EndDate = endDateParsed,
             MinimumAge = minimumAge,
             Address = Models.Address.FromDto(address),
-            Organizer = organizerResult.Value!
+            Organizer = organizerResult.Value!,
+            EventStatus = eventStatus
         };
         await _eventRepository.AddNewEventAsync(@event);
         return Result<Event>.Success(@event);

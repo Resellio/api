@@ -7,5 +7,5 @@ namespace TickAPI.Events.Abstractions;
 public interface IEventService
 {
     public Task<Result<Event>> CreateNewEventAsync(string name, string description, string startDate,
-        string endDate, uint? minimumAge, AddressDto address, string organizerEmail);
+        string endDate, uint? minimumAge, AddressDto address, EventStatus eventStatus, string organizerEmail);
 }
