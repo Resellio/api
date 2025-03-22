@@ -25,10 +25,12 @@ public class EventService : IEventService
             return Result<Event>.Failure(StatusCodes.Status400BadRequest,
                 $"organizer with email '{organizerEmail}' doesn't exist");
 
-        if (!DateTime.TryParse(startDate, out DateTime startDateParsed))
+        if (!DateTime.TryParse(startDate, new System.Globalization.CultureInfo("fr-FR"), 
+                System.Globalization.DateTimeStyles.None, out DateTime startDateParsed))
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Invalid start date format");
         
-        if (!DateTime.TryParse(endDate, out DateTime endDateParsed))
+        if (!DateTime.TryParse(endDate, new System.Globalization.CultureInfo("fr-FR"), 
+                System.Globalization.DateTimeStyles.None, out DateTime endDateParsed))
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Invalid end date format");
 
         if (endDateParsed < startDateParsed)
