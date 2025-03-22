@@ -23,4 +23,8 @@
         <ProjectReference Include="..\TickAPI\TickAPI.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Events\Controllers\" />
+    </ItemGroup>
+
 </Project>
