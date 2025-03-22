@@ -1,6 +1,14 @@
-﻿namespace TickAPI.Events.DTOs.Request;
+﻿using TickAPI.Events.Models;
 
-public class CreateEventDto
-{
-    
-}
+namespace TickAPI.Events.DTOs.Request;
+
+public record CreateEventDto
+(
+    string Name,
+    string Description,
+    string StartDate,
+    string EndDate,
+    uint? MinimumAge,
+    EventStatus EventStatus,
+    AddressDto Address
+);
