@@ -27,8 +27,8 @@ public class EventServicesTests
         Guid id = Guid.NewGuid();
         AddressDto address = new AddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
-        var eventServiceMock = new Mock<IEventRepository>();
-        eventServiceMock.Setup(e => e.AddNewEventAsync(It.IsAny<Event>())).Callback<Event>(e => e.Id = id)
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock.Setup(e => e.AddNewEventAsync(It.IsAny<Event>())).Callback<Event>(e => e.Id = id)
             .Returns(Task.CompletedTask);
         
         var organizerServiceMock = new Mock<IOrganizerService>();
@@ -36,7 +36,7 @@ public class EventServicesTests
             .Setup(m => m.GetOrganizerByEmailAsync(organizerEmail))
             .ReturnsAsync(Result<Organizer>.Success(new Organizer { Email = organizerEmail, IsVerified = true }));
 
-        var sut = new EventService(eventServiceMock.Object, organizerServiceMock.Object);
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object);
         // act
         
         var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, address, eventStatus, organizerEmail);
