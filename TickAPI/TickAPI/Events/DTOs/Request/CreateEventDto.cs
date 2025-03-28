@@ -6,8 +6,8 @@ public record CreateEventDto
 (
     string Name,
     string Description,
-    string StartDate,
-    string EndDate,
+    DateTime StartDate,
+    DateTime EndDate,
     uint? MinimumAge,
     EventStatus EventStatus,
     CreateAddressDto CreateAddress

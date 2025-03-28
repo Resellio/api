@@ -19,8 +19,8 @@ public class EventServicesTests
         // arrange
         string name = "Concert";
         string description = "Description of a concert";
-        string startDate = "01.05.2025";
-        string endDate = "01.06.2025";
+        DateTime startDate = new DateTime(2025, 5, 1);
+        DateTime endDate = new DateTime(2025, 6, 1);
         uint? minimumAge = 18;
         string organizerEmail = "123@mail.com";
         EventStatus eventStatus = EventStatus.TicketsAvailable;

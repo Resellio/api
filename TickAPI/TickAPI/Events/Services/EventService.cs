@@ -20,22 +20,21 @@ public class EventService : IEventService
         _addressService = addressService;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  string startDate, string endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail)
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
             return Result<Event>.PropagateError(organizerResult);
-
-        if (!DateTime.TryParse(startDate, new System.Globalization.CultureInfo("fr-FR"), 
-                System.Globalization.DateTimeStyles.None, out DateTime startDateParsed))
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Invalid start date format");
         
-        if (!DateTime.TryParse(endDate, new System.Globalization.CultureInfo("fr-FR"), 
-                System.Globalization.DateTimeStyles.None, out DateTime endDateParsed))
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Invalid end date format");
 
-        if (endDateParsed < startDateParsed)
+        if (endDate < startDate)
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
+        
+        if (startDate < DateTime.Now)
+            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
+        
+        if (endDate < DateTime.Now)
+            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date is in the past");
         
         var address = await _addressService.GetAddressAsync(createAddress);
         
@@ -43,8 +42,8 @@ public class EventService : IEventService
         {
             Name = name,
             Description = description,
-            StartDate = startDateParsed,
-            EndDate = endDateParsed,
+            StartDate = startDate,
+            EndDate = endDate,
             MinimumAge = minimumAge,
             Address = address.Value!,
             Organizer = organizerResult.Value!,
