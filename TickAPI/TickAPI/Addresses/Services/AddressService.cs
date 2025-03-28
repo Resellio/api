@@ -3,8 +3,11 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.DTOs.Request;
 using TickAPI.Events.Models;
+using TickAPI.Addresses.Abstractions;
+using TickAPI.Addresses.DTOs.Request;
+using TickAPI.Addresses.Models;
 
-namespace TickAPI.Events.Services;
+namespace TickAPI.Addresses.Services;
 
 public class AddressService : IAddressService
 {

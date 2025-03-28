@@ -1,4 +1,4 @@
-﻿namespace TickAPI.Events.Models;
+﻿namespace TickAPI.Addresses.Models;
 using TickAPI.Events.DTOs.Request;
 public class Address
 {

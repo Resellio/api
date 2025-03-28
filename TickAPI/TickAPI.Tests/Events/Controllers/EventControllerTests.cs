@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Moq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Events.Controllers;
 using TickAPI.Events.Abstractions;
 using TickAPI.Common.Results;

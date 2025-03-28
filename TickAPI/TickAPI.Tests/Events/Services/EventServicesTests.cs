@@ -2,6 +2,9 @@
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.DTOs.Request;
 using Moq;
+using TickAPI.Addresses.Abstractions;
+using TickAPI.Addresses.DTOs.Request;
+using TickAPI.Addresses.Models;
 using TickAPI.Events.Models;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;

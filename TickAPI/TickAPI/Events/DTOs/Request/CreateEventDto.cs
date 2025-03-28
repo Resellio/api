@@ -1,4 +1,5 @@
 ﻿using TickAPI.Events.Models;
+using TickAPI.Addresses.DTOs.Request;
 
 namespace TickAPI.Events.DTOs.Request;
 

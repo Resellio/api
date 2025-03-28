@@ -1,4 +1,5 @@
-﻿using TickAPI.Events.Models;
+﻿using TickAPI.Addresses.DTOs.Request;
+using TickAPI.Events.Models;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Request;
 

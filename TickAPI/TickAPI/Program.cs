@@ -27,6 +27,9 @@ using TickAPI.Organizers.Services;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Repositories;
 using TickAPI.Tickets.Services;
+using TickAPI.Addresses.Abstractions;
+using TickAPI.Addresses.Repositories;
+using TickAPI.Addresses.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";

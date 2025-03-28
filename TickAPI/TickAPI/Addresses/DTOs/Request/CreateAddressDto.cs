@@ -1,6 +1,6 @@
 ﻿using TickAPI.Events.Models;
 
-namespace TickAPI.Events.DTOs.Request;
+namespace TickAPI.Addresses.DTOs.Request;
 
 public record CreateAddressDto(
 
