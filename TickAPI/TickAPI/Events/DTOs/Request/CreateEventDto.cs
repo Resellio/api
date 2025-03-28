@@ -10,5 +10,5 @@ public record CreateEventDto
     string EndDate,
     uint? MinimumAge,
     EventStatus EventStatus,
-    AddressDto Address
+    CreateAddressDto CreateAddress
 );

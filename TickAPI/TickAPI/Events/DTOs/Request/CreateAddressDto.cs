@@ -2,7 +2,7 @@
 
 namespace TickAPI.Events.DTOs.Request;
 
-public record AddressDto(
+public record CreateAddressDto(
 
     string Country,
     string City,

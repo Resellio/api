@@ -29,12 +29,12 @@ public class EventControllerTests
         string email = "123@mail.com";
         EventStatus eventStatus = EventStatus.TicketsAvailable;
         Guid id = Guid.NewGuid();
-        AddressDto address = new AddressDto("United States", "New York", "Main st", 20, null, "00-000");
-        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, eventStatus, address);
+        CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
+        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, eventStatus, createAddress);
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, address, eventStatus, email))
+            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, email))
             .ReturnsAsync(Result<Event>.Success(new Event()));
 
         var sut = new EventController(eventServiceMock.Object);
@@ -58,7 +58,7 @@ public class EventControllerTests
         
    
         var result = Assert.IsType<ActionResult<CreateEventResponseDto>>(res);
-        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        var objectResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(200, objectResult.StatusCode);
         Assert.Equal("Event created succesfully", objectResult.Value);
 

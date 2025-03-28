@@ -11,19 +11,20 @@ public class EventService : IEventService
 {
     private readonly  IOrganizerService _organizerService;
     private readonly IEventRepository _eventRepository;
+    private readonly IAddressService _addressService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
+        _addressService = addressService;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  string startDate, string endDate, uint? minimumAge, AddressDto address, EventStatus eventStatus, string organizerEmail)
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  string startDate, string endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest,
-                $"organizer with email '{organizerEmail}' doesn't exist");
+            return Result<Event>.PropagateError(organizerResult);
 
         if (!DateTime.TryParse(startDate, new System.Globalization.CultureInfo("fr-FR"), 
                 System.Globalization.DateTimeStyles.None, out DateTime startDateParsed))
@@ -36,6 +37,8 @@ public class EventService : IEventService
         if (endDateParsed < startDateParsed)
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
         
+        var address = await _addressService.GetAddressAsync(createAddress);
+        
         var @event = new Event
         {
             Name = name,
@@ -43,7 +46,7 @@ public class EventService : IEventService
             StartDate = startDateParsed,
             EndDate = endDateParsed,
             MinimumAge = minimumAge,
-            Address = Models.Address.FromDto(address),
+            Address = address.Value!,
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus
         };

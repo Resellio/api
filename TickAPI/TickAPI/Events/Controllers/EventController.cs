@@ -32,12 +32,12 @@ public class EventController : ControllerBase
             return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
         
         
-        var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, request.StartDate, request.EndDate, request.MinimumAge,  request.Address, request.EventStatus, email);
+        var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, request.StartDate, request.EndDate, request.MinimumAge,  request.CreateAddress, request.EventStatus, email);
         
         if(newEventResult.IsError)
             return StatusCode(newEventResult.StatusCode, newEventResult.ErrorMsg);
         
         
-        return StatusCode(200, "Event created succesfully");
+        return Ok("Event created succesfully");
     }
 }
