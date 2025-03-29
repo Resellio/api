@@ -18,7 +18,7 @@ public class AddressService : IAddressService
     {
         _addressRepository = addressRepository;
     }
-    public async Task<Result<Address>> GetAddressAsync(CreateAddressDto createAddress)
+    public async Task<Result<Address>> GetOrCreateAddressAsync(CreateAddressDto createAddress)
     {
         var  result = await _addressRepository.GetAddressAsync(createAddress);
         if (result.IsSuccess)

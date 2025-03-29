@@ -6,5 +6,5 @@ namespace TickAPI.Addresses.Abstractions;
 
 public interface IAddressService
 {
-    public Task<Result<Address>> GetAddressAsync(CreateAddressDto createAddress);
+    public Task<Result<Address>> GetOrCreateAddressAsync(CreateAddressDto createAddress);
 }

@@ -14,12 +14,14 @@ public class EventService : IEventService
     private readonly  IOrganizerService _organizerService;
     private readonly IEventRepository _eventRepository;
     private readonly IAddressService _addressService;
+    private readonly IDateTimeService _dateTimeService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
         _addressService = addressService;
+        _dateTimeService = dateTimeService;
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail)
@@ -32,13 +34,11 @@ public class EventService : IEventService
         if (endDate < startDate)
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
         
-        if (startDate < DateTime.Now)
+        if (startDate < _dateTimeService.GetCurrentDateTime())
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
         
-        if (endDate < DateTime.Now)
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date is in the past");
         
-        var address = await _addressService.GetAddressAsync(createAddress);
+        var address = await _addressService.GetOrCreateAddressAsync(createAddress);
         
         var @event = new Event
         {
