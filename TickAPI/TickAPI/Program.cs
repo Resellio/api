@@ -27,6 +27,9 @@ using TickAPI.Organizers.Services;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Repositories;
 using TickAPI.Tickets.Services;
+using TickAPI.Addresses.Abstractions;
+using TickAPI.Addresses.Repositories;
+using TickAPI.Addresses.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -83,6 +86,10 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 // Add event services.
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+
+// Add address services.
+builder.Services.AddScoped<IAddressService, AddressService>();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 
 // Add organizer services.
 builder.Services.AddScoped<IOrganizerService, OrganizerService>();

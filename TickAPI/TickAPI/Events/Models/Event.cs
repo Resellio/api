@@ -1,4 +1,5 @@
-﻿using TickAPI.Organizers.Models;
+﻿using TickAPI.Addresses.Models;
+using TickAPI.Organizers.Models;
 using TickAPI.Categories.Models;
 using TickAPI.TicketTypes.Models;
 

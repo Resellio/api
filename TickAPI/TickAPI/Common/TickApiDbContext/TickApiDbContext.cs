@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TickAPI.Addresses.Models;
 using TickAPI.Admins.Models;
 using TickAPI.Categories.Models;
 using TickAPI.Customers.Models;

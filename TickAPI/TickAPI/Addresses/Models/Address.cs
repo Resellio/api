@@ -1,5 +1,5 @@
-﻿namespace TickAPI.Events.Models;
-
+﻿namespace TickAPI.Addresses.Models;
+using TickAPI.Events.DTOs.Request;
 public class Address
 {
     public Guid Id { get; set; }
@@ -9,4 +9,5 @@ public class Address
     public uint? HouseNumber { get; set; }
     public uint? FlatNumber { get; set; }
     public string PostalCode { get; set; }
+    
 }
