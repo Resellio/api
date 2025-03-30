@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.Models;
-using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Categories.Respositories;
@@ -15,9 +14,9 @@ public class CategoryRepository : ICategoryRepository
         _tickApiDbContext = tickApiDbContext;
     }
 
-    public async Task<Result<IEnumerable<Category>>> GetCategoriesAsync()
+    public async Task<Result<ICollection<Category>>> GetCategoriesAsync()
     {
         var list = await _tickApiDbContext.Categories.ToListAsync();
-        return Result<IEnumerable<Category>>.Success(list);
+        return Result<ICollection<Category>>.Success(list);
     }
 }
