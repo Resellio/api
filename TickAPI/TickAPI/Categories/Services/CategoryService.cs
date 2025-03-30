@@ -1,5 +1,7 @@
 ﻿using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.DTOs.Response;
 using TickAPI.Categories.Models;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 
 namespace TickAPI.Categories.Services;
@@ -13,8 +15,14 @@ public class CategoryService : ICategoryService
         _categoryRepository = categoryRepository;
     }
 
-    public Task<Result<IEnumerable<Category>>> GetCategoriesAsync()
+    public async Task<Result<IEnumerable<GetCategoriesDto>>> GetCategoriesAsync()
     {
-        throw new NotImplementedException();
+        var res = await  _categoryRepository.GetCategoriesAsync();
+        List<GetCategoriesDto> categories = new List<GetCategoriesDto>();
+        foreach (var category in res.Value!)
+        {
+            categories.Add(new GetCategoriesDto(category.CategoryName));
+        }
+        return Result<IEnumerable<GetCategoriesDto>>.Success(categories);
     }
 }
