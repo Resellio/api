@@ -23,7 +23,7 @@ public class CategoryController : Controller
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
     [HttpPost("get-categories")]
-    public async Task<ActionResult<PaginatedData<GetCategoriesDto>>> GetCategories([FromQuery] int page, [FromQuery] int pageSize)
+    public async Task<ActionResult<PaginatedData<GetCategoriesDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
         var res = await _categoryService.GetCategoriesAsync(pageSize, page);
         if (!res.IsSuccess)
