@@ -4,7 +4,7 @@ using TickAPI.Common.Results.Generic;
 
 namespace TickAPI.Categories.Services;
 
-public class CategoryService : ICategoryRepository
+public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _categoryRepository;
 

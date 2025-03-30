@@ -30,6 +30,9 @@ using TickAPI.Tickets.Services;
 using TickAPI.Addresses.Abstractions;
 using TickAPI.Addresses.Repositories;
 using TickAPI.Addresses.Services;
+using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.Respositories;
+using TickAPI.Categories.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -98,6 +101,10 @@ builder.Services.AddScoped<IOrganizerRepository, OrganizerRepository>();
 // Add ticket services.
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+
+// Add category services.
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
