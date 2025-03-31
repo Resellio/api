@@ -33,10 +33,10 @@ public class CategoryServiceTests
         var sut = new CategoryService(categoryRepositoryMock.Object, paginationServiceMock.Object);
         
         //act
-        var res = await sut.GetCategoriesAsync(pageSize, page);
+        var res = await sut.GetCategoriesResponsesAsync(pageSize, page);
         
         //assert
-        var result = Assert.IsType<Result<PaginatedData<GetCategoriesDto>>>(res);
+        var result = Assert.IsType<Result<PaginatedData<GetCategoryResponseDto>>>(res);
         Assert.True(result.IsSuccess);
     }
 }

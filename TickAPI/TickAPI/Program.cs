@@ -76,6 +76,7 @@ builder.Services.AddAuthorization(options =>
     
     options.AddPolicy(AuthPolicies.NewOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
     options.AddPolicy(AuthPolicies.CreatedOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.UnverifiedOrganizer.ToString(), UserRole.Organizer.ToString()));
+    options.AddPolicy(AuthPolicies.VerifiedUserPolicy.ToString(), policy => policy.RequireRole(UserRole.Admin.ToString(), UserRole.Organizer.ToString(), UserRole.Customer.ToString()));
 });
 
 // Add admin services.

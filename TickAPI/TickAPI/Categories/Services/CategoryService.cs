@@ -18,22 +18,22 @@ public class CategoryService : ICategoryService
         _paginationService = paginationService;
     }
 
-    public async Task<Result<PaginatedData<GetCategoriesDto>>> GetCategoriesAsync(int pageSize, int page)
+    public async Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page)
     {
         var res = await  _categoryRepository.GetCategoriesAsync();
-        List<GetCategoriesDto> categories = new List<GetCategoriesDto>();
+        List<GetCategoryResponseDto> categories = new List<GetCategoryResponseDto>();
         var categoriesPaginated = _paginationService.Paginate<Category>(res.Value, pageSize, page);
         if (!categoriesPaginated.IsSuccess)
         {
-            return Result<PaginatedData<GetCategoriesDto>>.PropagateError(categoriesPaginated);
+            return Result<PaginatedData<GetCategoryResponseDto>>.PropagateError(categoriesPaginated);
         }
         
         foreach (var category in categoriesPaginated.Value.Data)
         {
-            categories.Add(new GetCategoriesDto(category.CategoryName));
+            categories.Add(new GetCategoryResponseDto(category.CategoryName));
         }
         
-        return Result<PaginatedData<GetCategoriesDto>>.Success(new PaginatedData<GetCategoriesDto>(categories, categoriesPaginated.Value.PageNumber
+        return Result<PaginatedData<GetCategoryResponseDto>>.Success(new PaginatedData<GetCategoryResponseDto>(categories, categoriesPaginated.Value.PageNumber
         ,categoriesPaginated.Value.PageSize, categoriesPaginated.Value.HasNextPage, categoriesPaginated.Value.HasPreviousPage,
         categoriesPaginated.Value.PaginationDetails));
     }

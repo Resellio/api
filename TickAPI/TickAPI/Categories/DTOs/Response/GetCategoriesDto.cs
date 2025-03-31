@@ -2,6 +2,6 @@
 
 namespace TickAPI.Categories.DTOs.Response;
 
-public record GetCategoriesDto(
+public record GetCategoryResponseDto(
     string CategoryName
 );

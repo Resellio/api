@@ -21,11 +21,11 @@ public class CategoryController : Controller
         _categoryService = categoryService;
     }
     
-    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
     [HttpPost("get-categories")]
-    public async Task<ActionResult<PaginatedData<GetCategoriesDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
+    public async Task<ActionResult<PaginatedData<GetCategoryResponseDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
-        var res = await _categoryService.GetCategoriesAsync(pageSize, page);
+        var res = await _categoryService.GetCategoriesResponsesAsync(pageSize, page);
         if (!res.IsSuccess)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, res.ErrorMsg);

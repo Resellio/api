@@ -20,8 +20,8 @@ public class CategoryControllerTests
         int pageSize = 20;
         int pageNumber = 0;
         var categoryServiceMock = new Mock<ICategoryService>();
-        categoryServiceMock.Setup(m => m.GetCategoriesAsync(pageSize, pageNumber)).ReturnsAsync(
-            Result<PaginatedData<GetCategoriesDto>>.Success(new PaginatedData<GetCategoriesDto>(new List<GetCategoriesDto>(), pageNumber, pageSize, true, true,
+        categoryServiceMock.Setup(m => m.GetCategoriesResponsesAsync(pageSize, pageNumber)).ReturnsAsync(
+            Result<PaginatedData<GetCategoryResponseDto>>.Success(new PaginatedData<GetCategoryResponseDto>(new List<GetCategoryResponseDto>(), pageNumber, pageSize, true, true,
                 new PaginationDetails(0, 0))));
 
         var sut = new CategoryController(categoryServiceMock.Object);
@@ -30,7 +30,7 @@ public class CategoryControllerTests
         var res = await sut.GetCategories(pageSize, pageNumber);
         
         //assert
-        var result = Assert.IsType<ActionResult<PaginatedData<GetCategoriesDto>>>(res);
+        var result = Assert.IsType<ActionResult<PaginatedData<GetCategoryResponseDto>>>(res);
         var objectResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(200, objectResult.StatusCode);
         Assert.NotNull(objectResult.Value);
