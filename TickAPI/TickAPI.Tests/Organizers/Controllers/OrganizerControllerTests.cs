@@ -6,6 +6,7 @@ using Moq;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Auth.Responses;
+using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Organizers.Abstractions;
@@ -41,10 +42,13 @@ public class OrganizerControllerTests
             .Setup(m => m.GenerateJwtToken(email, UserRole.Organizer))
             .Returns(Result<string>.Success(jwtToken));
         
+        var claimsServiceMock = new Mock<IClaimsService>();
+        
         var sut = new OrganizerController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
-            organizerServiceMock.Object
+            organizerServiceMock.Object,
+            claimsServiceMock.Object
         );
         
         // Act
@@ -79,10 +83,13 @@ public class OrganizerControllerTests
             .Setup(m => m.GenerateJwtToken(email, UserRole.UnverifiedOrganizer))
             .Returns(Result<string>.Success(jwtToken));
         
+        var claimsServiceMock = new Mock<IClaimsService>();
+        
         var sut = new OrganizerController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
-            organizerServiceMock.Object
+            organizerServiceMock.Object,
+            claimsServiceMock.Object
         );
         
         // Act
@@ -118,10 +125,13 @@ public class OrganizerControllerTests
             .Setup(m => m.GenerateJwtToken(email, UserRole.NewOrganizer))
             .Returns(Result<string>.Success(jwtToken));
         
+        var claimsServiceMock = new Mock<IClaimsService>();
+        
         var sut = new OrganizerController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
-            organizerServiceMock.Object
+            organizerServiceMock.Object,
+            claimsServiceMock.Object
         );
         
         // Act
@@ -164,22 +174,29 @@ public class OrganizerControllerTests
         jwtServiceMock.Setup(m => m.GenerateJwtToken(email, UserRole.UnverifiedOrganizer))
             .Returns(Result<string>.Success(jwtToken));
 
-        var sut = new OrganizerController(
-            googleAuthServiceMock.Object, 
-            jwtServiceMock.Object, 
-            organizerServiceMock.Object);
-        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email)
         };
-        sut.ControllerContext = new ControllerContext
+        var controllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(claims))
             }
         };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
+        
+        var sut = new OrganizerController(
+            googleAuthServiceMock.Object, 
+            jwtServiceMock.Object, 
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
+
+
+        sut.ControllerContext = controllerContext;
         
         // Act
         var actionResult = await sut.CreateOrganizer(new CreateOrganizerDto(firstName, lastName, displayName));
@@ -198,10 +215,14 @@ public class OrganizerControllerTests
         
         var jwtServiceMock = new Mock<IJwtService>();
 
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
+        
         var sut = new OrganizerController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
-            organizerServiceMock.Object);
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
         
         sut.ControllerContext = new ControllerContext
         {
@@ -234,15 +255,17 @@ public class OrganizerControllerTests
             .ReturnsAsync(Result.Success());
         
         var jwtServiceMock = new Mock<IJwtService>();
+
+        var claimsServiceMock = new Mock<IClaimsService>();
         
         var sut = new OrganizerController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
-            organizerServiceMock.Object);
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
         
         // Act
         var actionResult = await sut.VerifyOrganizer(new VerifyOrganizerDto(email));
-        
         
         // Assert
         var result = Assert.IsType<OkResult>(actionResult);
@@ -280,22 +303,28 @@ public class OrganizerControllerTests
         
         var jwtServiceMock = new Mock<IJwtService>();
 
-        var sut = new OrganizerController(
-            googleAuthServiceMock.Object, 
-            jwtServiceMock.Object, 
-            organizerServiceMock.Object);
-        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email)
         };
-        sut.ControllerContext = new ControllerContext
+        var controllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(claims))
             }
         };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
+        
+        var sut = new OrganizerController(
+            googleAuthServiceMock.Object, 
+            jwtServiceMock.Object, 
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
+
+        sut.ControllerContext = controllerContext;
         
         // Act
         var actionResult = await sut.AboutMe();
@@ -319,10 +348,14 @@ public class OrganizerControllerTests
         
         var jwtServiceMock = new Mock<IJwtService>();
 
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
+        
         var sut = new OrganizerController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
-            organizerServiceMock.Object);
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
         
         sut.ControllerContext = new ControllerContext
         {
@@ -356,22 +389,28 @@ public class OrganizerControllerTests
         
         var jwtServiceMock = new Mock<IJwtService>();
 
-        var sut = new OrganizerController(
-            googleAuthServiceMock.Object, 
-            jwtServiceMock.Object, 
-            organizerServiceMock.Object);
-        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email)
         };
-        sut.ControllerContext = new ControllerContext
+        var controllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(claims))
             }
         };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
+        
+        var sut = new OrganizerController(
+            googleAuthServiceMock.Object, 
+            jwtServiceMock.Object, 
+            organizerServiceMock.Object,
+            claimsServiceMock.Object);
+        
+        sut.ControllerContext = controllerContext;
         
         // Act
         var actionResult = await sut.AboutMe();
