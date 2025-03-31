@@ -1,8 +1,8 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
+using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.DTOs.Request;
 using TickAPI.Customers.DTOs.Response;
@@ -16,12 +16,14 @@ public class CustomerController : ControllerBase
     private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
     private readonly ICustomerService _customerService;
+    private readonly IClaimsService _claimsService;
     
-    public CustomerController(IGoogleAuthService googleAuthService, IJwtService jwtService, ICustomerService customerService)
+    public CustomerController(IGoogleAuthService googleAuthService, IJwtService jwtService, ICustomerService customerService, IClaimsService claimsService)
     {
         _googleAuthService = googleAuthService;
         _jwtService = jwtService;
         _customerService = customerService;
+        _claimsService = claimsService;
     }
     
     [HttpPost("google-login")]
@@ -52,9 +54,12 @@ public class CustomerController : ControllerBase
     [HttpGet("about-me")]
     public async Task<ActionResult<AboutMeCustomerResponseDto>> AboutMe()
     {
-        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        if (email == null)
-            return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
         
         var customerResult = await _customerService.GetCustomerByEmailAsync(email);
         if (customerResult.IsError)

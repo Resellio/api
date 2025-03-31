@@ -5,6 +5,7 @@ using Moq;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Auth.Responses;
+using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Controllers;
@@ -34,11 +35,14 @@ public class CustomerControllerTests
         var jwtServiceMock = new Mock<IJwtService>();
         jwtServiceMock.Setup(m => m.GenerateJwtToken(email, UserRole.Customer))
             .Returns(Result<string>.Success(jwtToken));
+
+        var claimsServiceMock = new Mock<IClaimsService>();
     
         var sut = new CustomerController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
-            customerServiceMock.Object);
+            customerServiceMock.Object,
+            claimsServiceMock.Object);
     
         // Act
         var actionResult = await sut.GoogleLogin(new GoogleCustomerLoginDto(accessToken));
@@ -77,10 +81,13 @@ public class CustomerControllerTests
         jwtServiceMock.Setup(m => m.GenerateJwtToken(email, UserRole.Customer))
             .Returns(Result<string>.Success(jwtToken));
         
+        var claimsServiceMock = new Mock<IClaimsService>();
+        
         var sut = new CustomerController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
-            customerServiceMock.Object);
+            customerServiceMock.Object,
+            claimsServiceMock.Object);
         
         // Act
         var result = await sut.GoogleLogin(new GoogleCustomerLoginDto( accessToken ));
@@ -113,25 +120,31 @@ public class CustomerControllerTests
         var googleAuthServiceMock = new Mock<IGoogleAuthService>();
         var jwtServiceMock = new Mock<IJwtService>();
         
-        var sut = new CustomerController(
-            googleAuthServiceMock.Object,
-            jwtServiceMock.Object,
-            customerServiceMock.Object);
-        
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Email, email)
         };
         var identity = new ClaimsIdentity(claims);
         var claimsPrincipal = new ClaimsPrincipal(identity);
-        
-        sut.ControllerContext = new ControllerContext
+        var controllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
                 User = claimsPrincipal
             }
         };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
+        
+        var sut = new CustomerController(
+            googleAuthServiceMock.Object,
+            jwtServiceMock.Object,
+            customerServiceMock.Object,
+            claimsServiceMock.Object);
+
+
+        sut.ControllerContext = controllerContext;
         
         // Act
         var result = await sut.AboutMe();
@@ -151,10 +164,15 @@ public class CustomerControllerTests
         var googleAuthServiceMock = new Mock<IGoogleAuthService>();
         var jwtServiceMock = new Mock<IJwtService>();
         
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
+
+        
         var sut = new CustomerController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
-            customerServiceMock.Object);
+            customerServiceMock.Object,
+            claimsServiceMock.Object);
         
         var claims = new List<Claim>();
         var identity = new ClaimsIdentity(claims);
