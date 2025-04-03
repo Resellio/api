@@ -312,4 +312,110 @@ public class EventControllerTests
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         Assert.Equal(errorMessage, objectResult.Value);
     }
+    
+    [Fact]
+    public async Task GetOrganizerEventsPaginationDetails_WhenAllOperationsSucceed_ShouldReturnOkWithPaginationDetails()
+    {
+        // Arrange
+        const string email = "organizer@example.com";
+        const int pageSize = 10;
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        
+        var controllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            }
+        };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims))
+            .Returns(Result<string>.Success(email));
+        
+        var organizer = new Organizer { Email = email, IsVerified = true };
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Success(organizer));
+        
+        var paginationDetails = new PaginationDetails(2, 25);
+        
+        var eventServiceMock = new Mock<IEventService>();
+        eventServiceMock
+            .Setup(m => m.GetOrganizerEventsPaginationDetails(organizer, pageSize))
+            .Returns(Result<PaginationDetails>.Success(paginationDetails));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = controllerContext;
+        
+        // Act
+        var response = await sut.GetOrganizerEventsPaginationDetails(pageSize);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        
+        var returnedPaginationDetails = Assert.IsType<PaginationDetails>(okResult.Value);
+        Assert.Equal(2, returnedPaginationDetails.MaxPageNumber);
+        Assert.Equal(25, returnedPaginationDetails.AllElementsCount);
+    }
+    
+    [Fact]
+    public async Task GetOrganizerEventsPaginationDetails_WhenPaginationDetailsFails_ShouldReturnBadRequest()
+    {
+        // Arrange
+        const string email = "organizer@example.com";
+        const int pageSize = -1;
+        const string errorMessage = "Invalid page size";
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        
+        var controllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            }
+        };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims))
+            .Returns(Result<string>.Success(email));
+        
+        var organizer = new Organizer { Email = email, IsVerified = true };
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Success(organizer));
+        
+        var eventServiceMock = new Mock<IEventService>();
+        eventServiceMock
+            .Setup(m => m.GetOrganizerEventsPaginationDetails(organizer, pageSize))
+            .Returns(Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, errorMessage));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = controllerContext;
+        
+        // Act
+        var response = await sut.GetOrganizerEventsPaginationDetails(pageSize);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+    }
 }
