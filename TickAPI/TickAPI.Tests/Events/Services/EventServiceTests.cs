@@ -4,7 +4,6 @@ using Moq;
 using TickAPI.Addresses.Abstractions;
 using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Addresses.Models;
-using TickAPI.Categories.Models;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Events.Models;
