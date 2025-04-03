@@ -12,4 +12,5 @@ public interface IEventService
     public Task<Result<Event>> CreateNewEventAsync(string name, string description, DateTime startDate,
         DateTime endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail);
     public Result<PaginatedData<GetEventResponseDto>> GetOrganizerEvents(Organizer organizer, int page, int pageSize);
+    public Result<PaginationDetails> GetOrganizerEventsPaginationDetails(Organizer organizer, int pageSize);
 }

@@ -72,4 +72,31 @@ public class EventController : ControllerBase
 
         return Ok(paginatedDataResult.Value!);
     }
+
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [HttpGet("get-organizer-events-pagination-details")]
+    public async Task<ActionResult<PaginationDetails>> GetOrganizerEventsPaginationDetails([FromQuery] int pageSize)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
+
+        var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
+        if (organizerResult.IsError)
+        {
+            return StatusCode(organizerResult.StatusCode, organizerResult.ErrorMsg);
+        }
+        var organizer = organizerResult.Value!;
+
+        var paginationDetailsResult = _eventService.GetOrganizerEventsPaginationDetails(organizer, pageSize);
+        if (paginationDetailsResult.IsError)
+        {
+            return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
+        }
+
+        return Ok(paginationDetailsResult.Value!);
+    }
 }

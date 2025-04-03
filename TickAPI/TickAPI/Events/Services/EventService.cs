@@ -77,4 +77,9 @@ public class EventService : IEventService
 
         return Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData);
     }
+
+    public Result<PaginationDetails> GetOrganizerEventsPaginationDetails(Organizer organizer, int pageSize)
+    {
+        return _paginationService.GetPaginationDetails(organizer.Events!, pageSize);
+    }
 }
