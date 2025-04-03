@@ -163,9 +163,9 @@ public class EventServiceTests
             IsVerified = true,
             Events = new List<Event>
             {
-                CreateSampleEvent("Event 1"),
-                CreateSampleEvent("Event 2"),
-                CreateSampleEvent("Event 3")
+                Utils.CreateSampleEvent("Event 1"),
+                Utils.CreateSampleEvent("Event 2"),
+                Utils.CreateSampleEvent("Event 3")
             }
         };
         int page = 0;
@@ -195,8 +195,8 @@ public class EventServiceTests
             .Returns(new PaginatedData<GetEventResponseDto>(
                 new List<GetEventResponseDto>
                 {
-                    CreateSampleEventResponseDto("Event 1"),
-                    CreateSampleEventResponseDto("Event 2")
+                    Utils.CreateSampleEventResponseDto("Event 1"),
+                    Utils.CreateSampleEventResponseDto("Event 2")
                 },
                 page,
                 pageSize,
@@ -234,8 +234,8 @@ public class EventServiceTests
             IsVerified = true,
             Events = new List<Event>
             {
-                CreateSampleEvent("Event 1"),
-                CreateSampleEvent("Event 2")
+                Utils.CreateSampleEvent("Event 1"),
+                Utils.CreateSampleEvent("Event 2")
             }
         };
         int page = 2; // Invalid page
@@ -261,44 +261,5 @@ public class EventServiceTests
         Assert.False(result.IsSuccess);
         Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
         Assert.Equal("Invalid page number", result.ErrorMsg);
-    }
-    
-    // Helper methods
-    private Event CreateSampleEvent(string name)
-    {
-        return new Event
-        {
-            Id = Guid.NewGuid(),
-            Name = name,
-            Description = $"Description of {name}",
-            StartDate = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            EndDate = new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc),
-            MinimumAge = 18,
-            EventStatus = EventStatus.TicketsAvailable,
-            Categories = new List<Category> { new Category { CategoryName = "Test" } },
-            Address = new Address
-            {
-                Country = "United States",
-                City = "New York",
-                PostalCode = "10001",
-                Street = "Main St",
-                HouseNumber = 123,
-                FlatNumber = null
-            }
-        };
-    }
-
-    private GetEventResponseDto CreateSampleEventResponseDto(string name)
-    {
-        return new GetEventResponseDto(
-            name,
-            $"Description of {name}",
-            new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-            new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc),
-            18,
-            [new GetEventResponseCategoryDto("Test")],
-            EventStatus.TicketsAvailable,
-            new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null)
-        );
     }
 }
