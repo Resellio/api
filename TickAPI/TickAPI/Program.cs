@@ -33,6 +33,8 @@ using TickAPI.Addresses.Services;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.Respositories;
 using TickAPI.Categories.Services;
+using TickAPI.Common.Claims.Abstractions;
+using TickAPI.Common.Claims.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -113,6 +115,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IGoogleDataFetcher, GoogleDataFetcher>();
 builder.Services.AddScoped<IPaginationService, PaginationService>();
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
+builder.Services.AddScoped<IClaimsService, ClaimsService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

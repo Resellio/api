@@ -112,6 +112,50 @@ public class OrganizerServiceTests
         Assert.False(result.Value!.IsVerified);
         Assert.Equal(currentDate, result.Value!.CreationDate);
     }
+    
+    [Fact]
+    public async Task CreateNewOrganizerAsync_WhenLastNameIsNull_ShouldReturnNewOrganizer()
+    {
+        // Arrange
+        Guid id = Guid.NewGuid();
+        const string email = "example@test.com";
+        const string firstName = "First";
+        const string lastName = null;
+        const string displayName = "Display";
+        DateTime currentDate = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
+
+        var organizerRepositoryMock = new Mock<IOrganizerRepository>();
+        organizerRepositoryMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Failure(StatusCodes.Status404NotFound, $"organizer with email '{email}' not found"));
+        organizerRepositoryMock
+            .Setup(m => m.AddNewOrganizerAsync(It.IsAny<Organizer>()))
+            .Callback<Organizer>(o => o.Id = id)
+            .Returns(Task.CompletedTask);
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(currentDate);
+        
+        var sut = new OrganizerService(
+            organizerRepositoryMock.Object,
+            dateTimeServiceMock.Object
+        );
+
+        // Act
+        var result = await sut.CreateNewOrganizerAsync(email, firstName, lastName, displayName);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(id, result.Value!.Id);
+        Assert.Equal(email, result.Value!.Email);
+        Assert.Equal(firstName, result.Value!.FirstName);
+        Assert.Equal(lastName, result.Value!.LastName);
+        Assert.Equal(displayName, result.Value!.DisplayName);
+        Assert.False(result.Value!.IsVerified);
+        Assert.Equal(currentDate, result.Value!.CreationDate);
+    }
 
     [Fact]
     public async Task CreateNewOrganizerAsync_WhenWithNotUniqueEmail_ShouldReturnFailure()

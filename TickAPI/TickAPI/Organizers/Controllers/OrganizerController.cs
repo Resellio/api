@@ -1,8 +1,8 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
+using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.DTOs.Request;
@@ -17,13 +17,15 @@ public class OrganizerController : ControllerBase
     private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
     private readonly IOrganizerService _organizerService;
+    private readonly IClaimsService _claimsService;
 
     public OrganizerController(IGoogleAuthService googleAuthService, IJwtService jwtService,
-        IOrganizerService organizerService)
+        IOrganizerService organizerService, IClaimsService claimsService)
     {
         _googleAuthService = googleAuthService;
         _jwtService = jwtService;
         _organizerService = organizerService;
+        _claimsService = claimsService;
     }
 
     [HttpPost("google-login")]
@@ -63,9 +65,12 @@ public class OrganizerController : ControllerBase
     [HttpPost("create-organizer")]
     public async Task<ActionResult<CreateOrganizerResponseDto>> CreateOrganizer([FromBody] CreateOrganizerDto request)
     {
-        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        if (email == null)
-            return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
         
         var newOrganizerResult = await _organizerService.CreateNewOrganizerAsync(email, request.FirstName, request.LastName, request.DisplayName);
         if(newOrganizerResult.IsError)
@@ -94,10 +99,12 @@ public class OrganizerController : ControllerBase
     [HttpGet("about-me")]
     public async Task<ActionResult<AboutMeOrganizerResponseDto>> AboutMe()
     {
-        var email = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        
-        if (email == null)
-            return StatusCode(StatusCodes.Status400BadRequest, "missing email claim");
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(StatusCodes.Status400BadRequest, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
         
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
         if (organizerResult.IsError)
