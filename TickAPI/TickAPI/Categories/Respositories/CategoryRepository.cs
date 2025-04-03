@@ -14,9 +14,9 @@ public class CategoryRepository : ICategoryRepository
         _tickApiDbContext = tickApiDbContext;
     }
 
-    public async Task<Result<ICollection<Category>>> GetCategoriesAsync()
+    public async Task<ICollection<Category>> GetCategoriesAsync()
     {
         var list = await _tickApiDbContext.Categories.ToListAsync();
-        return Result<ICollection<Category>>.Success(list);
+        return list;
     }
 }

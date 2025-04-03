@@ -5,5 +5,5 @@ namespace TickAPI.Categories.Abstractions;
 
 public interface ICategoryRepository
 {
-    public Task<Result<ICollection<Category>>> GetCategoriesAsync();
+    public Task<ICollection<Category>> GetCategoriesAsync();
 }

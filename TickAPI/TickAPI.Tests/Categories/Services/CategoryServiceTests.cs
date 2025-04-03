@@ -22,7 +22,7 @@ public class CategoryServiceTests
         int page = 0;
         var categoryRepositoryMock = new Mock<ICategoryRepository>();
         categoryRepositoryMock.Setup(repo => repo.GetCategoriesAsync())
-            .ReturnsAsync(Result<ICollection<Category>>.Success(new List<Category>()));
+            .ReturnsAsync(new List<Category>());
 
         var paginationServiceMock = new Mock<IPaginationService>();
         paginationServiceMock.Setup(p => p.Paginate(new List<Category>(), pageSize, page)).Returns(
