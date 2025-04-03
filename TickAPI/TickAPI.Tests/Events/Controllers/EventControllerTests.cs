@@ -10,6 +10,7 @@ using TickAPI.Events.Controllers;
 using TickAPI.Events.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Response;
+using TickAPI.Organizers.Abstractions;
 
 namespace TickAPI.Tests.Events.Controllers;
 
@@ -49,8 +50,10 @@ public class EventControllerTests
 
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
+
+        var organizerServiceMock = new Mock<IOrganizerService>();
         
-        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object);
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
 
         sut.ControllerContext = controllerContext;
         
@@ -81,7 +84,9 @@ public class EventControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
 
-        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object);
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         
         sut.ControllerContext = new ControllerContext
         {
