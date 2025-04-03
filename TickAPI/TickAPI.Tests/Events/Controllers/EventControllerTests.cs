@@ -6,11 +6,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Common.Claims.Abstractions;
+using TickAPI.Common.Pagination.Responses;
 using TickAPI.Events.Controllers;
 using TickAPI.Events.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Organizers.Abstractions;
+using TickAPI.Organizers.Models;
 
 namespace TickAPI.Tests.Events.Controllers;
 
@@ -19,14 +21,14 @@ public class EventControllerTests
     [Fact]
     public async Task CreateEvent_WhenDataIsValid_ShouldReturnSuccess()
     {
-        //arrange 
-        string name = "Concert";
-        string description = "Description of a concert";
+        // Arrange 
+        const string name = "Concert";
+        const string description = "Description of a concert";
         DateTime startDate = new DateTime(2025, 5, 1);
         DateTime endDate = new DateTime(2025, 6, 1);
         uint? minimumAge = 18;
-        string email = "123@mail.com";
-        EventStatus eventStatus = EventStatus.TicketsAvailable;
+        const string email = "123@mail.com";
+        const EventStatus eventStatus = EventStatus.TicketsAvailable;
         Guid id = Guid.NewGuid();
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, eventStatus, createAddress);
@@ -57,10 +59,10 @@ public class EventControllerTests
 
         sut.ControllerContext = controllerContext;
         
-        // act
+        // Act
         var res = await sut.CreateEvent(eventDto);
         
-        // assert
+        // Assert
         var result = Assert.IsType<ActionResult<CreateEventResponseDto>>(res);
         var objectResult = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(200, objectResult.StatusCode);
@@ -70,14 +72,13 @@ public class EventControllerTests
     [Fact]
     public async Task CreateEvent_WhenMissingEmailClaims_ShouldReturnBadRequest()
     {
-        //arrange 
-        string name = "Concert";
-        string description = "Description of a concert";
+        // Arrange 
+        const string name = "Concert";
+        const string description = "Description of a concert";
         DateTime startDate = new DateTime(2025, 5, 1);
         DateTime endDate = new DateTime(2025, 6, 1);
         uint? minimumAge = 18;
-        string email = "123@mail.com";
-        EventStatus eventStatus = EventStatus.TicketsAvailable;
+        const EventStatus eventStatus = EventStatus.TicketsAvailable;
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
         var eventServiceMock = new Mock<IEventService>();
@@ -96,14 +97,219 @@ public class EventControllerTests
             }
         };
         
-        // act
+        // Act
         var res = await sut.CreateEvent(new CreateEventDto(name, description, startDate, endDate, minimumAge, eventStatus, createAddress));
         
-        // assert
+        // Assert
         var result = Assert.IsType<ActionResult<CreateEventResponseDto>>(res);
         var objectResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         Assert.Equal("missing email claim", objectResult.Value);
-
+    }
+    
+    [Fact]
+    public async Task GetOrganizerEvents_WhenAllOperationsSucceed_ShouldReturnOkWithPaginatedData()
+    {
+        // Arrange
+        const string email = "organizer@example.com";
+        const int page = 0;
+        const int pageSize = 10;
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        
+        var controllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            }
+        };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims))
+            .Returns(Result<string>.Success(email));
+        
+        var organizer = new Organizer { Email = email, IsVerified = true };
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Success(organizer));
+        
+        var paginatedData = new PaginatedData<GetEventResponseDto>(
+            new List<GetEventResponseDto>
+            {
+                Utils.CreateSampleEventResponseDto("Event 1"),
+                Utils.CreateSampleEventResponseDto("Event 2")
+            },
+            page,
+            pageSize,
+            false,
+            false,
+            new PaginationDetails(0, 2)
+        );
+        
+        var eventServiceMock = new Mock<IEventService>();
+        eventServiceMock
+            .Setup(m => m.GetOrganizerEvents(organizer, page, pageSize))
+            .Returns(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = controllerContext;
+        
+        // Act
+        var response = await sut.GetOrganizerEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        
+        var returnedPaginatedData = Assert.IsType<PaginatedData<GetEventResponseDto>>(okResult.Value);
+        Assert.Equal(2, returnedPaginatedData.Data.Count);
+        Assert.Equal(paginatedData.Data[0], returnedPaginatedData.Data[0]);
+        Assert.Equal(paginatedData.Data[1], returnedPaginatedData.Data[1]);
+        Assert.Equal(page, returnedPaginatedData.PageNumber);
+        Assert.Equal(pageSize, returnedPaginatedData.PageSize);
+        Assert.False(returnedPaginatedData.HasNextPage);
+        Assert.False(returnedPaginatedData.HasPreviousPage);
+    }
+    
+    [Fact]
+    public async Task GetOrganizerEvents_WhenEmailClaimIsMissing_ShouldReturnBadRequest()
+    {
+        // Arrange
+        const int page = 0;
+        const int pageSize = 10;
+        const string errorMessage = "Missing email claim";
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>()))
+            .Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, errorMessage));
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity())
+            }
+        };
+        
+        // Act
+        var response = await sut.GetOrganizerEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+    }
+    
+    [Fact]
+    public async Task GetOrganizerEvents_WhenOrganizerIsNotFound_ShouldReturnNotFound()
+    {
+        // Arrange
+        const string email = "organizer@example.com";
+        const int page = 0;
+        const int pageSize = 10;
+        const string errorMessage = "Organizer not found";
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        
+        var controllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            }
+        };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims))
+            .Returns(Result<string>.Success(email));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Failure(StatusCodes.Status404NotFound, errorMessage));
+        
+        var eventServiceMock = new Mock<IEventService>();
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = controllerContext;
+        
+        // Act
+        var response = await sut.GetOrganizerEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status404NotFound, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+    }
+    
+    [Fact]
+    public async Task GetOrganizerEvents_WhenPaginationFails_ShouldReturnBadRequest()
+    {
+        // Arrange
+        const string email = "organizer@example.com";
+        const int page = -1; // Invalid page
+        const int pageSize = 10;
+        const string errorMessage = "Invalid page number";
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email)
+        };
+        
+        var controllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(claims))
+            }
+        };
+        
+        var claimsServiceMock = new Mock<IClaimsService>();
+        claimsServiceMock
+            .Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims))
+            .Returns(Result<string>.Success(email));
+        
+        var organizer = new Organizer { Email = email, IsVerified = true };
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(email))
+            .ReturnsAsync(Result<Organizer>.Success(organizer));
+        
+        var eventServiceMock = new Mock<IEventService>();
+        eventServiceMock
+            .Setup(m => m.GetOrganizerEvents(organizer, page, pageSize))
+            .Returns(Result<PaginatedData<GetEventResponseDto>>.Failure(StatusCodes.Status400BadRequest, errorMessage));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        sut.ControllerContext = controllerContext;
+        
+        // Act
+        var response = await sut.GetOrganizerEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
     }
 }
