@@ -71,6 +71,34 @@ public class CustomerServiceTests
         Assert.Equal(createdAt, result.Value!.CreationDate);
         Assert.Equal(id, result.Value!.Id);
     }
+    
+    [Fact]
+    public async Task CreateNewCustomerAsync_WhenLastNameIsNull_ShouldReturnNewCustomer()
+    {
+        const string email = "new@customer.com";
+        const string firstName = "First";
+        const string lastName = null;
+        Guid id = Guid.NewGuid();
+        DateTime createdAt = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(createdAt);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        customerRepositoryMock.Setup(m => m.GetCustomerByEmailAsync(email)).ReturnsAsync(Result<Customer>.Failure(StatusCodes.Status404NotFound, $"customer with email '{email}' not found"));
+        customerRepositoryMock
+            .Setup(m => m.AddNewCustomerAsync(It.IsAny<Customer>()))
+            .Callback<Customer>(c => c.Id = id)
+            .Returns(Task.CompletedTask);
+        var sut = new CustomerService(customerRepositoryMock.Object, dateTimeServiceMock.Object);
+
+        var result = await sut.CreateNewCustomerAsync(email, firstName, lastName);
+        
+        Assert.True(result.IsSuccess);
+        Assert.Equal(email, result.Value!.Email);
+        Assert.Equal(firstName, result.Value!.FirstName);
+        Assert.Equal(lastName, result.Value!.LastName);
+        Assert.Equal(createdAt, result.Value!.CreationDate);
+        Assert.Equal(id, result.Value!.Id);
+    }
 
     [Fact]
     public async Task CreateNewCustomerAsync_WhenCustomerWithNotUniqueEmail_ShouldReturnFailure()
