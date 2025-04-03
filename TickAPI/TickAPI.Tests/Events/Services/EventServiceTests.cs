@@ -1,18 +1,15 @@
-﻿using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
 using TickAPI.Events.Abstractions;
-using TickAPI.Events.DTOs.Request;
 using Moq;
 using TickAPI.Addresses.Abstractions;
 using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Addresses.Models;
+using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Events.Models;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.Time.Abstractions;
-using TickAPI.Events.DTOs.Response;
 using TickAPI.Events.Services;
 
 namespace TickAPI.Tests.Events.Services;
@@ -59,7 +56,9 @@ public class EventServiceTests
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2003, 7, 11));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object);
+        var paginationServiceMock = new Mock<IPaginationService>();
+
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
         // act
         
         var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
@@ -102,7 +101,9 @@ public class EventServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object);
+        var paginationServiceMock = new Mock<IPaginationService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
         // act
         
         var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
@@ -139,7 +140,9 @@ public class EventServiceTests
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2025, 5, 11));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object);
+        var paginationServiceMock = new Mock<IPaginationService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
         // act
         
         var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
@@ -149,6 +152,4 @@ public class EventServiceTests
         Assert.Equal(StatusCodes.Status400BadRequest, res.StatusCode);
         Assert.Equal("Start date is in the past", res.ErrorMsg);
     }
-    
-    
 }
