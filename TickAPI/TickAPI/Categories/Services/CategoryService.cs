@@ -20,21 +20,15 @@ public class CategoryService : ICategoryService
 
     public async Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page)
     {
-        var categoriesAllResponse = await  _categoryRepository.GetCategoriesAsync();
-        List<GetCategoryResponseDto> categories = new List<GetCategoryResponseDto>();
-        var categoriesPaginated = _paginationService.Paginate<Category>(categoriesAllResponse, pageSize, page);
+        var categoriesAllResponse = await _categoryRepository.GetCategoriesAsync();
+        var categoriesPaginated = _paginationService.Paginate(categoriesAllResponse, pageSize, page);
         if (!categoriesPaginated.IsSuccess)
         {
             return Result<PaginatedData<GetCategoryResponseDto>>.PropagateError(categoriesPaginated);
         }
         
-        foreach (var category in categoriesPaginated.Value.Data)
-        {
-            categories.Add(new GetCategoryResponseDto(category.CategoryName));
-        }
+        var categoriesResponse = _paginationService.MapData(categoriesPaginated.Value!, (c) => new GetCategoryResponseDto(c.CategoryName));
         
-        return Result<PaginatedData<GetCategoryResponseDto>>.Success(new PaginatedData<GetCategoryResponseDto>(categories, categoriesPaginated.Value.PageNumber
-        ,categoriesPaginated.Value.PageSize, categoriesPaginated.Value.HasNextPage, categoriesPaginated.Value.HasPreviousPage,
-        categoriesPaginated.Value.PaginationDetails));
+        return Result<PaginatedData<GetCategoryResponseDto>>.Success(categoriesResponse);
     }
 }

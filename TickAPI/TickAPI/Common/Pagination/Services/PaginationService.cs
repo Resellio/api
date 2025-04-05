@@ -55,4 +55,10 @@ public class PaginationService : IPaginationService
 
         return Result<PaginatedData<T>>.Success(paginatedData);
     }
+
+    public PaginatedData<TTarget> MapData<TSource, TTarget>(PaginatedData<TSource> source, Func<TSource, TTarget> mapFunction)
+    {
+        var newData = source.Data.Select(mapFunction).ToList();
+        return new PaginatedData<TTarget>(newData, source.PageNumber, source.PageSize, source.HasNextPage, source.HasPreviousPage, source.PaginationDetails);
+    }
 }
