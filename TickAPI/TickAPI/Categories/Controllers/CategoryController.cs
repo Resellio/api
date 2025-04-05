@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.DTOs;
 using TickAPI.Categories.DTOs.Response;
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Pagination.Responses;
-
 
 namespace TickAPI.Categories.Controllers;
 
@@ -13,7 +13,6 @@ namespace TickAPI.Categories.Controllers;
 
 public class CategoryController : Controller
 {
-    
     private readonly ICategoryService _categoryService;
 
     public CategoryController(ICategoryService categoryService)
@@ -22,14 +21,26 @@ public class CategoryController : Controller
     }
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
-    [HttpPost("get-categories")]
+    [HttpGet("get-categories")]
     public async Task<ActionResult<PaginatedData<GetCategoryResponseDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
         var res = await _categoryService.GetCategoriesResponsesAsync(pageSize, page);
-        if (!res.IsSuccess)
+        if (res.IsError)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, res.ErrorMsg);
         }
         return Ok(res.Value);
+    }
+    
+    // TODO: Add appropriate policy verification (admin, maybe also organizer?)
+    [HttpPost("create-category")]
+    public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto request)
+    {
+        var newCategoryResult = await _categoryService.CreateNewCategoryAsync(request.Name);
+        
+        if(newCategoryResult.IsError)
+            return StatusCode(newCategoryResult.StatusCode, newCategoryResult.ErrorMsg);
+        
+        return Ok();
     }
 }

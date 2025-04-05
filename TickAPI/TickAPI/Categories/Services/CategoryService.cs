@@ -18,6 +18,11 @@ public class CategoryService : ICategoryService
         _paginationService = paginationService;
     }
 
+    public Task<Result<Category>> GetCategoryByNameAsync(string categoryName)
+    {
+        return _categoryRepository.GetCategoryByNameAsync(categoryName);
+    }
+
     public async Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page)
     {
         var categoriesAllResponse = await _categoryRepository.GetCategoriesAsync();
@@ -27,8 +32,27 @@ public class CategoryService : ICategoryService
             return Result<PaginatedData<GetCategoryResponseDto>>.PropagateError(categoriesPaginated);
         }
         
-        var categoriesResponse = _paginationService.MapData(categoriesPaginated.Value!, (c) => new GetCategoryResponseDto(c.CategoryName));
+        var categoriesResponse = _paginationService.MapData(categoriesPaginated.Value!, (c) => new GetCategoryResponseDto(c.Name));
         
         return Result<PaginatedData<GetCategoryResponseDto>>.Success(categoriesResponse);
+    }
+
+    public async Task<Result<Category>> CreateNewCategoryAsync(string categoryName)
+    {
+        var alreadyExistingResult = await _categoryRepository.GetCategoryByNameAsync(categoryName);
+        
+        if (alreadyExistingResult.IsSuccess)
+        {
+            return Result<Category>.Failure(StatusCodes.Status500InternalServerError, 
+                $"category with name {categoryName} already exists");
+        }
+
+        var category = new Category()
+        {
+            Name = categoryName
+        };
+        
+        await _categoryRepository.AddNewCategoryAsync(category);
+        return Result<Category>.Success(category);
     }
 }
