@@ -41,6 +41,6 @@ public class CategoryController : Controller
         if(newCategoryResult.IsError)
             return StatusCode(newCategoryResult.StatusCode, newCategoryResult.ErrorMsg);
         
-        return Ok();
+        return Ok("category created successfully");
     }
 }

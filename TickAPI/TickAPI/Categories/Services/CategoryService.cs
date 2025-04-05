@@ -44,7 +44,7 @@ public class CategoryService : ICategoryService
         if (alreadyExistingResult.IsSuccess)
         {
             return Result<Category>.Failure(StatusCodes.Status500InternalServerError, 
-                $"category with name {categoryName} already exists");
+                $"category with name '{categoryName}' already exists");
         }
 
         var category = new Category()
