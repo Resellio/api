@@ -30,6 +30,9 @@ using TickAPI.Tickets.Services;
 using TickAPI.Addresses.Abstractions;
 using TickAPI.Addresses.Repositories;
 using TickAPI.Addresses.Services;
+using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.Respositories;
+using TickAPI.Categories.Services;
 using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Claims.Services;
 
@@ -75,6 +78,7 @@ builder.Services.AddAuthorization(options =>
     
     options.AddPolicy(AuthPolicies.NewOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.NewOrganizer.ToString()));
     options.AddPolicy(AuthPolicies.CreatedOrganizerPolicy.ToString(), policy => policy.RequireRole(UserRole.UnverifiedOrganizer.ToString(), UserRole.Organizer.ToString()));
+    options.AddPolicy(AuthPolicies.VerifiedUserPolicy.ToString(), policy => policy.RequireRole(UserRole.Admin.ToString(), UserRole.Organizer.ToString(), UserRole.Customer.ToString()));
 });
 
 // Add admin services.
@@ -100,6 +104,10 @@ builder.Services.AddScoped<IOrganizerRepository, OrganizerRepository>();
 // Add ticket services.
 builder.Services.AddScoped<ITicketService, TicketService>();
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
+
+// Add category services.
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
