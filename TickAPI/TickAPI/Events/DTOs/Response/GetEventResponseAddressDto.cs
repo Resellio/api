@@ -4,7 +4,7 @@ public record GetEventResponseAddressDto(
     string Country,
     string City,
     string PostalCode,
-    string? Stree,
+    string? Street,
     uint? HouseNumber,
     uint? FlatNumber
 );

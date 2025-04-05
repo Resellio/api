@@ -7,7 +7,7 @@ public record GetEventResponseDto(
     string Description,
     DateTime StartDate,
     DateTime EndDate,
-    uint? Minimumage,
+    uint? MinimumAge,
     List<GetEventResponseCategoryDto> Categories,
     EventStatus Status,
     GetEventResponseAddressDto Addres
