@@ -9,10 +9,10 @@ public class PaginationServiceTests
     private readonly PaginationService _paginationService = new();
 
     [Fact]
-    public void Paginate_WhenPageSizeNegative_ShouldReturnFailure()
+    public async Task Paginate_WhenPageSizeNegative_ShouldReturnFailure()
     {
         // Act
-        var result = _paginationService.Paginate(new List<int>(), -5, 0);
+        var result = await _paginationService.PaginateAsync(new List<int>().AsQueryable(), -5, 0);
         
         // Assert
         Assert.True(result.IsError);
@@ -21,10 +21,10 @@ public class PaginationServiceTests
     }
     
     [Fact]
-    public void Paginate_WhenPageSizeZero_ShouldReturnFailure()
+    public async Task Paginate_WhenPageSizeZero_ShouldReturnFailure()
     {
         // Act
-        var result = _paginationService.Paginate(new List<int>(), 0, 0);
+        var result = await _paginationService.PaginateAsync(new List<int>().AsQueryable(), 0, 0);
         
         // Assert
         Assert.True(result.IsError);
@@ -33,10 +33,10 @@ public class PaginationServiceTests
     }
     
     [Fact]
-    public void Paginate_WhenPageNegative_ShouldReturnFailure()
+    public async Task Paginate_WhenPageNegative_ShouldReturnFailure()
     {
         // Act
-        var result = _paginationService.Paginate(new List<int>(), 1, -12);
+        var result = await _paginationService.PaginateAsync(new List<int>().AsQueryable(), 1, -12);
         
         // Assert
         Assert.True(result.IsError);
@@ -45,15 +45,15 @@ public class PaginationServiceTests
     }
 
     [Fact]
-    public void Paginate_WhenCollectionLengthSmallerThanPageSize_ShouldReturnAllElements()
+    public async Task Paginate_WhenCollectionLengthSmallerThanPageSize_ShouldReturnAllElements()
     {
         // Arrange
-        var data = new List<int> { 1, 2, 3, 4, 5 };
-        int pageSize = data.Count + 1;
+        var data = new List<int> { 1, 2, 3, 4, 5 }.AsQueryable();
+        int pageSize = data.Count() + 1;
         const int pageNumber = 0;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -62,20 +62,20 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.False(result.Value?.HasNextPage);
         Assert.False(result.Value?.HasPreviousPage);
-        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(data.Count(), result.Value?.PaginationDetails.AllElementsCount);
         Assert.Equal(0, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
-    public void Paginate_WhenCollectionLengthBiggerThanPageSize_ShouldReturnPartOfCollection()
+    public async Task Paginate_WhenCollectionLengthBiggerThanPageSize_ShouldReturnPartOfCollection()
     {
         // Arrange
-        var data = new List<int> { 1, 2, 3, 4, 5 };
+        var data = new List<int> { 1, 2, 3, 4, 5 }.AsQueryable();
         const int pageSize = 2;
         const int pageNumber = 0;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -84,20 +84,20 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.True(result.Value?.HasNextPage);
         Assert.False(result.Value?.HasPreviousPage);
-        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(data.Count(), result.Value?.PaginationDetails.AllElementsCount);
         Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
-    public void Paginate_WhenTakingElementsFromTheMiddle_ShouldReturnPaginatedDataWithBothBooleansTrue()
+    public async Task Paginate_WhenTakingElementsFromTheMiddle_ShouldReturnPaginatedDataWithBothBooleansTrue()
     {
         // Arrange
-        var data = new List<int> { 1, 2, 3, 4, 5 };
+        var data = new List<int> { 1, 2, 3, 4, 5 }.AsQueryable();
         const int pageSize = 2;
         const int pageNumber = 1;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -106,20 +106,20 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.True(result.Value?.HasNextPage);
         Assert.True(result.Value?.HasPreviousPage);
-        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(data.Count(), result.Value?.PaginationDetails.AllElementsCount);
         Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
-    public void Paginate_WhenExceededMaxPageNumber_ShouldReturnFailure()
+    public async Task Paginate_WhenExceededMaxPageNumber_ShouldReturnFailure()
     {
         // Arrange
-        var data = new List<int> { 1, 2, 3, 4, 5 };
+        var data = new List<int> { 1, 2, 3, 4, 5 }.AsQueryable();
         const int pageSize = 2;
         const int pageNumber = 3;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
         
         // Assert
         Assert.True(result.IsError);
@@ -128,15 +128,15 @@ public class PaginationServiceTests
     }
     
     [Fact]
-    public void Paginate_WhenOnLastPage_ShouldReturnHasNextPageSetToFalse()
+    public async Task Paginate_WhenOnLastPage_ShouldReturnHasNextPageSetToFalse()
     {
         // Arrange
-        var data = new List<int> { 1, 2, 3, 4, 5 };
+        var data = new List<int> { 1, 2, 3, 4, 5 }.AsQueryable();
         const int pageSize = 2;
         const int pageNumber = 2;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -145,20 +145,20 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.False(result.Value?.HasNextPage);
         Assert.True(result.Value?.HasPreviousPage);
-        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(data.Count(), result.Value?.PaginationDetails.AllElementsCount);
         Assert.Equal(2, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
     [Fact]
-    public void Paginate_WhenCollectionEmptyAndFirstPageIsRequested_ShouldReturnSuccess()
+    public async Task Paginate_WhenCollectionEmptyAndFirstPageIsRequested_ShouldReturnSuccess()
     {
         // Arrange
-        var data = new List<int>();
+        var data = new List<int>().AsQueryable();
         const int pageSize = 2;
         const int pageNumber = 0;
         
         // Act
-        var result = _paginationService.Paginate(data, pageSize, pageNumber);
+        var result = await _paginationService.PaginateAsync(data, pageSize, pageNumber);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -167,7 +167,7 @@ public class PaginationServiceTests
         Assert.Equal(pageSize, result.Value?.PageSize);
         Assert.False(result.Value?.HasNextPage);
         Assert.False(result.Value?.HasPreviousPage);
-        Assert.Equal(data.Count, result.Value?.PaginationDetails.AllElementsCount);
+        Assert.Equal(data.Count(), result.Value?.PaginationDetails.AllElementsCount);
         Assert.Equal(0, result.Value?.PaginationDetails.MaxPageNumber);
     }
 
