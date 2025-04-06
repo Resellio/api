@@ -99,4 +99,28 @@ public class EventController : ControllerBase
 
         return Ok(paginationDetailsResult.Value!);
     }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("get-events")]
+    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page)
+    {
+        var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize);
+        if (paginatedDataResult.IsError)
+        {
+            return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
+        }
+        return Ok(paginatedDataResult.Value!);
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("get-events-pagination-details")]
+    public async Task<ActionResult<PaginationDetails>> GetEventsPaginationDetails([FromQuery] int pageSize)
+    {
+        var paginationDetailsResult = await _eventService.GetEventsPaginationDetailsAsync(pageSize);
+        if (paginationDetailsResult.IsError)
+        {
+            return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
+        }
+        return Ok(paginationDetailsResult.Value!);
+    }
 }

@@ -14,7 +14,7 @@ namespace TickAPI.Events.Services;
 
 public class EventService : IEventService
 {
-    private readonly  IOrganizerService _organizerService;
+    private readonly IOrganizerService _organizerService;
     private readonly IEventRepository _eventRepository;
     private readonly IAddressService _addressService;
     private readonly IDateTimeService _dateTimeService;
@@ -76,6 +76,12 @@ public class EventService : IEventService
     {
         var events = _eventRepository.GetEvents();
         return await GetPaginatedEventsAsync(events, page, pageSize);
+    }
+
+    public async Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize)
+    {
+        var events = _eventRepository.GetEvents();
+        return await _paginationService.GetPaginationDetailsAsync(events, pageSize);
     }
 
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)

@@ -14,4 +14,5 @@ public interface IEventService
     public Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize);
     public Task<Result<PaginationDetails>> GetOrganizerEventsPaginationDetailsAsync(Organizer organizer, int pageSize);
     public Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize);
+    public Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize);
 }
