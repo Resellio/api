@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using TickAPI.Events.Models;
+﻿using TickAPI.Events.Models;
 
 namespace TickAPI.Organizers.Models;
 
