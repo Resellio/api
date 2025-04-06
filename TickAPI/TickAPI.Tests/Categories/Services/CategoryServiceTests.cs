@@ -64,7 +64,7 @@ public class CategoryServiceTests
         
         // Assert
         Assert.True(res.IsSuccess);
-        Assert.Equal(categoryName, res.Value!.Name);
+        Assert.Equal(category, res.Value);
     }
     
     [Fact]
@@ -138,7 +138,7 @@ public class CategoryServiceTests
         
         // Assert
         Assert.True(res.IsError);
-        Assert.Equal(500, res.StatusCode);
+        Assert.Equal(400, res.StatusCode);
         Assert.Equal($"category with name '{categoryName}' already exists", res.ErrorMsg);
     }
 }
