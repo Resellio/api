@@ -1,4 +1,6 @@
-﻿using TickAPI.Common.Pagination.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.Results.Generic;
 
@@ -6,14 +8,14 @@ namespace TickAPI.Common.Pagination.Services;
 
 public class PaginationService : IPaginationService
 {
-    public Result<PaginationDetails> GetPaginationDetails<T>(ICollection<T> collection, int pageSize)
+    public async Task<Result<PaginationDetails>> GetPaginationDetailsAsync<T>(IQueryable<T> collection, int pageSize)
     {
         if (pageSize <= 0)
         {
             return Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, $"'pageSize' param must be > 0, got: {pageSize}");
         }
-        
-        var allElementsCount = collection.Count;
+
+        var allElementsCount = collection.Provider is IAsyncQueryProvider ? await collection.CountAsync() : collection.Count();
         var maxPageNumber = Math.Max((int)Math.Ceiling(1.0 * allElementsCount / pageSize) - 1, 0);
 
         var paginationDetails = new PaginationDetails(maxPageNumber, allElementsCount);
@@ -21,7 +23,7 @@ public class PaginationService : IPaginationService
         return Result<PaginationDetails>.Success(paginationDetails);
     }
 
-    public Result<PaginatedData<T>> Paginate<T>(ICollection<T> collection, int pageSize, int page)
+    public async Task<Result<PaginatedData<T>>> PaginateAsync<T>(IQueryable<T> collection, int pageSize, int page)
     {
         if (pageSize <= 0)
         {
@@ -33,7 +35,7 @@ public class PaginationService : IPaginationService
             return Result<PaginatedData<T>>.Failure(StatusCodes.Status400BadRequest, $"'page' param must be >= 0, got: {page}");
         }
 
-        var paginationDetailsResult = GetPaginationDetails(collection, pageSize);
+        var paginationDetailsResult = await GetPaginationDetailsAsync(collection, pageSize);
         if (paginationDetailsResult.IsError)
         {
             return Result<PaginatedData<T>>.PropagateError(paginationDetailsResult);
@@ -46,8 +48,9 @@ public class PaginationService : IPaginationService
             return Result<PaginatedData<T>>.Failure(StatusCodes.Status400BadRequest,
                 $"'page' param must be <= {paginationDetails.MaxPageNumber}, got: {page}");
         }
-        
-        var data = collection.Skip(page * pageSize).Take(pageSize).ToList();
+
+        var paginatedQuery = collection.Skip(page * pageSize).Take(pageSize);
+        var data = collection.Provider is IAsyncQueryProvider ? await paginatedQuery.ToListAsync() : paginatedQuery.ToList();
         var hasPreviousPage = page > 0;
         var hasNextPage = page < paginationDetails.MaxPageNumber;
 
