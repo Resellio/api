@@ -7,5 +7,7 @@ namespace TickAPI.Categories.Abstractions;
 
 public interface ICategoryService
 {
+    public Task<Result<Category>> GetCategoryByNameAsync(string categoryName);
     public Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page);
+    public Task<Result<Category>> CreateNewCategoryAsync(string categoryName);
 }

@@ -18,7 +18,7 @@ public static class Utils
             EndDate = new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc),
             MinimumAge = 18,
             EventStatus = EventStatus.TicketsAvailable,
-            Categories = new List<Category> { new Category { CategoryName = "Test" } },
+            Categories = new List<Category> { new Category { Name = "Test" } },
             Address = new Address
             {
                 Country = "United States",

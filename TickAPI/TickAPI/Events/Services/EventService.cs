@@ -70,7 +70,7 @@ public class EventService : IEventService
 
         var paginatedData = _paginationService.MapData(paginatedEventsResult.Value!, ev =>
         {
-            var categories = ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.CategoryName)).ToList();
+            var categories = ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList();
             var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
             return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
         });
