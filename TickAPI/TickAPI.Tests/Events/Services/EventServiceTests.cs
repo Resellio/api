@@ -153,7 +153,7 @@ public class EventServiceTests
     }
     
     [Fact]
-    public void GetOrganizerEvents_WhenPaginationSucceeds_ShouldReturnPaginatedEvents()
+    public async Task GetOrganizerEvents_WhenPaginationSucceeds_ShouldReturnPaginatedEvents()
     {
         // Arrange
         var organizer = new Organizer
@@ -185,9 +185,12 @@ public class EventServiceTests
             new PaginationDetails(1, 3)
         );
 
+        var organizerEvents = organizer.Events.AsQueryable();
+        eventRepositoryMock.Setup(p => p.GetEventsByOranizer(organizer)).Returns(organizerEvents);
+        
         paginationServiceMock
-            .Setup(p => p.Paginate(organizer.Events, pageSize, page))
-            .Returns(Result<PaginatedData<Event>>.Success(paginatedEvents));
+            .Setup(p => p.PaginateAsync(organizerEvents, pageSize, page))
+            .ReturnsAsync(Result<PaginatedData<Event>>.Success(paginatedEvents));
 
         paginationServiceMock
             .Setup(p => p.MapData(paginatedEvents, It.IsAny<Func<Event, GetEventResponseDto>>()))
@@ -208,7 +211,7 @@ public class EventServiceTests
             dateTimeServiceMock.Object, paginationServiceMock.Object);
 
         // Act
-        var result = sut.GetOrganizerEvents(organizer, page, pageSize);
+        var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -224,7 +227,7 @@ public class EventServiceTests
     }
     
     [Fact]
-    public void GetOrganizerEvents_WhenPaginationFails_ShouldPropagateError()
+    public async Task GetOrganizerEvents_WhenPaginationFails_ShouldPropagateError()
     {
         // Arrange
         var organizer = new Organizer
@@ -246,15 +249,18 @@ public class EventServiceTests
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
 
+        var organizerEvents = organizer.Events.AsQueryable();
+        eventRepositoryMock.Setup(p => p.GetEventsByOranizer(organizer)).Returns(organizerEvents);
+        
         paginationServiceMock
-            .Setup(p => p.Paginate(organizer.Events, pageSize, page))
-            .Returns(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
+            .Setup(p => p.PaginateAsync(organizerEvents, pageSize, page))
+            .ReturnsAsync(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
             dateTimeServiceMock.Object, paginationServiceMock.Object);
 
         // Act
-        var result = sut.GetOrganizerEvents(organizer, page, pageSize);
+        var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
 
         // Assert
         Assert.False(result.IsSuccess);

@@ -64,7 +64,7 @@ public class EventController : ControllerBase
         }
         var organizer = organizerResult.Value!;
 
-        var paginatedDataResult = _eventService.GetOrganizerEvents(organizer, page, pageSize);
+        var paginatedDataResult = await _eventService.GetOrganizerEventsAsync(organizer, page, pageSize);
         if (paginatedDataResult.IsError)
         {
             return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
@@ -91,7 +91,7 @@ public class EventController : ControllerBase
         }
         var organizer = organizerResult.Value!;
 
-        var paginationDetailsResult = _eventService.GetOrganizerEventsPaginationDetails(organizer, pageSize);
+        var paginationDetailsResult = await _eventService.GetOrganizerEventsPaginationDetailsAsync(organizer, pageSize);
         if (paginationDetailsResult.IsError)
         {
             return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);

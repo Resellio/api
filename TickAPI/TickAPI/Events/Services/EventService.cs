@@ -60,26 +60,41 @@ public class EventService : IEventService
         return Result<Event>.Success(@event);
     }
 
-    public Result<PaginatedData<GetEventResponseDto>> GetOrganizerEvents(Organizer organizer, int page, int pageSize)
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize)
     {
-        var paginatedEventsResult = _paginationService.Paginate(organizer.Events, pageSize, page);
+        var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
+        return await GetPaginatedEventsAsync(organizerEvents, page, pageSize);
+    }
+
+    public async Task<Result<PaginationDetails>> GetOrganizerEventsPaginationDetailsAsync(Organizer organizer, int pageSize)
+    {
+        var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
+        return await _paginationService.GetPaginationDetailsAsync(organizerEvents, pageSize);
+    }
+
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize)
+    {
+        var events = _eventRepository.GetEvents();
+        return await GetPaginatedEventsAsync(events, page, pageSize);
+    }
+
+    private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
+    {
+        var paginatedEventsResult = await _paginationService.PaginateAsync(events, pageSize, page);
         if (paginatedEventsResult.IsError)
         {
             return Result<PaginatedData<GetEventResponseDto>>.PropagateError(paginatedEventsResult);
         }
 
-        var paginatedData = _paginationService.MapData(paginatedEventsResult.Value!, ev =>
-        {
-            var categories = ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList();
-            var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
-            return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
-        });
+        var paginatedData = _paginationService.MapData(paginatedEventsResult.Value!, MapEventToGetEventResponseDto);
 
         return Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData);
     }
-
-    public Result<PaginationDetails> GetOrganizerEventsPaginationDetails(Organizer organizer, int pageSize)
+    
+    private static GetEventResponseDto MapEventToGetEventResponseDto(Event ev)
     {
-        return _paginationService.GetPaginationDetails(organizer.Events!, pageSize);
+        var categories = ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList();
+        var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
+        return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
     }
 }
