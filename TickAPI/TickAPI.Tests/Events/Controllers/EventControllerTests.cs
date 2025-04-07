@@ -155,8 +155,8 @@ public class EventControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEvents(organizer, page, pageSize))
-            .Returns(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
+            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize))
+            .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
         
         var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
@@ -297,8 +297,8 @@ public class EventControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEvents(organizer, page, pageSize))
-            .Returns(Result<PaginatedData<GetEventResponseDto>>.Failure(StatusCodes.Status400BadRequest, errorMessage));
+            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize))
+            .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Failure(StatusCodes.Status400BadRequest, errorMessage));
         
         var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
@@ -349,8 +349,8 @@ public class EventControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEventsPaginationDetails(organizer, pageSize))
-            .Returns(Result<PaginationDetails>.Success(paginationDetails));
+            .Setup(m => m.GetOrganizerEventsPaginationDetailsAsync(organizer, pageSize))
+            .ReturnsAsync(Result<PaginationDetails>.Success(paginationDetails));
         
         var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
@@ -403,8 +403,8 @@ public class EventControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEventsPaginationDetails(organizer, pageSize))
-            .Returns(Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, errorMessage));
+            .Setup(m => m.GetOrganizerEventsPaginationDetailsAsync(organizer, pageSize))
+            .ReturnsAsync(Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, errorMessage));
         
         var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
@@ -418,4 +418,140 @@ public class EventControllerTests
         Assert.Equal(StatusCodes.Status400BadRequest, objectResult.StatusCode);
         Assert.Equal(errorMessage, objectResult.Value);
     }
+    
+    [Fact]
+    public async Task GetEvents_WhenAllOperationsSucceed_ShouldReturnOkWithPaginatedData()
+    {
+        // Arrange
+        const int page = 0;
+        const int pageSize = 10;
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var paginatedData = new PaginatedData<GetEventResponseDto>(
+            new List<GetEventResponseDto>
+            {
+                Utils.CreateSampleEventResponseDto("Event 1"),
+                Utils.CreateSampleEventResponseDto("Event 2")
+            },
+            page,
+            pageSize,
+            false,
+            false,
+            new PaginationDetails(0, 2)
+        );
+        
+        eventServiceMock
+            .Setup(m => m.GetEventsAsync(page, pageSize))
+            .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        
+        var returnedPaginatedData = Assert.IsType<PaginatedData<GetEventResponseDto>>(okResult.Value);
+        Assert.Equal(2, returnedPaginatedData.Data.Count);
+        Assert.Equal(paginatedData.Data[0], returnedPaginatedData.Data[0]);
+        Assert.Equal(paginatedData.Data[1], returnedPaginatedData.Data[1]);
+        Assert.Equal(page, returnedPaginatedData.PageNumber);
+        Assert.Equal(pageSize, returnedPaginatedData.PageSize);
+        Assert.False(returnedPaginatedData.HasNextPage);
+        Assert.False(returnedPaginatedData.HasPreviousPage);
+    }
+
+    [Fact]
+    public async Task GetEvents_WhenOperationFails_ShouldReturnErrorWithCorrectStatusCode()
+    {
+        // Arrange
+        const int page = 0;
+        const int pageSize = 10;
+        const string errorMessage = "Failed to retrieve events";
+        const int statusCode = StatusCodes.Status500InternalServerError;
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        eventServiceMock
+            .Setup(m => m.GetEventsAsync(page, pageSize))
+            .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Failure(statusCode, errorMessage));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEvents(pageSize, page);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(statusCode, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+    }
+    
+    [Fact]
+    public async Task GetEventsPaginationDetails_WhenAllOperationsSucceed_ShouldReturnOkWithPaginationDetails()
+    {
+        // Arrange
+        const int pageSize = 10;
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var paginationDetails = new PaginationDetails(0, 20);
+        
+        eventServiceMock
+            .Setup(m => m.GetEventsPaginationDetailsAsync(pageSize))
+            .ReturnsAsync(Result<PaginationDetails>.Success(paginationDetails));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEventsPaginationDetails(pageSize);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        
+        var returnedPaginationDetails = Assert.IsType<PaginationDetails>(okResult.Value);
+        Assert.Equal(paginationDetails.AllElementsCount, returnedPaginationDetails.AllElementsCount);
+        Assert.Equal(paginationDetails.MaxPageNumber, returnedPaginationDetails.MaxPageNumber);
+    }
+
+    [Fact]
+    public async Task GetEventsPaginationDetails_WhenOperationFails_ShouldReturnErrorWithCorrectStatusCode()
+    {
+        // Arrange
+        const int pageSize = 10;
+        const string errorMessage = "Failed to retrieve pagination details";
+        const int statusCode = StatusCodes.Status500InternalServerError;
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        eventServiceMock
+            .Setup(m => m.GetEventsPaginationDetailsAsync(pageSize))
+            .ReturnsAsync(Result<PaginationDetails>.Failure(statusCode, errorMessage));
+        
+        var sut = new EventController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEventsPaginationDetails(pageSize);
+        
+        // Assert
+        var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(statusCode, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+}
 }

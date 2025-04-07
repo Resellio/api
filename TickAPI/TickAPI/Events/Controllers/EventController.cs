@@ -64,7 +64,7 @@ public class EventController : ControllerBase
         }
         var organizer = organizerResult.Value!;
 
-        var paginatedDataResult = _eventService.GetOrganizerEvents(organizer, page, pageSize);
+        var paginatedDataResult = await _eventService.GetOrganizerEventsAsync(organizer, page, pageSize);
         if (paginatedDataResult.IsError)
         {
             return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
@@ -91,12 +91,36 @@ public class EventController : ControllerBase
         }
         var organizer = organizerResult.Value!;
 
-        var paginationDetailsResult = _eventService.GetOrganizerEventsPaginationDetails(organizer, pageSize);
+        var paginationDetailsResult = await _eventService.GetOrganizerEventsPaginationDetailsAsync(organizer, pageSize);
         if (paginationDetailsResult.IsError)
         {
             return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
         }
 
+        return Ok(paginationDetailsResult.Value!);
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("get-events")]
+    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page)
+    {
+        var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize);
+        if (paginatedDataResult.IsError)
+        {
+            return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
+        }
+        return Ok(paginatedDataResult.Value!);
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("get-events-pagination-details")]
+    public async Task<ActionResult<PaginationDetails>> GetEventsPaginationDetails([FromQuery] int pageSize)
+    {
+        var paginationDetailsResult = await _eventService.GetEventsPaginationDetailsAsync(pageSize);
+        if (paginationDetailsResult.IsError)
+        {
+            return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
+        }
         return Ok(paginationDetailsResult.Value!);
     }
 }

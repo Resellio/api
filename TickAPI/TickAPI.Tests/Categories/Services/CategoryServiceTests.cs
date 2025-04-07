@@ -19,15 +19,23 @@ public class CategoryServiceTests
         // Arrange
         int pageSize = 10;
         int page = 0;
+        var allCategories = new List<Category>().AsQueryable(); 
         var categoryRepositoryMock = new Mock<ICategoryRepository>();
-        categoryRepositoryMock.Setup(repo => repo.GetCategoriesAsync())
-            .ReturnsAsync(new List<Category>());
+        categoryRepositoryMock.Setup(repo => repo.GetCategories())
+            .Returns(allCategories);
 
         var paginationServiceMock = new Mock<IPaginationService>();
-        paginationServiceMock.Setup(p => p.Paginate(new List<Category>(), pageSize, page)).Returns(
-            Result<PaginatedData<Category>>.Success(new PaginatedData<Category>(new List<Category>(), page, pageSize,
-                false, false, new PaginationDetails(0, 0)))
-        );
+        paginationServiceMock.Setup(p => p.PaginateAsync(allCategories, pageSize, page))
+            .Returns(Task.FromResult(
+                Result<PaginatedData<Category>>.Success(new PaginatedData<Category>(
+                    new List<Category>(), 
+                    page, 
+                    pageSize,
+                    false, 
+                    false, 
+                    new PaginationDetails(0, 0))
+                )
+            ));
         
         var sut = new CategoryService(categoryRepositoryMock.Object, paginationServiceMock.Object);
         

@@ -25,8 +25,8 @@ public class CategoryService : ICategoryService
 
     public async Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page)
     {
-        var categoriesAllResponse = await _categoryRepository.GetCategoriesAsync();
-        var categoriesPaginated = _paginationService.Paginate(categoriesAllResponse, pageSize, page);
+        var categoriesAllResponse = _categoryRepository.GetCategories();
+        var categoriesPaginated = await _paginationService.PaginateAsync(categoriesAllResponse, pageSize, page);
         if (!categoriesPaginated.IsSuccess)
         {
             return Result<PaginatedData<GetCategoryResponseDto>>.PropagateError(categoriesPaginated);
