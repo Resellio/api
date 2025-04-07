@@ -9,6 +9,15 @@ Resellio API is the backend service for the Resellio application, providing an i
 - dotnet version >= `9.0`
 - docker version >= `28.0`
 
+### External Services
+
+This project uses the following external services:
+
+- **PostgreSQL** – as the main relational database.
+- **Redis** – for caching and other fast in-memory operations.
+
+Both services are managed using **Docker Compose**, and are defined in the `docker-compose.yml` file. When running locally, Docker will automatically provision and run these services.
+
 ### Running locally
 
 1. Clone the repository:
@@ -23,12 +32,11 @@ Resellio API is the backend service for the Resellio application, providing an i
    ```bash
    docker compose up
    ```
-   
+
 3. Set up environment variables:
 
    Create an `appsettings.json` file in the root of the project, following the structure
    of `appsettings.example.json` found in `TickAPI/TickAPI/appsettings.example.json`.
-
 
 4. Run application:
 
