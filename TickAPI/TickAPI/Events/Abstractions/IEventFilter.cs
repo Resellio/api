@@ -16,6 +16,5 @@ public interface IEventFilter
     IQueryable<Event> FilterByAddressCity(IQueryable<Event> events, string city);
     IQueryable<Event> FilterByAddressStreet(IQueryable<Event> events, string street, uint? houseNumber, uint? flatNumber);
     IQueryable<Event> FilterByAddressPostalCode(IQueryable<Event> events, string postalCode);
-
-    // TODO: add filters for address and categories
+    IQueryable<Event> FilterByCategoriesNames(IQueryable<Event> events, IEnumerable<string> categoriesNames);
 }

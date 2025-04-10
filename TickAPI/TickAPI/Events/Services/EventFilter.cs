@@ -74,4 +74,9 @@ public class EventFilter : IEventFilter
     {
         return events.Where(e => e.Address.PostalCode == postalCode);
     }
+
+    public IQueryable<Event> FilterByCategoriesNames(IQueryable<Event> events, IEnumerable<string> categoriesNames)
+    {
+        return events.Where(e => e.Categories.Any(c => categoriesNames.Contains(c.Name)));
+    }
 }

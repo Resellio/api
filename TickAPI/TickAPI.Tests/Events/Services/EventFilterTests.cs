@@ -1,4 +1,5 @@
 ﻿using TickAPI.Addresses.Models;
+using TickAPI.Categories.Models;
 using TickAPI.Events.Models;
 using TickAPI.Events.Services;
 using TickAPI.TicketTypes.Models;
@@ -31,6 +32,11 @@ public class EventFilterTests
             {
                 new TicketType { Price = 100 },
                 new TicketType { Price = 120 }
+            },
+            Categories = new List<Category>
+            {
+                new Category { Name = "Music" },
+                new Category { Name = "Rock" }
             }
         },
 
@@ -53,6 +59,11 @@ public class EventFilterTests
             TicketTypes = new List<TicketType>
             {
                 new TicketType { Price = 50 }
+            },
+            Categories = new List<Category>
+            {
+                new Category { Name = "Music" },
+                new Category { Name = "Jazz" }
             }
         },
 
@@ -76,6 +87,11 @@ public class EventFilterTests
             {
                 new TicketType { Price = 200 },
                 new TicketType { Price = 150 }
+            },
+            Categories = new List<Category>
+            {
+                new Category { Name = "Technology" },
+                new Category { Name = "Development" }
             }
         }
     ];
@@ -280,6 +296,21 @@ public class EventFilterTests
         // Assert
         Assert.Single(result);
         Assert.Contains(events[1], result);
+    }
+
+    [Fact]
+    public void FilterByCategoriesNames_ShouldReturnMatchingEvents()
+    {
+        // Arrange
+        var events = GetTestEvents();
+
+        // Act
+        var result = _eventFilter.FilterByCategoriesNames(events.AsQueryable(), ["Jazz", "Technology"]).ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(events[1], result);
+        Assert.Contains(events[2], result);
     }
 
 }
