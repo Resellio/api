@@ -5,7 +5,6 @@ namespace TickAPI.Events.Services;
 
 public class EventFilter : IEventFilter
 {
-
     public IQueryable<Event> FilterByName(IQueryable<Event> events, string name)
     {
         return events.Where(e => e.Name.Contains(name, StringComparison.CurrentCultureIgnoreCase));
@@ -45,5 +44,34 @@ public class EventFilter : IEventFilter
     public IQueryable<Event> FilterByMaxAge(IQueryable<Event> events, uint maxAge)
     {
         return events.Where(e => e.MinimumAge <= maxAge);
+    }
+
+    public IQueryable<Event> FilterByAddressCountry(IQueryable<Event> events, string country)
+    {
+        return events.Where(e => e.Address.Country.Contains(country, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    public IQueryable<Event> FilterByAddressCity(IQueryable<Event> events, string city)
+    {
+        return events.Where(e => e.Address.City.Contains(city, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    public IQueryable<Event> FilterByAddressStreet(IQueryable<Event> events, string street, uint? houseNumber = null, uint? flatNumber = null)
+    {
+        var result = events.Where(e => e.Address.Street != null && e.Address.Street.Contains(street, StringComparison.CurrentCultureIgnoreCase));
+        if (houseNumber != null)
+        {
+            result = result.Where(e => e.Address.HouseNumber != null && e.Address.HouseNumber == houseNumber);
+        }
+        if (flatNumber != null)
+        {
+            result = result.Where(e => e.Address.FlatNumber != null && e.Address.FlatNumber == flatNumber);
+        }
+        return result;
+    }
+
+    public IQueryable<Event> FilterByAddressPostalCode(IQueryable<Event> events, string postalCode)
+    {
+        return events.Where(e => e.Address.PostalCode == postalCode);
     }
 }

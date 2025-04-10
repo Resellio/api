@@ -12,5 +12,10 @@ public interface IEventFilter
     IQueryable<Event> FilterByMaxPrice(IQueryable<Event> events, decimal maxPrice);
     IQueryable<Event> FilterByMinAge(IQueryable<Event> events, uint minAge);
     IQueryable<Event> FilterByMaxAge(IQueryable<Event> events, uint maxAge);
+    IQueryable<Event> FilterByAddressCountry(IQueryable<Event> events, string country);
+    IQueryable<Event> FilterByAddressCity(IQueryable<Event> events, string city);
+    IQueryable<Event> FilterByAddressStreet(IQueryable<Event> events, string street, uint? houseNumber, uint? flatNumber);
+    IQueryable<Event> FilterByAddressPostalCode(IQueryable<Event> events, string postalCode);
+
     // TODO: add filters for address and categories
 }
