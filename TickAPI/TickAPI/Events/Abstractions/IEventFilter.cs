@@ -8,7 +8,11 @@ public interface IEventFilter
     void FilterByName(string name);
     void FilterByDescription(string description);
     void FilterByStartDate(DateTime startDate);
+    void FilterByMinStartDate(DateTime startDate);
+    void FilterByMaxStartDate(DateTime startDate);
     void FilterByEndDate(DateTime endDate);
+    void FilterByMinEndDate(DateTime endDate);
+    void FilterByMaxEndDate(DateTime endDate);
     void FilterByMinPrice(decimal minPrice);
     void FilterByMaxPrice(decimal maxPrice);
     void FilterByMinAge(uint minAge);

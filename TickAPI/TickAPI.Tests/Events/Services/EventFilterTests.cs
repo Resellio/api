@@ -145,6 +145,39 @@ public class EventFilterTests
     }
     
     [Fact]
+    public void FilterByMinStartDate_ShouldReturnMatchingEvents()
+    {
+        // Arrange
+        var events = GetTestEvents();
+
+        // Act
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMinStartDate(new DateTime(2025, 5, 15));
+        var result = eventFilter.GetEvents().ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Contains(events[1], result);
+    }
+    
+    [Fact]
+    public void FilterByMaxStartDate_ShouldReturnMatchingEvents()
+    {
+        // Arrange
+        var events = GetTestEvents();
+
+        // Act
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMaxStartDate(new DateTime(2025, 5, 15));
+        var result = eventFilter.GetEvents().ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(events[0], result);
+        Assert.Contains(events[2], result);
+    }
+    
+    [Fact]
     public void FilterByEndDate_ShouldReturnMatchingEvents()
     {
         // Arrange
@@ -158,6 +191,39 @@ public class EventFilterTests
         // Assert
         Assert.Single(result);
         Assert.Contains(events[0], result);
+    }
+    
+    [Fact]
+    public void FilterByMinEndDate_ShouldReturnMatchingEvents()
+    {
+        // Arrange
+        var events = GetTestEvents();
+
+        // Act
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMinEndDate(new DateTime(2025, 5, 15));
+        var result = eventFilter.GetEvents().ToList();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Contains(events[1], result);
+    }
+    
+    [Fact]
+    public void FilterByMaxEndDate_ShouldReturnMatchingEvents()
+    {
+        // Arrange
+        var events = GetTestEvents();
+
+        // Act
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMaxEndDate(new DateTime(2025, 5, 15));
+        var result = eventFilter.GetEvents().ToList();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        Assert.Contains(events[0], result);
+        Assert.Contains(events[2], result);
     }
     
     [Fact]

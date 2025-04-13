@@ -32,9 +32,29 @@ public class EventFilter : IEventFilter
         _events = _events.Where(e => e.StartDate.Date == startDate.Date);
     }
 
+    public void FilterByMinStartDate(DateTime startDate)
+    {
+        _events = _events.Where(e => e.StartDate.Date >= startDate.Date);
+    }
+
+    public void FilterByMaxStartDate(DateTime startDate)
+    {
+        _events = _events.Where(e => e.StartDate.Date <= startDate.Date);
+    }
+
     public void FilterByEndDate(DateTime endDate)
     {
         _events = _events.Where(e => e.EndDate.Date == endDate.Date);
+    }
+
+    public void FilterByMinEndDate(DateTime endDate)
+    {
+        _events = _events.Where(e => e.EndDate.Date >= endDate.Date);
+    }
+
+    public void FilterByMaxEndDate(DateTime endDate)
+    {
+        _events = _events.Where(e => e.EndDate.Date <= endDate.Date);
     }
 
     public void FilterByMinPrice(decimal minPrice)
