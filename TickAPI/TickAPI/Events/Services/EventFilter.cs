@@ -23,7 +23,6 @@ public class EventFilter : IEventFilter
     }
 
     public void FilterByDescription(string description)
-    
     {
         _events = _events.Where(e => e.Description.Contains(description, StringComparison.CurrentCultureIgnoreCase));
     }
