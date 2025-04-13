@@ -8,8 +8,6 @@ namespace TickAPI.Tests.Events.Services;
 
 public class EventFilterTests
 {
-    private readonly EventFilter _eventFilter = new EventFilter();
-
     private static List<Event> GetTestEvents() =>
     [
         new Event
@@ -103,7 +101,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByName(events.AsQueryable(), "concert").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByName("concert");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -118,7 +118,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByDescription(events.AsQueryable(), "tech").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByDescription("tech");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -132,7 +134,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByStartDate(events.AsQueryable(), new DateTime(2025, 5, 1)).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByStartDate(new DateTime(2025, 5, 1));
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -147,7 +151,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByEndDate(events.AsQueryable(), new DateTime(2025, 5, 1, 22, 0, 0)).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByEndDate(new DateTime(2025, 5, 1, 22, 0, 0));
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -161,7 +167,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByMinPrice(events.AsQueryable(), 100).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMinPrice(100);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -176,7 +184,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByMaxPrice(events.AsQueryable(), 100).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMaxPrice(100);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -190,7 +200,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByMinAge(events.AsQueryable(), 18).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMinAge(18);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -205,7 +217,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByMaxAge(events.AsQueryable(), 18).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByMaxAge(18);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -220,7 +234,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressCountry(events.AsQueryable(), "poland").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressCountry("poland");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -235,7 +251,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressCity(events.AsQueryable(), "berlin").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressCity("berlin");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -249,7 +267,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressStreet(events.AsQueryable(), "marszałkowska", 12, 5).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressStreet("marszałkowska", 12, 5);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -263,7 +283,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressStreet(events.AsQueryable(), "marszałkowska", 12).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressStreet("marszałkowska", 12);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -277,7 +299,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressStreet(events.AsQueryable(), "długa").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressStreet("długa");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -291,7 +315,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByAddressPostalCode(events.AsQueryable(), "10117").ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByAddressPostalCode("10117");
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Single(result);
@@ -305,7 +331,9 @@ public class EventFilterTests
         var events = GetTestEvents();
 
         // Act
-        var result = _eventFilter.FilterByCategoriesNames(events.AsQueryable(), ["Jazz", "Technology"]).ToList();
+        var eventFilter = new EventFilter(events.AsQueryable());
+        eventFilter.FilterByCategoriesNames(["Jazz", "Technology"]);
+        var result = eventFilter.GetEvents().ToList();
 
         // Assert
         Assert.Equal(2, result.Count);

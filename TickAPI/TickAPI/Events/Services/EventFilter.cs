@@ -5,60 +5,72 @@ namespace TickAPI.Events.Services;
 
 public class EventFilter : IEventFilter
 {
-    public IQueryable<Event> FilterByName(IQueryable<Event> events, string name)
+    private IQueryable<Event> _events;
+
+    public EventFilter(IQueryable<Event> events)
     {
-        return events.Where(e => e.Name.Contains(name, StringComparison.CurrentCultureIgnoreCase));
+        _events = events;
     }
 
-    public IQueryable<Event> FilterByDescription(IQueryable<Event> events, string description)
+    public IQueryable<Event> GetEvents() 
+    {
+        return _events;
+    }
+
+    public void FilterByName(string name)
+    {
+        _events = _events.Where(e => e.Name.Contains(name, StringComparison.CurrentCultureIgnoreCase));
+    }
+
+    public void FilterByDescription(string description)
     
     {
-        return events.Where(e => e.Description.Contains(description, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Description.Contains(description, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    public IQueryable<Event> FilterByStartDate(IQueryable<Event> events, DateTime startDate)
+    public void FilterByStartDate(DateTime startDate)
     {
-        return events.Where(e => e.StartDate.Date == startDate.Date);
+        _events = _events.Where(e => e.StartDate.Date == startDate.Date);
     }
 
-    public IQueryable<Event> FilterByEndDate(IQueryable<Event> events, DateTime endDate)
+    public void FilterByEndDate(DateTime endDate)
     {
-        return events.Where(e => e.EndDate.Date == endDate.Date);
+        _events = _events.Where(e => e.EndDate.Date == endDate.Date);
     }
 
-    public IQueryable<Event> FilterByMinPrice(IQueryable<Event> events, decimal minPrice)
+    public void FilterByMinPrice(decimal minPrice)
     {
-        return events.Where(e => e.TicketTypes.All(t => t.Price >= minPrice));
+        _events = _events.Where(e => e.TicketTypes.All(t => t.Price >= minPrice));
     }
 
-    public IQueryable<Event> FilterByMaxPrice(IQueryable<Event> events, decimal maxPrice)
+    public void FilterByMaxPrice(decimal maxPrice)
     {
-        return events.Where(e => e.TicketTypes.All(t => t.Price <= maxPrice));
+        _events = _events.Where(e => e.TicketTypes.All(t => t.Price <= maxPrice));
     }
 
-    public IQueryable<Event> FilterByMinAge(IQueryable<Event> events, uint minAge)
+    public void FilterByMinAge(uint minAge)
     {
-        return events.Where(e => e.MinimumAge >= minAge);
+        _events = _events.Where(e => e.MinimumAge >= minAge);
     }
 
-    public IQueryable<Event> FilterByMaxAge(IQueryable<Event> events, uint maxAge)
+    public void FilterByMaxAge(uint maxAge)
     {
-        return events.Where(e => e.MinimumAge <= maxAge);
+        _events = _events.Where(e => e.MinimumAge <= maxAge);
     }
 
-    public IQueryable<Event> FilterByAddressCountry(IQueryable<Event> events, string country)
+    public void FilterByAddressCountry(string country)
     {
-        return events.Where(e => e.Address.Country.Contains(country, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Address.Country.Contains(country, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    public IQueryable<Event> FilterByAddressCity(IQueryable<Event> events, string city)
+    public void FilterByAddressCity(string city)
     {
-        return events.Where(e => e.Address.City.Contains(city, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Address.City.Contains(city, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    public IQueryable<Event> FilterByAddressStreet(IQueryable<Event> events, string street, uint? houseNumber = null, uint? flatNumber = null)
+    public void FilterByAddressStreet(string street, uint? houseNumber = null, uint? flatNumber = null)
     {
-        var result = events.Where(e => e.Address.Street != null && e.Address.Street.Contains(street, StringComparison.CurrentCultureIgnoreCase));
+        var result = _events.Where(e => e.Address.Street != null && e.Address.Street.Contains(street, StringComparison.CurrentCultureIgnoreCase));
         if (houseNumber != null)
         {
             result = result.Where(e => e.Address.HouseNumber != null && e.Address.HouseNumber == houseNumber);
@@ -67,16 +79,16 @@ public class EventFilter : IEventFilter
         {
             result = result.Where(e => e.Address.FlatNumber != null && e.Address.FlatNumber == flatNumber);
         }
-        return result;
+        _events = result;
     }
 
-    public IQueryable<Event> FilterByAddressPostalCode(IQueryable<Event> events, string postalCode)
+    public void FilterByAddressPostalCode(string postalCode)
     {
-        return events.Where(e => e.Address.PostalCode == postalCode);
+        _events = _events.Where(e => e.Address.PostalCode == postalCode);
     }
 
-    public IQueryable<Event> FilterByCategoriesNames(IQueryable<Event> events, IEnumerable<string> categoriesNames)
+    public void FilterByCategoriesNames(IEnumerable<string> categoriesNames)
     {
-        return events.Where(e => e.Categories.Any(c => categoriesNames.Contains(c.Name)));
+        _events = _events.Where(e => e.Categories.Any(c => categoriesNames.Contains(c.Name)));
     }
 }
