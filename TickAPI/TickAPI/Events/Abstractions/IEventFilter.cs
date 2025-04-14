@@ -16,7 +16,7 @@ public interface IEventFilter
     void FilterByMinPrice(decimal minPrice);
     void FilterByMaxPrice(decimal maxPrice);
     void FilterByMinAge(uint minAge);
-    void FilterByMaxAge(uint maxAge);
+    void FilterByMaxMinimumAge(uint maxMinimumAge);
     void FilterByAddressCountry(string country);
     void FilterByAddressCity(string city);
     void FilterByAddressStreet(string street, uint? houseNumber, uint? flatNumber);

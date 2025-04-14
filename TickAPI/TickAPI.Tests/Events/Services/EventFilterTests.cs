@@ -255,7 +255,8 @@ public class EventFilterTests
         var result = eventFilter.GetEvents().ToList();
 
         // Assert
-        Assert.Single(result);
+        Assert.Equal(2, result.Count);
+        Assert.Contains(events[0], result);
         Assert.Contains(events[1], result);
     }
     
@@ -277,14 +278,14 @@ public class EventFilterTests
     }
 
     [Fact]
-    public void FilterByMaxAge_ShouldReturnMatchingEvents()
+    public void FilterByMaxMinimumAge_ShouldReturnMatchingEvents()
     {
         // Arrange
         var events = GetTestEvents();
 
         // Act
         var eventFilter = new EventFilter(events.AsQueryable());
-        eventFilter.FilterByMaxAge(18);
+        eventFilter.FilterByMaxMinimumAge(18);
         var result = eventFilter.GetEvents().ToList();
 
         // Assert

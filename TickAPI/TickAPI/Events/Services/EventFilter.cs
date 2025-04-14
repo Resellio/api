@@ -59,12 +59,12 @@ public class EventFilter : IEventFilter
 
     public void FilterByMinPrice(decimal minPrice)
     {
-        _events = _events.Where(e => e.TicketTypes.All(t => t.Price >= minPrice));
+        _events = _events.Where(e => e.TicketTypes.Any(t => t.Price >= minPrice));
     }
 
     public void FilterByMaxPrice(decimal maxPrice)
     {
-        _events = _events.Where(e => e.TicketTypes.All(t => t.Price <= maxPrice));
+        _events = _events.Where(e => e.TicketTypes.Any(t => t.Price <= maxPrice));
     }
 
     public void FilterByMinAge(uint minAge)
@@ -72,9 +72,9 @@ public class EventFilter : IEventFilter
         _events = _events.Where(e => e.MinimumAge >= minAge);
     }
 
-    public void FilterByMaxAge(uint maxAge)
+    public void FilterByMaxMinimumAge(uint maxMinimumAge)
     {
-        _events = _events.Where(e => e.MinimumAge <= maxAge);
+        _events = _events.Where(e => e.MinimumAge <= maxMinimumAge);
     }
 
     public void FilterByAddressCountry(string country)
