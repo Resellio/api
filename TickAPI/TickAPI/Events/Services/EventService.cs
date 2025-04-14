@@ -2,6 +2,9 @@
 using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.DTOs.Request;
+using TickAPI.Categories.Models;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
@@ -19,17 +22,21 @@ public class EventService : IEventService
     private readonly IAddressService _addressService;
     private readonly IDateTimeService _dateTimeService;
     private readonly IPaginationService _paginationService;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryRepository categoryRepository)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
         _addressService = addressService;
         _dateTimeService = dateTimeService;
         _paginationService = paginationService;
+        _categoryRepository = categoryRepository;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto createAddress, EventStatus eventStatus, string organizerEmail)
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
+        uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories,
+        EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
@@ -44,6 +51,16 @@ public class EventService : IEventService
         
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
+
+        var categoriesConverted = new List<Category>();
+
+        foreach (var c in categories)
+        {
+            categoriesConverted.Add(new Category
+            {
+                Name = c.CategoryName
+            });
+        }
         
         var @event = new Event
         {
@@ -53,6 +70,7 @@ public class EventService : IEventService
             EndDate = endDate,
             MinimumAge = minimumAge,
             Address = address.Value!,
+            Categories = categoriesConverted,
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus
         };
