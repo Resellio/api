@@ -10,7 +10,6 @@ namespace TickAPI.Categories.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
 public class CategoryController : Controller
 {
     private readonly ICategoryService _categoryService;
@@ -21,7 +20,7 @@ public class CategoryController : Controller
     }
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
-    [HttpGet("get-categories")]
+    [HttpGet("categories")]
     public async Task<ActionResult<PaginatedData<GetCategoryResponseDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
         var res = await _categoryService.GetCategoriesResponsesAsync(pageSize, page);
@@ -33,7 +32,7 @@ public class CategoryController : Controller
     }
     
     // TODO: Add appropriate policy verification (admin, maybe also organizer?)
-    [HttpPost("create-category")]
+    [HttpPost("category")]
     public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto request)
     {
         var newCategoryResult = await _categoryService.CreateNewCategoryAsync(request.Name);

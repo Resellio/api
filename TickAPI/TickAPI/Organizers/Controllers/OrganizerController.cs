@@ -62,7 +62,7 @@ public class OrganizerController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.NewOrganizerPolicy)]
-    [HttpPost("create-organizer")]
+    [HttpPost("organizer")]
     public async Task<ActionResult<CreateOrganizerResponseDto>> CreateOrganizer([FromBody] CreateOrganizerDto request)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);

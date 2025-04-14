@@ -28,7 +28,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpPost("create-event")]
+    [HttpPost("event")]
     public async Task<ActionResult<CreateEventResponseDto>> CreateEvent([FromBody] CreateEventDto request)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -47,7 +47,7 @@ public class EventController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpGet("get-organizer-events")]
+    [HttpGet("organizer-events")]
     public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetOrganizerEvents([FromQuery] int pageSize, [FromQuery] int page)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -74,7 +74,7 @@ public class EventController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpGet("get-organizer-events-pagination-details")]
+    [HttpGet("organizer-events-pagination-details")]
     public async Task<ActionResult<PaginationDetails>> GetOrganizerEventsPaginationDetails([FromQuery] int pageSize)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -101,7 +101,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpGet("get-events")]
+    [HttpGet("events")]
     public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page)
     {
         var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize);
@@ -113,7 +113,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpGet("get-events-pagination-details")]
+    [HttpGet("events-pagination-details")]
     public async Task<ActionResult<PaginationDetails>> GetEventsPaginationDetails([FromQuery] int pageSize)
     {
         var paginationDetailsResult = await _eventService.GetEventsPaginationDetailsAsync(pageSize);
