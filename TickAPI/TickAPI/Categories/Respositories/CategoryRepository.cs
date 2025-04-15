@@ -34,7 +34,7 @@ public class CategoryRepository : ICategoryRepository
     public async Task<bool> CheckIfCategoriesExistAsync(List<Category> categories)
     {
         var dbCategories = await _tickApiDbContext.Categories.ToListAsync();
-        return categories.All(c => dbCategories.Contains(c));
+        return categories.All(c => dbCategories.Any(cdb => cdb.Name == c.Name));
     }
 
     public async Task AddNewCategoryAsync(Category category)
