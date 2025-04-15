@@ -8,4 +8,6 @@ public interface ICategoryRepository
     public IQueryable<Category> GetCategories();
     public Task<Result<Category>> GetCategoryByNameAsync(string categoryName);
     public Task AddNewCategoryAsync(Category category);
+
+    public Task<bool> CheckIfCategoriesExistAsync(List<Category> categories);
 }

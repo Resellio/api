@@ -61,6 +61,12 @@ public class EventService : IEventService
                 Name = c.CategoryName
             });
         }
+
+        var categoriesExist = await _categoryRepository.CheckIfCategoriesExistAsync(categoriesConverted);
+        if (!categoriesExist)
+        {
+            return Result<Event>.Failure(StatusCodes.Status403Forbidden, "Category does not exist");
+        }
         
         var @event = new Event
         {

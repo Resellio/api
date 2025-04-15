@@ -31,6 +31,12 @@ public class CategoryRepository : ICategoryRepository
         return Result<Category>.Success(category);
     }
 
+    public async Task<bool> CheckIfCategoriesExistAsync(List<Category> categories)
+    {
+        var dbCategories = await _tickApiDbContext.Categories.ToListAsync();
+        return categories.All(c => dbCategories.Contains(c));
+    }
+
     public async Task AddNewCategoryAsync(Category category)
     {
         _tickApiDbContext.Categories.Add(category);
