@@ -20,10 +20,10 @@ jobs:
           dotnet-version: '6.0.x'
           
       - name: Build with dotnet
-        run: dotnet build TickAPI/TickAPI.sln --configuration Release
+        run: dotnet build TickAPI/TickAPI/TickAPI.csproj --configuration Release
         
       - name: dotnet publish
-        run: dotnet publish TickAPI/TickAPI.sln -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish TickAPI/TickAPI/TickAPI.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
         
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
