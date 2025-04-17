@@ -12,6 +12,8 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
+using TickAPI.TicketTypes.DTOs.Request;
+using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Events.Services;
 
@@ -35,7 +37,7 @@ public class EventService : IEventService
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
-        uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories,
+        uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories, List<CreateEventTicketTypeDto> ticketTypes,
         EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
@@ -48,7 +50,14 @@ public class EventService : IEventService
         
         if (startDate < _dateTimeService.GetCurrentDateTime())
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
-        
+
+        foreach (var t in ticketTypes)
+        {
+            if (t.AvailableFrom > endDate)
+            {
+                return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
+            }
+        }
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
 
@@ -67,6 +76,19 @@ public class EventService : IEventService
         {
             return Result<Event>.Failure(StatusCodes.Status403Forbidden, "Category does not exist");
         }
+
+        var ticketTypesConverted = new List<TicketType>();
+        foreach (var t in ticketTypes)
+        {
+            ticketTypesConverted.Add(new TicketType
+            {
+                Description = t.Description,
+                AvailableFrom = t.AvailableFrom,
+                Currency = t.Currency,
+                MaxCount = t.MaxCount,
+                Price = t.Price,
+            });
+        }
         
         var @event = new Event
         {
@@ -78,7 +100,8 @@ public class EventService : IEventService
             Address = address.Value!,
             Categories = categoriesConverted,
             Organizer = organizerResult.Value!,
-            EventStatus = eventStatus
+            EventStatus = eventStatus,
+            TicketTypes = ticketTypesConverted,
         };
         await _eventRepository.AddNewEventAsync(@event);
         return Result<Event>.Success(@event);
@@ -123,7 +146,7 @@ public class EventService : IEventService
     
     private static GetEventResponseDto MapEventToGetEventResponseDto(Event ev)
     {
-        var categories = ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList();
+        var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
         return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
     }

@@ -40,7 +40,7 @@ public class EventController : ControllerBase
         
         var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, 
             request.StartDate, request.EndDate, request.MinimumAge,  request.CreateAddress, request.Categories 
-            ,request.EventStatus, email);
+            , request.TicketTypes ,request.EventStatus, email);
         
         if (newEventResult.IsError)
             return StatusCode(newEventResult.StatusCode, newEventResult.ErrorMsg);

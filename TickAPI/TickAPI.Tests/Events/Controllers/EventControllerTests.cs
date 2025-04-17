@@ -14,6 +14,7 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
+using TickAPI.TicketTypes.DTOs.Request;
 
 namespace TickAPI.Tests.Events.Controllers;
 
@@ -36,12 +37,17 @@ public class EventControllerTests
             new CreateEventCategoryDto("concert"),
             new CreateEventCategoryDto("bear metal")
         ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
+        ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
-        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, categories, eventStatus, createAddress);
+        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress);
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories ,eventStatus, email))
+            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories , ticketTypes, eventStatus, email))
             .ReturnsAsync(Result<Event>.Success(new Event()));
 
         var claims = new List<Claim>
@@ -91,6 +97,11 @@ public class EventControllerTests
             new CreateEventCategoryDto("concert"),
             new CreateEventCategoryDto("bear metal")
         ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
+        ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
         var eventServiceMock = new Mock<IEventService>();
@@ -110,7 +121,7 @@ public class EventControllerTests
         };
         
         // act
-        var res = await sut.CreateEvent(new CreateEventDto(name, description, startDate, endDate, minimumAge, categories, eventStatus, createAddress));
+        var res = await sut.CreateEvent(new CreateEventDto(name, description, startDate, endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress));
         
         // Assert
         var result = Assert.IsType<ActionResult<CreateEventResponseDto>>(res);
