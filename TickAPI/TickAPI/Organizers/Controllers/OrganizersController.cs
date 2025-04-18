@@ -12,14 +12,14 @@ namespace TickAPI.Organizers.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrganizerController : ControllerBase
+public class OrganizersController : ControllerBase
 {
     private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
     private readonly IOrganizerService _organizerService;
     private readonly IClaimsService _claimsService;
 
-    public OrganizerController(IGoogleAuthService googleAuthService, IJwtService jwtService,
+    public OrganizersController(IGoogleAuthService googleAuthService, IJwtService jwtService,
         IOrganizerService organizerService, IClaimsService claimsService)
     {
         _googleAuthService = googleAuthService;
@@ -62,7 +62,7 @@ public class OrganizerController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.NewOrganizerPolicy)]
-    [HttpPost("organizer")]
+    [HttpPost]
     public async Task<ActionResult<CreateOrganizerResponseDto>> CreateOrganizer([FromBody] CreateOrganizerDto request)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -84,7 +84,7 @@ public class OrganizerController : ControllerBase
     }
     
     // TODO: Add authorization with admin policy here
-    [HttpPost("verify-organizer")]
+    [HttpPost("verify")]
     public async Task<ActionResult> VerifyOrganizer([FromBody] VerifyOrganizerDto request)
     {
         var verifyOrganizerResult = await _organizerService.VerifyOrganizerByEmailAsync(request.Email);
