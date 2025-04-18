@@ -92,6 +92,7 @@ builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 // Add event services.
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IEventFilter, EventFilter>();
 
 // Add address services.
 builder.Services.AddScoped<IAddressService, AddressService>();
