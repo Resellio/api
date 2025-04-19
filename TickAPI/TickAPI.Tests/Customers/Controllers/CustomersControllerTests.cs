@@ -20,8 +20,6 @@ public class CustomersControllerTests
     public async Task GoogleLogin_WhenAuthSuccessAndCustomerExists_ShouldReturnToken()
     {
         // Arrange
-        
-        //c
         const string email = "existing@test.com";
         const string accessToken = "valid-google-token";
         const string jwtToken = "valid-jwt-token";
