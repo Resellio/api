@@ -17,7 +17,7 @@ using TickAPI.Organizers.Models;
 
 namespace TickAPI.Tests.Organizers.Controllers;
 
-public class OrganizerControllerTests
+public class OrganizersControllerTests
 {
     [Fact]
     public async Task GoogleLogin_WhenAuthSuccessAndVerifiedOrganizerExists_ShouldReturnValidVerifiedLoginDto()
@@ -44,7 +44,7 @@ public class OrganizerControllerTests
         
         var claimsServiceMock = new Mock<IClaimsService>();
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
             organizerServiceMock.Object,
@@ -85,7 +85,7 @@ public class OrganizerControllerTests
         
         var claimsServiceMock = new Mock<IClaimsService>();
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
             organizerServiceMock.Object,
@@ -127,7 +127,7 @@ public class OrganizerControllerTests
         
         var claimsServiceMock = new Mock<IClaimsService>();
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
             organizerServiceMock.Object,
@@ -189,7 +189,7 @@ public class OrganizerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,
@@ -218,7 +218,7 @@ public class OrganizerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,
@@ -258,7 +258,7 @@ public class OrganizerControllerTests
 
         var claimsServiceMock = new Mock<IClaimsService>();
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,
@@ -318,7 +318,7 @@ public class OrganizerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,
@@ -351,7 +351,7 @@ public class OrganizerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,
@@ -404,7 +404,7 @@ public class OrganizerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
         
-        var sut = new OrganizerController(
+        var sut = new OrganizersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             organizerServiceMock.Object,

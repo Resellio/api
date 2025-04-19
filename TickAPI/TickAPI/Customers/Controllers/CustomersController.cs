@@ -11,14 +11,14 @@ namespace TickAPI.Customers.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CustomerController : ControllerBase
+public class CustomersController : ControllerBase
 {
     private readonly IGoogleAuthService _googleAuthService;
     private readonly IJwtService _jwtService;
     private readonly ICustomerService _customerService;
     private readonly IClaimsService _claimsService;
     
-    public CustomerController(IGoogleAuthService googleAuthService, IJwtService jwtService, ICustomerService customerService, IClaimsService claimsService)
+    public CustomersController(IGoogleAuthService googleAuthService, IJwtService jwtService, ICustomerService customerService, IClaimsService claimsService)
     {
         _googleAuthService = googleAuthService;
         _jwtService = jwtService;

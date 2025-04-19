@@ -14,13 +14,13 @@ namespace TickAPI.Events.Controllers;
 [Route("api/[controller]")]
 
 // TODO: Add lists of categories and tickettypes
-public class EventController : ControllerBase
+public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
     private readonly IClaimsService _claimsService;
     private readonly IOrganizerService _organizerService;
 
-    public EventController(IEventService eventService, IClaimsService claimsService, IOrganizerService organizerService)
+    public EventsController(IEventService eventService, IClaimsService claimsService, IOrganizerService organizerService)
     {
         _eventService = eventService;
         _claimsService = claimsService;
@@ -28,7 +28,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpPost("create-event")]
+    [HttpPost]
     public async Task<ActionResult<CreateEventResponseDto>> CreateEvent([FromBody] CreateEventDto request)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -49,7 +49,7 @@ public class EventController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpGet("get-organizer-events")]
+    [HttpGet("organizer")]
     public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetOrganizerEvents([FromQuery] int pageSize, [FromQuery] int page)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -76,7 +76,7 @@ public class EventController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
-    [HttpGet("get-organizer-events-pagination-details")]
+    [HttpGet("organizer-pagination-details")]
     public async Task<ActionResult<PaginationDetails>> GetOrganizerEventsPaginationDetails([FromQuery] int pageSize)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
@@ -103,7 +103,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpGet("get-events")]
+    [HttpGet]
     public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page)
     {
         var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize);
@@ -115,7 +115,7 @@ public class EventController : ControllerBase
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpGet("get-events-pagination-details")]
+    [HttpGet("pagination-details")]
     public async Task<ActionResult<PaginationDetails>> GetEventsPaginationDetails([FromQuery] int pageSize)
     {
         var paginationDetailsResult = await _eventService.GetEventsPaginationDetailsAsync(pageSize);

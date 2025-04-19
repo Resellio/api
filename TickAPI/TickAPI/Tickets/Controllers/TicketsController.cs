@@ -4,7 +4,7 @@ namespace TickAPI.Tickets.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TicketController : ControllerBase
+public class TicketsController : ControllerBase
 {
     
 }
