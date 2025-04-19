@@ -6,6 +6,9 @@ using TickAPI.Addresses.DTOs.Request;
 using TickAPI.Addresses.Models;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Categories.Abstractions;
+using TickAPI.Categories.DTOs.Request;
+using TickAPI.Categories.Models;
 using TickAPI.Events.Models;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
@@ -13,6 +16,8 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Events.Services;
+using TickAPI.TicketTypes.DTOs.Request;
+using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tests.Events.Services;
 
@@ -31,6 +36,47 @@ public class EventServiceTests
         string organizerEmail = "123@mail.com";
         EventStatus eventStatus = EventStatus.TicketsAvailable;
         Guid id = Guid.NewGuid();
+        List<CreateEventCategoryDto> categories =
+        [
+            new CreateEventCategoryDto("concert"),
+            new CreateEventCategoryDto("bear metal")
+        ];
+        List<Category> expectedCategories =
+        [
+            new Category
+            {
+                Name = "concert",
+            },
+            new Category
+            {
+                Name = "bear metal",
+            }
+            
+        ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
+        ];
+        List<TicketType> expectedTicketTypes =
+        [
+            new TicketType
+            {
+                Description = "normal",
+                MaxCount = 100,
+                Price = 50.9m,
+                Currency = "zł",
+                AvailableFrom = new DateTime(2025, 5, 1)
+            },
+            new TicketType
+            {
+                Description = "V.I.P",
+                MaxCount = 10,
+                Price = 500.9m,
+                Currency = "zł",
+                AvailableFrom = new DateTime(2025, 5, 10)
+            },
+        ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
         var eventRepositoryMock = new Mock<IEventRepository>();
@@ -57,13 +103,15 @@ public class EventServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2003, 7, 11));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        categoryServiceMock.Setup(c => c.CheckIfCategoriesExistAsync(It.IsAny<List<Category>>())).Returns(Task.FromResult(true));
 
         var paginationServiceMock = new Mock<IPaginationService>();
-
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
         // Act
-        var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
+        var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -74,6 +122,22 @@ public class EventServiceTests
         Assert.Equal(eventStatus, result.Value!.EventStatus);
         Assert.Equal(id, result.Value!.Id);
         Assert.Equal(organizerEmail, result.Value!.Organizer.Email);
+        Assert.Equal(expectedCategories.Count, result.Value!.Categories.Count);
+        foreach (var expectedCategory in expectedCategories)
+        {
+            Assert.Contains(result.Value!.Categories, actualCategory => 
+                actualCategory.Name == expectedCategory.Name);
+        }
+        Assert.Equal(expectedTicketTypes.Count, result.Value!.TicketTypes.Count);
+        foreach (var expectedTicketType in expectedTicketTypes)
+        {
+            Assert.Contains(result.Value!.TicketTypes, actualTicketType => 
+                actualTicketType.Description == expectedTicketType.Description &&
+                actualTicketType.MaxCount == expectedTicketType.MaxCount &&
+                actualTicketType.Price == expectedTicketType.Price &&
+                actualTicketType.Currency == expectedTicketType.Currency &&
+                actualTicketType.AvailableFrom == expectedTicketType.AvailableFrom);
+        }
     }
     
     [Fact]
@@ -88,6 +152,16 @@ public class EventServiceTests
         string organizerEmail = "123@mail.com";
         EventStatus eventStatus = EventStatus.TicketsAvailable;
         Guid id = Guid.NewGuid();
+        List<CreateEventCategoryDto> categories =
+        [
+            new CreateEventCategoryDto("concert"),
+            new CreateEventCategoryDto("bear metal")
+        ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
+        ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
         var eventRepositoryMock = new Mock<IEventRepository>();
@@ -100,18 +174,72 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
-
-        var paginationServiceMock = new Mock<IPaginationService>();
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
+        var categoryServiceMock = new Mock<ICategoryService>();
+        
         
         // Act
-        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
+        var paginationServiceMock = new Mock<IPaginationService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
+        
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge,  createAddress, categories, ticketTypes, eventStatus, organizerEmail);
         
         // Assert
         Assert.False(res.IsSuccess);
         Assert.Equal(StatusCodes.Status400BadRequest, res.StatusCode);
         Assert.Equal("End date should be after start date", res.ErrorMsg);
+    }
+    
+    [Fact]
+    public async Task CreateNewEventAsync_WhenTicketTypeAvailabilityIsAfterEventsEnd_ShouldReturnBadRequest()
+    {
+        // Arrange
+        string name = "Concert";
+        string description = "Description of a concert";
+        DateTime startDate = new DateTime(2025, 5, 1);
+        DateTime endDate = new DateTime(2025, 6, 1);
+        uint? minimumAge = 18;
+        string organizerEmail = "123@mail.com";
+        EventStatus eventStatus = EventStatus.TicketsAvailable;
+        Guid id = Guid.NewGuid();
+        List<CreateEventCategoryDto> categories =
+        [
+            new CreateEventCategoryDto("concert"),
+            new CreateEventCategoryDto("bear metal")
+        ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 6, 10)),
+        ];
+        CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        organizerServiceMock
+            .Setup(m => m.GetOrganizerByEmailAsync(organizerEmail))
+            .ReturnsAsync(Result<Organizer>.Success(new Organizer { Email = organizerEmail, IsVerified = true }));
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2025, 4, 11));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        
+        // Act
+        var paginationServiceMock = new Mock<IPaginationService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
+        
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
+        
+        // Assert
+        Assert.False(res.IsSuccess);
+        Assert.Equal(StatusCodes.Status400BadRequest, res.StatusCode);
+        Assert.Equal("Tickets can't be available after the event is over", res.ErrorMsg);
     }
     
     [Fact]
@@ -125,6 +253,17 @@ public class EventServiceTests
         uint? minimumAge = 18;
         string organizerEmail = "123@mail.com";
         EventStatus eventStatus = EventStatus.TicketsAvailable;
+        Guid id = Guid.NewGuid();
+        List<CreateEventCategoryDto> categories =
+        [
+            new CreateEventCategoryDto("concert"),
+            new CreateEventCategoryDto("bear metal")
+        ];
+        List<CreateEventTicketTypeDto> ticketTypes =
+        [
+            new CreateEventTicketTypeDto("normal", 100, 50.9m, "zł",  new DateTime(2025, 5, 1)),
+            new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
+        ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
         
         var eventRepositoryMock = new Mock<IEventRepository>();
@@ -138,13 +277,15 @@ public class EventServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2025, 5, 11));
-
-        var paginationServiceMock = new Mock<IPaginationService>();
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object);
+        var categoryServiceMock = new Mock<ICategoryService>();
         
         // Act
-        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, eventStatus, organizerEmail);
+        var paginationServiceMock = new Mock<IPaginationService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
+        
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
         
         // Assert
         Assert.False(res.IsSuccess);
@@ -175,6 +316,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var paginatedEvents = new PaginatedData<Event>(
             organizer.Events.Take(pageSize).ToList(),
@@ -208,7 +350,7 @@ public class EventServiceTests
             ));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object,  categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
@@ -248,6 +390,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var organizerEvents = organizer.Events.AsQueryable();
         eventRepositoryMock.Setup(p => p.GetEventsByOranizer(organizer)).Returns(organizerEvents);
@@ -257,7 +400,7 @@ public class EventServiceTests
             .ReturnsAsync(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
@@ -286,6 +429,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var paginatedEvents = new PaginatedData<Event>(
             events.Take(pageSize).ToList(),
@@ -319,7 +463,7 @@ public class EventServiceTests
             ));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetEventsAsync(page, pageSize);
@@ -354,6 +498,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var eventsQueryable = events.AsQueryable();
         eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
@@ -363,7 +508,7 @@ public class EventServiceTests
             .ReturnsAsync(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetEventsAsync(page, pageSize);
@@ -391,6 +536,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var eventsQueryable = events.AsQueryable();
         eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
@@ -401,7 +547,7 @@ public class EventServiceTests
             .ReturnsAsync(Result<PaginationDetails>.Success(paginationDetails));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetEventsPaginationDetailsAsync(pageSize);
@@ -428,6 +574,7 @@ public class EventServiceTests
         var addressServiceMock = new Mock<IAddressService>();
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
 
         var eventsQueryable = events.AsQueryable();
         eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
@@ -437,7 +584,7 @@ public class EventServiceTests
             .ReturnsAsync(Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, "Invalid page size"));
 
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object);
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object);
 
         // Act
         var result = await sut.GetEventsPaginationDetailsAsync(pageSize);
