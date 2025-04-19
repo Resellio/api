@@ -24,16 +24,16 @@ public class EventService : IEventService
     private readonly IAddressService _addressService;
     private readonly IDateTimeService _dateTimeService;
     private readonly IPaginationService _paginationService;
-    private readonly ICategoryRepository _categoryRepository;
+    private readonly ICategoryService _categoryService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryRepository categoryRepository)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
         _addressService = addressService;
         _dateTimeService = dateTimeService;
         _paginationService = paginationService;
-        _categoryRepository = categoryRepository;
+        _categoryService = categoryService;
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
@@ -51,45 +51,31 @@ public class EventService : IEventService
         if (startDate < _dateTimeService.GetCurrentDateTime())
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
 
-        foreach (var t in ticketTypes)
+        if (ticketTypes.Any(t => t.AvailableFrom > endDate))
         {
-            if (t.AvailableFrom > endDate)
-            {
-                return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
-            }
+            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
         }
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
 
-        var categoriesConverted = new List<Category>();
+        var categoriesConverted = categories.Select(c => new Category { Name = c.CategoryName }).ToList();
 
-        foreach (var c in categories)
-        {
-            categoriesConverted.Add(new Category
-            {
-                Name = c.CategoryName
-            });
-        }
-
-        var categoriesExist = await _categoryRepository.CheckIfCategoriesExistAsync(categoriesConverted);
+        var categoriesExist = await _categoryService.CheckIfCategoriesExistAsync(categoriesConverted);
         if (!categoriesExist)
         {
-            return Result<Event>.Failure(StatusCodes.Status403Forbidden, "Category does not exist");
+            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Category does not exist");
         }
 
-        var ticketTypesConverted = new List<TicketType>();
-        foreach (var t in ticketTypes)
-        {
-            ticketTypesConverted.Add(new TicketType
+        var ticketTypesConverted = ticketTypes.Select(t => new TicketType
             {
                 Description = t.Description,
                 AvailableFrom = t.AvailableFrom,
                 Currency = t.Currency,
                 MaxCount = t.MaxCount,
                 Price = t.Price,
-            });
-        }
-        
+            })
+            .ToList();
+
         var @event = new Event
         {
             Name = name,
