@@ -1,5 +1,4 @@
 ﻿namespace TickAPI.Addresses.Models;
-using TickAPI.Events.DTOs.Request;
 public class Address
 {
     public Guid Id { get; set; }

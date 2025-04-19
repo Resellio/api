@@ -14,7 +14,7 @@ using TickAPI.Customers.Models;
 
 namespace TickAPI.Tests.Customers.Controllers;
 
-public class CustomerControllerTests
+public class CustomersControllerTests
 {
     [Fact]
     public async Task GoogleLogin_WhenAuthSuccessAndCustomerExists_ShouldReturnToken()
@@ -40,7 +40,7 @@ public class CustomerControllerTests
 
         var claimsServiceMock = new Mock<IClaimsService>();
     
-        var sut = new CustomerController(
+        var sut = new CustomersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             customerServiceMock.Object,
@@ -85,7 +85,7 @@ public class CustomerControllerTests
         
         var claimsServiceMock = new Mock<IClaimsService>();
         
-        var sut = new CustomerController(
+        var sut = new CustomersController(
             googleAuthServiceMock.Object, 
             jwtServiceMock.Object, 
             customerServiceMock.Object,
@@ -139,7 +139,7 @@ public class CustomerControllerTests
         var claimsServiceMock = new Mock<IClaimsService>();
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(controllerContext.HttpContext.User.Claims)).Returns(Result<string>.Success(email));
         
-        var sut = new CustomerController(
+        var sut = new CustomersController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
             customerServiceMock.Object,
@@ -170,7 +170,7 @@ public class CustomerControllerTests
         claimsServiceMock.Setup(m => m.GetEmailFromClaims(It.IsAny<IEnumerable<Claim>>())).Returns(Result<string>.Failure(StatusCodes.Status400BadRequest, "missing email claim"));
 
         
-        var sut = new CustomerController(
+        var sut = new CustomersController(
             googleAuthServiceMock.Object,
             jwtServiceMock.Object,
             customerServiceMock.Object,

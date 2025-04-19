@@ -4,7 +4,7 @@ namespace TickAPI.Admins.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AdminController : ControllerBase
+public class AdminsController : ControllerBase
 {
     
 }

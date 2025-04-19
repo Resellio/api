@@ -12,7 +12,7 @@ using TickAPI.Events.DTOs.Response;
 
 namespace TickAPI.Tests.Categories.Controllers;
 
-public class CategoryControllerTests
+public class CategoriesControllerTests
 {
     [Fact]
     public async Task GetCategories_WhenDataIsValid_ShouldReturnOk()
@@ -25,7 +25,7 @@ public class CategoryControllerTests
             Result<PaginatedData<GetCategoryResponseDto>>.Success(new PaginatedData<GetCategoryResponseDto>(new List<GetCategoryResponseDto>(), pageNumber, pageSize, true, true,
                 new PaginationDetails(0, 0))));
 
-        var sut = new CategoryController(categoryServiceMock.Object);
+        var sut = new CategoriesController(categoryServiceMock.Object);
         
         // Act
         var res = await sut.GetCategories(pageSize, pageNumber);
@@ -49,7 +49,7 @@ public class CategoryControllerTests
             .Setup(m => m.CreateNewCategoryAsync(categoryName))
             .ReturnsAsync(Result<Category>.Success(new Category()));
         
-        var sut = new CategoryController(categoryServiceMock.Object);
+        var sut = new CategoriesController(categoryServiceMock.Object);
 
         // Act
         var res = await sut.CreateCategory(createCategoryDto);
