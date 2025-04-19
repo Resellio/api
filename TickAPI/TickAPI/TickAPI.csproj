@@ -4,17 +4,14 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-      <UserSecretsId>9eaa86f9-f226-40d9-82e5-ca6c514f791c</UserSecretsId>
   </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
-        <PackageReference Include="Azure.Identity" Version="1.13.2" />
         <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
         <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.3" />
-        <PackageReference Include="Microsoft.Azure.AppConfiguration.AspNetCore" Version="8.1.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
           <PrivateAssets>all</PrivateAssets>
