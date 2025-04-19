@@ -6,7 +6,7 @@ name: Build and deploy Resellio Backend
 on:
   push:
     branches:
-      - feat/actions
+      - main
   workflow_dispatch:
 
 jobs:
