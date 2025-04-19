@@ -1,10 +1,10 @@
 ﻿using TickAPI.Addresses.Models;
 using TickAPI.Categories.Models;
+using TickAPI.Events.Filters;
 using TickAPI.Events.Models;
-using TickAPI.Events.Services;
 using TickAPI.TicketTypes.Models;
 
-namespace TickAPI.Tests.Events.Services;
+namespace TickAPI.Tests.Events.Filters;
 
 public class EventFilterTests
 {

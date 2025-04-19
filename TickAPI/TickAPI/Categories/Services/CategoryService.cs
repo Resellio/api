@@ -1,4 +1,5 @@
-﻿using TickAPI.Categories.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
+using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Response;
 using TickAPI.Categories.Models;
 using TickAPI.Common.Pagination.Abstractions;
@@ -54,5 +55,12 @@ public class CategoryService : ICategoryService
         
         await _categoryRepository.AddNewCategoryAsync(category);
         return Result<Category>.Success(category);
+    }
+    
+    public async Task<bool> CheckIfCategoriesExistAsync(IEnumerable<Category> categories)
+    {
+        var dbCategories = _categoryRepository.GetCategories();
+        int count = await dbCategories.Where(cdb => categories.Any(c => c.Name == cdb.Name)).CountAsync();
+        return count == categories.Count();
     }
 }

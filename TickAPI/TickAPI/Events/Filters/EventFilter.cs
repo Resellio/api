@@ -1,7 +1,7 @@
 ﻿using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
 
-namespace TickAPI.Events.Services;
+namespace TickAPI.Events.Filters;
 
 public class EventFilter : IEventFilter
 {
