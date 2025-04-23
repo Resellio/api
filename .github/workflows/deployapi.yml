@@ -27,7 +27,7 @@ jobs:
         run: |
           dotnet tool install --global dotnet-ef --version 9.*
           dotnet tool restore
-          dotnet ef --project TickAPI/TickAPI/TickAPI.csproj database update
+          dotnet ef --project TickAPI/TickAPI/TickAPI.csproj database update --connection "${{ secrets.RESELLIO_DB_CONNECTION_STRING }}"
         env:
           ConnectionStrings__DefaultConnection: ${{ secrets.RESELLIO_DB_CONNECTION_STRING }}
 
