@@ -22,6 +22,14 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.x'
+          
+      - name: Update database
+        run: |
+          dotnet tool install --global dotnet-ef --version 9.*
+          dotnet tool restore
+          dotnet ef --project TickAPI/TickAPI/TickAPI.csproj database update
+        env:
+          ConnectionStrings__DefaultConnection: ${{ secrets.RESELLIO_DB_CONNECTION_STRING }}
 
       - name: Build with dotnet
         run: dotnet build TickAPI/TickAPI/TickAPI.csproj --configuration Release
@@ -34,6 +42,7 @@ jobs:
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
+          
 
   deploy:
     runs-on: windows-latest
