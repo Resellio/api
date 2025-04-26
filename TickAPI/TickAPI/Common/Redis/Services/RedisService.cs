@@ -23,11 +23,11 @@ public class RedisService : IRedisService
         });
     }
 
-    public async Task SetStringAsync(string key, string value, TimeSpan? expiry = null)
+    public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)
     {
-        await RetryAsync(async () =>
+        return await RetryAsync(async () =>
         {
-            await _database.StringSetAsync(key, value, expiry);
+            return await _database.StringSetAsync(key, value, expiry);
         });
     }
 
@@ -51,29 +51,27 @@ public class RedisService : IRedisService
         return JsonSerializer.Deserialize<T>(json, _jsonOptions);
     }
 
-    public async Task SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
+    public async Task<bool> SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
     {
         var json = JsonSerializer.Serialize(value, _jsonOptions);
         
-        await SetStringAsync(key, json, expiry);
+        return await SetStringAsync(key, json, expiry);
     }
-    
-    private static async Task RetryAsync(Func<Task> action, int retryCount = 3, int millisecondsDelay = 100)
+
+    public async Task<bool> KeyExistsAsync(string key)
     {
-        var attempt = 0;
-        while (true)
+        return await RetryAsync(async () =>
         {
-            try
-            {
-                await action();
-                return;
-            }
-            catch (Exception ex) when (ex is RedisConnectionException or RedisTimeoutException && attempt < retryCount)
-            {
-                attempt++;
-                await Task.Delay(millisecondsDelay);
-            }
-        }
+            return await _database.KeyExistsAsync(key);
+        });
+    }
+
+    public async Task<bool> KeyExpireAsync(string key, TimeSpan expiry)
+    {
+        return await RetryAsync(async () =>
+        {
+            return await _database.KeyExpireAsync(key, expiry);
+        });
     }
     
     private static async Task<T> RetryAsync<T>(Func<Task<T>> action, int retryCount = 3, int millisecondsDelay = 100)
