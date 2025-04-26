@@ -25,29 +25,21 @@ public class RedisService : IRedisService
 
     public async Task<bool> SetStringAsync(string key, string value, TimeSpan? expiry = null)
     {
-        return await RetryAsync(async () =>
-        {
-            return await _database.StringSetAsync(key, value, expiry);
-        });
+        return await RetryAsync(async () => await _database.StringSetAsync(key, value, expiry));
     }
 
     public async Task<bool> DeleteKeyAsync(string key)
     {
-        return await RetryAsync(async () =>
-        {
-            return await _database.KeyDeleteAsync(key);
-        });
+        return await RetryAsync(async () => await _database.KeyDeleteAsync(key));
     }
 
     public async Task<T?> GetObjectAsync<T>(string key)
     {
         var json = await GetStringAsync(key);
-
         if (string.IsNullOrEmpty(json))
         {
             return default;
         }
-        
         return JsonSerializer.Deserialize<T>(json, _jsonOptions);
     }
 
@@ -60,20 +52,39 @@ public class RedisService : IRedisService
 
     public async Task<bool> KeyExistsAsync(string key)
     {
-        return await RetryAsync(async () =>
-        {
-            return await _database.KeyExistsAsync(key);
-        });
+        return await RetryAsync(async () => await _database.KeyExistsAsync(key));
     }
 
     public async Task<bool> KeyExpireAsync(string key, TimeSpan expiry)
     {
-        return await RetryAsync(async () =>
-        {
-            return await _database.KeyExpireAsync(key, expiry);
-        });
+        return await RetryAsync(async () => await _database.KeyExpireAsync(key, expiry));
     }
-    
+
+    public async Task<long> IncrementValueAsync(string key, long value = 1)
+    {
+        return await RetryAsync(async () => await _database.StringIncrementAsync(key, value));
+    }
+
+    public async Task<long> DecrementValueAsync(string key, long value = 1)
+    {
+        return await RetryAsync(async () => await _database.StringDecrementAsync(key, value));
+    }
+
+    public async Task<long?> GetLongValueAsync(string key)
+    {
+        var value = await RetryAsync(() => _database.StringGetAsync(key));
+        if (value.HasValue && long.TryParse(value, out var result))
+        {
+            return result;
+        }
+        return null;
+    }
+
+    public async Task<bool> SetLongValueAsync(string key, long value, TimeSpan? expiry = null)
+    {
+        return await RetryAsync(async () => await _database.StringSetAsync(key, value.ToString(), expiry));
+    }
+
     private static async Task<T> RetryAsync<T>(Func<Task<T>> action, int retryCount = 3, int millisecondsDelay = 100)
     {
         var attempt = 0;
