@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using TickAPI.Admins.Abstractions;
 using TickAPI.Admins.Repositories;
 using TickAPI.Admins.Services;
@@ -153,6 +154,10 @@ builder.Services.AddDbContext<TickApiDbContext>(options =>
                 maxRetryDelay: TimeSpan.FromSeconds(30),
                 errorNumbersToAdd: null));
 });
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("ResellioRedisCache"))
+);
 
 // Create CORS policy
 builder.Services.AddCors(options =>
