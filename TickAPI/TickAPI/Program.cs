@@ -38,6 +38,8 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Claims.Services;
 using TickAPI.Common.Redis.Abstractions;
 using TickAPI.Common.Redis.Services;
+using TickAPI.ShoppingCarts.Abstractions;
+using TickAPI.ShoppingCarts.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -111,6 +113,9 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // Add category services.
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+// Add shopping cart services.
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
