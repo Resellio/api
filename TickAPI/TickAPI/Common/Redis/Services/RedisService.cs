@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using System.Text.Json;
+using StackExchange.Redis;
 using TickAPI.Common.Redis.Abstractions;
 
 namespace TickAPI.Common.Redis.Services;
@@ -12,31 +13,68 @@ public class RedisService : IRedisService
         _database = connectionMultiplexer.GetDatabase();
     }
     
-    public Task<string?> GetStringAsync(string key)
+    public async Task<string?> GetStringAsync(string key)
     {
-        throw new NotImplementedException();
+        return await RetryAsync(async () =>
+        {
+            var value = await _database.StringGetAsync(key);
+            return value.HasValue ? value.ToString() : null;
+        });
     }
 
-    public Task SetStringAsync(string key, string value, TimeSpan? expiry = null)
+    public async Task SetStringAsync(string key, string value, TimeSpan? expiry = null)
     {
-        throw new NotImplementedException();
+        await RetryAsync(async () =>
+        {
+            await _database.StringSetAsync(key, value, expiry);
+        });
     }
 
-    public Task<bool> DeleteKeyAsync(string key)
+    public async Task<bool> DeleteKeyAsync(string key)
     {
-        throw new NotImplementedException();
+        return await RetryAsync(async () =>
+        {
+            return await _database.KeyDeleteAsync(key);
+        });
     }
 
-    public Task<T?> GetObjectAsync<T>(string key)
+    public async Task<T?> GetObjectAsync<T>(string key)
     {
-        throw new NotImplementedException();
+        var json = await GetStringAsync(key);
+
+        if (string.IsNullOrEmpty(json))
+        {
+            return default;
+        }
+        
+        return JsonSerializer.Deserialize<T>(json);
     }
 
-    public Task SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
+    public async Task SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
     {
-        throw new NotImplementedException();
+        var json = JsonSerializer.Serialize(value);
+        
+        await SetStringAsync(key, json, expiry);
     }
-
+    
+    private async Task RetryAsync(Func<Task> action, int retryCount = 3, int millisecondsDelay = 100)
+    {
+        var attempt = 0;
+        while (true)
+        {
+            try
+            {
+                await action();
+                return;
+            }
+            catch (Exception ex) when (ex is RedisConnectionException or RedisTimeoutException && attempt < retryCount)
+            {
+                attempt++;
+                await Task.Delay(millisecondsDelay);
+            }
+        }
+    }
+    
     private async Task<T> RetryAsync<T>(Func<Task<T>> action, int retryCount = 3, int millisecondsDelay = 100)
     {
         var attempt = 0;
@@ -46,7 +84,7 @@ public class RedisService : IRedisService
             {
                 return await action();
             }
-            catch (RedisConnectionException) when (attempt < retryCount)
+            catch (Exception ex) when (ex is RedisConnectionException or RedisTimeoutException && attempt < retryCount)
             {
                 attempt++;
                 await Task.Delay(millisecondsDelay);
