@@ -7,7 +7,7 @@ namespace TickAPI.Common.Redis.Services;
 public class RedisService : IRedisService
 {
     private readonly IDatabase _database;
-    private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public RedisService(IConnectionMultiplexer connectionMultiplexer)
     {
@@ -40,12 +40,12 @@ public class RedisService : IRedisService
         {
             return default;
         }
-        return JsonSerializer.Deserialize<T>(json, _jsonOptions);
+        return JsonSerializer.Deserialize<T>(json, JsonOptions);
     }
 
     public async Task<bool> SetObjectAsync<T>(string key, T value, TimeSpan? expiry = null)
     {
-        var json = JsonSerializer.Serialize(value, _jsonOptions);
+        var json = JsonSerializer.Serialize(value, JsonOptions);
         
         return await SetStringAsync(key, json, expiry);
     }
