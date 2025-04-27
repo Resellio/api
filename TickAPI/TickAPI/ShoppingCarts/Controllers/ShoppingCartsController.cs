@@ -17,8 +17,22 @@ public class ShoppingCartsController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpPost("add-ticket")]
+    [HttpPost("ticket")]
     public async Task<ActionResult> AddTicket()
+    {
+        throw new NotImplementedException();
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet("tickets")]
+    public async Task<ActionResult> GetTickets()
+    {
+        throw new NotImplementedException();
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpDelete("ticket")]
+    public async Task<ActionResult> DeleteTicket()
     {
         throw new NotImplementedException();
     }
