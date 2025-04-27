@@ -117,6 +117,11 @@ public class EventService : IEventService
         return await _paginationService.GetPaginationDetailsAsync(events, pageSize);
     }
 
+    public async Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId)
+    {
+        throw new NotImplementedException();
+    }
+
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
     {
         var paginatedEventsResult = await _paginationService.PaginateAsync(events, pageSize, page);

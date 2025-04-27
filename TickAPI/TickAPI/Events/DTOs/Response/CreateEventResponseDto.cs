@@ -1,6 +1,3 @@
 ﻿namespace TickAPI.Events.DTOs.Response;
 
-public class CreateEventResponseDto
-{
-    
-}
+public record CreateEventResponseDto();
