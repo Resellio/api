@@ -613,12 +613,74 @@ public class EventServiceTests
     [Fact]
     public async Task GetEventDetailsAsync_WhenSuccessful_ShouldReturnEventDetails()
     {
-        throw new NotImplementedException();
+        // Arrange
+        var @event = Utils.CreateSampleEvent("Event");
+        var expectedDetails = Utils.CreateSampleEventDetailsDto("Event");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        eventRepositoryMock
+            .Setup(m => m.GetEventById(@event.Id))
+            .Returns(Result<Event>.Success(@event));
+
+        ticketServiceMock
+            .Setup(m => m.GetNumberOfAvailableTicketsByType(It.IsAny<TicketType>()))
+            .Returns((TicketType input) => 
+                Result<uint>.Success((uint)(input.Price / 10))
+            );
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.GetEventDetailsAsync(@event.Id);
+        
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedDetails.Id, result.Value!.Id);
+        Assert.Equal(expectedDetails.Description, result.Value!.Description);
+        Assert.Equal(expectedDetails.StartDate, result.Value!.StartDate);
+        Assert.Equal(expectedDetails.EndDate, result.Value!.EndDate);
+        Assert.Equal(expectedDetails.MinimumAge, result.Value!.MinimumAge);
+        Assert.True(expectedDetails.Categories.SequenceEqual(result.Value!.Categories));
+        Assert.True(expectedDetails.TicketTypes.SequenceEqual(result.Value!.TicketTypes));
+        Assert.Equal(expectedDetails.Status, result.Value!.Status);
+        Assert.Equal(expectedDetails.Address, result.Value!.Address);
     }
     
     [Fact]
     public async Task GetEventDetailsAsync_WhenFails_ShouldReturnEventError()
     {
-        throw new NotImplementedException();
+        // Arrange
+        var @event = Utils.CreateSampleEvent("Event");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        eventRepositoryMock
+            .Setup(m => m.GetEventById(@event.Id))
+            .Returns(Result<Event>.Failure(StatusCodes.Status404NotFound, $"event with id {@event.Id} not found"));
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
+            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.GetEventDetailsAsync(@event.Id);
+        
+        // Assert
+        Assert.True(result.IsError);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+        Assert.Equal($"event with id {@event.Id} not found", result.ErrorMsg);
     }
 }

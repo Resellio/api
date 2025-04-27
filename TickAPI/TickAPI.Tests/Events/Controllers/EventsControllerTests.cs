@@ -583,7 +583,7 @@ public class EventsControllerTests
     {
         // Arrange
         var id = Guid.Parse("c5aa4979-af8c-4cf9-a827-b273317fbc70");
-        var eventDetails = Utils.GetSampleEventDetailsDto("Event");
+        var eventDetails = Utils.CreateSampleEventDetailsDto("Event");
         
         var eventServiceMock = new Mock<IEventService>();
         var claimsServiceMock = new Mock<IClaimsService>();
