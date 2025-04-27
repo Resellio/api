@@ -38,6 +38,8 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Claims.Services;
 using TickAPI.Common.Redis.Abstractions;
 using TickAPI.Common.Redis.Services;
+using TickAPI.Common.Mail.Abstractions;
+using TickAPI.Common.Mail.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -120,6 +122,7 @@ builder.Services.AddScoped<IPaginationService, PaginationService>();
 builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<IRedisService, RedisService>();
+builder.Services.AddScoped<IMailService, MailService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
