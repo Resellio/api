@@ -4,7 +4,6 @@ using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
-using TickAPI.Categories.Models;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
@@ -61,12 +60,13 @@ public class EventService : IEventService
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
 
-        var categoriesConverted = categories.Select(c => new Category { Name = c.CategoryName }).ToList();
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
 
-        var categoriesExist = await _categoryService.CheckIfCategoriesExistAsync(categoriesConverted);
-        if (!categoriesExist)
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        
+        if (categoriesByNameResult.IsError)
         {
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Category does not exist");
+            return Result<Event>.PropagateError(categoriesByNameResult);
         }
 
         var ticketTypesConverted = ticketTypes.Select(t => new TicketType
@@ -87,7 +87,7 @@ public class EventService : IEventService
             EndDate = endDate,
             MinimumAge = minimumAge,
             Address = address.Value!,
-            Categories = categoriesConverted,
+            Categories = categoriesByNameResult.Value!,
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus,
             TicketTypes = ticketTypesConverted,

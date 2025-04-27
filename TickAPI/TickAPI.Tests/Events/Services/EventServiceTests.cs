@@ -105,7 +105,7 @@ public class EventServiceTests
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2003, 7, 11));
         
         var categoryServiceMock = new Mock<ICategoryService>();
-        categoryServiceMock.Setup(c => c.CheckIfCategoriesExistAsync(It.IsAny<List<Category>>())).Returns(Task.FromResult(true));
+        categoryServiceMock.Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>())).Returns(Result<List<Category>>.Success(expectedCategories));
 
         var paginationServiceMock = new Mock<IPaginationService>();
         

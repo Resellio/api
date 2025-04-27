@@ -8,13 +8,13 @@ namespace TickAPI.Events.Repositories;
 
 public class EventRepository : IEventRepository
 {
-    
     private readonly TickApiDbContext _tickApiDbContext;
 
     public EventRepository(TickApiDbContext tickApiDbContext)
     {
         _tickApiDbContext = tickApiDbContext;
     }
+    
     public async Task AddNewEventAsync(Event @event)
     {
         _tickApiDbContext.Events.Add(@event);
