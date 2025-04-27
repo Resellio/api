@@ -10,6 +10,5 @@ public interface ICategoryService
     public Task<Result<Category>> GetCategoryByNameAsync(string categoryName);
     public Task<Result<PaginatedData<GetCategoryResponseDto>>> GetCategoriesResponsesAsync(int pageSize, int page);
     public Task<Result<Category>> CreateNewCategoryAsync(string categoryName);
-    
-    public Task<bool> CheckIfCategoriesExistAsync(IEnumerable<Category> categories);
+    public Result<List<Category>> GetCategoriesByNames(IList<string> categoryNames);
 }

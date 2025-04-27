@@ -15,6 +15,7 @@ public class EventRepository : IEventRepository
     {
         _tickApiDbContext = tickApiDbContext;
     }
+    
     public async Task AddNewEventAsync(Event @event)
     {
         _tickApiDbContext.Events.Add(@event);
