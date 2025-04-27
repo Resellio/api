@@ -8,7 +8,6 @@ namespace TickAPI.Events.Repositories;
 
 public class EventRepository : IEventRepository
 {
-    
     private readonly TickApiDbContext _tickApiDbContext;
 
     public EventRepository(TickApiDbContext tickApiDbContext)
