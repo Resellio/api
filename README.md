@@ -45,7 +45,7 @@ Both services are managed using **Docker Compose**, and are defined in the `dock
    dotnet ef database update
    ```
 
-6. Run application:
+5. Run application:
 
    ```bash
    cd TickAPI/TickAPI
