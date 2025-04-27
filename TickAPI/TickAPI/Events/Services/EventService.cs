@@ -12,6 +12,7 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
+using TickAPI.Tickets.Abstractions;
 using TickAPI.TicketTypes.DTOs.Request;
 using TickAPI.TicketTypes.Models;
 
@@ -25,8 +26,9 @@ public class EventService : IEventService
     private readonly IDateTimeService _dateTimeService;
     private readonly IPaginationService _paginationService;
     private readonly ICategoryService _categoryService;
+    private readonly ITicketService _ticketService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService, ITicketService ticketService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
@@ -34,6 +36,7 @@ public class EventService : IEventService
         _dateTimeService = dateTimeService;
         _paginationService = paginationService;
         _categoryService = categoryService;
+        _ticketService = ticketService;
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
@@ -117,6 +120,45 @@ public class EventService : IEventService
         return await _paginationService.GetPaginationDetailsAsync(events, pageSize);
     }
 
+    public async Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId)
+    {
+        var eventResult = _eventRepository.GetEventById(eventId);
+
+        if (eventResult.IsError)
+        {
+            return Result<GetEventDetailsResponseDto>.PropagateError(eventResult);
+        }
+
+        var ev = eventResult.Value!;
+
+        var categories = ev.Categories.Count > 0
+            ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList()
+            : new List<GetEventResponseCategoryDto>();
+        
+        var ticketTypes = ev.TicketTypes.Count > 0
+            ? ev.TicketTypes.Select((t) => new GetEventDetailsResponseTicketTypeDto(t.Id, t.Description, t.Price,
+                t.Currency, t.AvailableFrom, _ticketService.GetNumberOfAvailableTicketsByType(t).Value)).ToList()
+            : new List<GetEventDetailsResponseTicketTypeDto>();
+        
+        var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
+            ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
+        
+        var details = new GetEventDetailsResponseDto(
+            ev.Id,
+            ev.Name,
+            ev.Description,
+            ev.StartDate,
+            ev.EndDate,
+            ev.MinimumAge,
+            categories,
+            ticketTypes,
+            ev.EventStatus,
+            address
+        );
+        
+        return Result<GetEventDetailsResponseDto>.Success(details);
+    }
+
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
     {
         var paginatedEventsResult = await _paginationService.PaginateAsync(events, pageSize, page);
@@ -134,6 +176,11 @@ public class EventService : IEventService
     {
         var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
-        return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
+        
+        var minimumPrice = ev.TicketTypes.Min(t => t.Price);
+        var maximumPrice = ev.TicketTypes.Max(t => t.Price);
+        
+        return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
+            minimumPrice, maximumPrice, categories, ev.EventStatus, address);
     }
 }
