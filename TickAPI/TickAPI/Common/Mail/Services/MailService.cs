@@ -58,7 +58,7 @@ public class MailService : IMailService
         {
             return Result.Success();
         }
-        return Result.Failure(500, "Error sending ticket");
+        return Result.Failure(500, "Error sending email");
     }
 
 }
