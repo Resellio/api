@@ -125,4 +125,16 @@ public class EventsController : ControllerBase
         }
         return Ok(paginationDetailsResult.Value!);
     }
+    
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<GetEventDetailsResponseDto>> GetEventDetails([FromRoute] Guid id)
+    {
+        var eventDetailsResult = await _eventService.GetEventDetailsAsync(id);
+        if (eventDetailsResult.IsError)
+        {
+            return StatusCode(eventDetailsResult.StatusCode, eventDetailsResult.ErrorMsg);
+        }
+        return Ok(eventDetailsResult.Value!);
+    }
 }
