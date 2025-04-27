@@ -2,6 +2,7 @@
 using TickAPI.Categories.Models;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Events.Models;
+using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tests.Events;
 
@@ -27,6 +28,12 @@ public static class Utils
                 Street = "Main St",
                 HouseNumber = 123,
                 FlatNumber = null
+            },
+            TicketTypes = new List<TicketType>
+            {
+                new TicketType {Price = 100},
+                new TicketType {Price = 300},
+                new TicketType {Price = 200}
             }
         };
     }
@@ -34,11 +41,14 @@ public static class Utils
     public static GetEventResponseDto CreateSampleEventResponseDto(string name)
     {
         return new GetEventResponseDto(
+            Guid.NewGuid(),
             name,
             $"Description of {name}",
             new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc),
             18,
+            100,
+            300,
             [new GetEventResponseCategoryDto("Test")],
             EventStatus.TicketsAvailable,
             new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null)

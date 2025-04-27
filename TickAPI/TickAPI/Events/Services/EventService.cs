@@ -134,6 +134,11 @@ public class EventService : IEventService
     {
         var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
-        return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
+        
+        var minimumPrice = ev.TicketTypes.Min(t => t.Price);
+        var maximumPrice = ev.TicketTypes.Max(t => t.Price);
+        
+        return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
+            minimumPrice, maximumPrice, categories, ev.EventStatus, address);
     }
 }
