@@ -122,7 +122,7 @@ public class EventService : IEventService
 
     public async Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId)
     {
-        var eventResult = _eventRepository.GetEventById(eventId);
+        var eventResult = await _eventRepository.GetEventByIdAsync(eventId);
 
         if (eventResult.IsError)
         {
