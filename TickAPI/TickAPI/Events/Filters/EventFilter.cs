@@ -19,12 +19,12 @@ public class EventFilter : IEventFilter
 
     public void FilterByName(string name)
     {
-        _events = _events.Where(e => e.Name.Contains(name, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Name.ToLower().Contains(name.ToLower()));
     }
 
     public void FilterByDescription(string description)
     {
-        _events = _events.Where(e => e.Description.Contains(description, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Description.ToLower().Contains(description.ToLower()));
     }
 
     public void FilterByStartDate(DateTime startDate)
@@ -79,17 +79,17 @@ public class EventFilter : IEventFilter
 
     public void FilterByAddressCountry(string country)
     {
-        _events = _events.Where(e => e.Address.Country.Contains(country, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Address.Country.ToLower().Contains(country.ToLower()));
     }
 
     public void FilterByAddressCity(string city)
     {
-        _events = _events.Where(e => e.Address.City.Contains(city, StringComparison.CurrentCultureIgnoreCase));
+        _events = _events.Where(e => e.Address.City.ToLower().Contains(city.ToLower()));
     }
 
     public void FilterByAddressStreet(string street, uint? houseNumber = null, uint? flatNumber = null)
     {
-        var result = _events.Where(e => e.Address.Street != null && e.Address.Street.Contains(street, StringComparison.CurrentCultureIgnoreCase));
+        var result = _events.Where(e => e.Address.Street != null && e.Address.Street.ToLower().Contains(street.ToLower()));
         if (houseNumber != null)
         {
             result = result.Where(e => e.Address.HouseNumber != null && e.Address.HouseNumber == houseNumber);
