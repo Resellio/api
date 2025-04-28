@@ -2,7 +2,7 @@
 using TickAPI.Events.DTOs.Request;
 using TickAPI.Events.Models;
 
-namespace TickAPI.Events.Services;
+namespace TickAPI.Events.Filters;
 
 public class EventFilterApplier : IEventFilterApplier
 {
