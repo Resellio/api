@@ -35,7 +35,7 @@ public class EventFilterApplier : IEventFilterApplier
         };
     }
 
-    public IQueryable<Event> ApplyFilters(IQueryable<Event> events, EventFiltersDto filters)
+    public IQueryable<Event> ApplyFilters(EventFiltersDto filters)
     {   
         foreach (var (condition, apply) in _filterActions)
         {

@@ -5,5 +5,5 @@ namespace TickAPI.Events.Abstractions;
 
 public interface IEventFilterApplier
 {
-    IQueryable<Event> ApplyFilters(IQueryable<Event> events, EventFiltersDto filters);
+    IQueryable<Event> ApplyFilters(EventFiltersDto filters);
 }
