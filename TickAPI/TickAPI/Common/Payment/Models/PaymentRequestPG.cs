@@ -7,5 +7,6 @@ public record PaymentRequestPG(
     [property: JsonPropertyName("currency")] string Currency,
     [property: JsonPropertyName("card_number")] string CardNumber,
     [property: JsonPropertyName("card_expiry")] string CardExpiry,
-    [property: JsonPropertyName("cvv")] string CVV
+    [property: JsonPropertyName("cvv")] string CVV,
+    [property: JsonPropertyName("force_error")] bool ForceError
 );
