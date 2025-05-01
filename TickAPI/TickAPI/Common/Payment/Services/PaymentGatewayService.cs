@@ -17,9 +17,15 @@ public class PaymentGatewayService : IPaymentGatewayService
         _httpClientFactory = httpClientFactory;
     }
 
-    public Task<Result<string>> HealthCheck()
+    public async Task<PaymentGatewayHealthStatus> HealthCheck()
     {
-        throw new NotImplementedException();
+        var client = _httpClientFactory.CreateClient();
+        var baseUrl = _configuration["PaymentGateway:Url"]!;
+        var url = $"{baseUrl}/health";
+        var response = await client.GetAsync(url);
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        var status = JsonSerializer.Deserialize<PaymentGatewayHealthStatus>(jsonResponse, new JsonSerializerOptions());
+        return status!;
     }
 
     public async Task<Result<PaymentResponsePG>> ProcessPayment(PaymentRequestPG request)

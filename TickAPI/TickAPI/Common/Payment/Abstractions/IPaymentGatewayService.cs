@@ -5,5 +5,6 @@ namespace TickAPI.Common.Payment.Abstractions;
 
 public interface IPaymentGatewayService
 {
+    Task<PaymentGatewayHealthStatus> HealthCheck();
     Task<Result<PaymentResponsePG>> ProcessPayment(PaymentRequestPG request);
 }
