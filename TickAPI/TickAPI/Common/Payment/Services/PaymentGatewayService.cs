@@ -17,10 +17,16 @@ public class PaymentGatewayService : IPaymentGatewayService
         _httpClientFactory = httpClientFactory;
     }
 
+    public Task<Result<string>> HealthCheck()
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Result<PaymentResponsePG>> ProcessPayment(PaymentRequestPG request)
     {
         var client = _httpClientFactory.CreateClient();
-        var url = _configuration["PaymentGateway:Url"]!;
+        var baseUrl = _configuration["PaymentGateway:Url"]!;
+        var url = $"{baseUrl}/payments";
         var json = JsonSerializer.Serialize(request);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
