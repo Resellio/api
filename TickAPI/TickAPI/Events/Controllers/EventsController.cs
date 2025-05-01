@@ -13,7 +13,6 @@ namespace TickAPI.Events.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 
-// TODO: Add lists of categories and tickettypes
 public class EventsController : ControllerBase
 {
     private readonly IEventService _eventService;
@@ -50,7 +49,7 @@ public class EventsController : ControllerBase
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
     [HttpGet("organizer")]
-    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetOrganizerEvents([FromQuery] int pageSize, [FromQuery] int page)
+    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetOrganizerEvents([FromQuery] int pageSize, [FromQuery] int page, [FromQuery] EventFiltersDto eventFilters)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
@@ -66,7 +65,7 @@ public class EventsController : ControllerBase
         }
         var organizer = organizerResult.Value!;
 
-        var paginatedDataResult = await _eventService.GetOrganizerEventsAsync(organizer, page, pageSize);
+        var paginatedDataResult = await _eventService.GetOrganizerEventsAsync(organizer, page, pageSize, eventFilters);
         if (paginatedDataResult.IsError)
         {
             return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
@@ -104,9 +103,9 @@ public class EventsController : ControllerBase
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet]
-    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page)
+    public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page, [FromQuery] EventFiltersDto eventFilters)
     {
-        var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize);
+        var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize, eventFilters);
         if (paginatedDataResult.IsError)
         {
             return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
@@ -124,5 +123,17 @@ public class EventsController : ControllerBase
             return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
         }
         return Ok(paginationDetailsResult.Value!);
+    }
+    
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<GetEventDetailsResponseDto>> GetEventDetails([FromRoute] Guid id)
+    {
+        var eventDetailsResult = await _eventService.GetEventDetailsAsync(id);
+        if (eventDetailsResult.IsError)
+        {
+            return StatusCode(eventDetailsResult.StatusCode, eventDetailsResult.ErrorMsg);
+        }
+        return Ok(eventDetailsResult.Value!);
     }
 }

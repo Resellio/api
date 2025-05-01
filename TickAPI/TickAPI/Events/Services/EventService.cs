@@ -4,14 +4,16 @@ using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
-using TickAPI.Categories.Models;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Events.DTOs.Request;
 using TickAPI.Events.DTOs.Response;
+using TickAPI.Events.Filters;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
+using TickAPI.Tickets.Abstractions;
 using TickAPI.TicketTypes.DTOs.Request;
 using TickAPI.TicketTypes.Models;
 
@@ -25,8 +27,9 @@ public class EventService : IEventService
     private readonly IDateTimeService _dateTimeService;
     private readonly IPaginationService _paginationService;
     private readonly ICategoryService _categoryService;
+    private readonly ITicketService _ticketService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService, ITicketService ticketService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
@@ -34,6 +37,7 @@ public class EventService : IEventService
         _dateTimeService = dateTimeService;
         _paginationService = paginationService;
         _categoryService = categoryService;
+        _ticketService = ticketService;
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
@@ -58,12 +62,13 @@ public class EventService : IEventService
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
 
-        var categoriesConverted = categories.Select(c => new Category { Name = c.CategoryName }).ToList();
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
 
-        var categoriesExist = await _categoryService.CheckIfCategoriesExistAsync(categoriesConverted);
-        if (!categoriesExist)
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        
+        if (categoriesByNameResult.IsError)
         {
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Category does not exist");
+            return Result<Event>.PropagateError(categoriesByNameResult);
         }
 
         var ticketTypesConverted = ticketTypes.Select(t => new TicketType
@@ -84,7 +89,7 @@ public class EventService : IEventService
             EndDate = endDate,
             MinimumAge = minimumAge,
             Address = address.Value!,
-            Categories = categoriesConverted,
+            Categories = categoriesByNameResult.Value!,
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus,
             TicketTypes = ticketTypesConverted,
@@ -93,10 +98,11 @@ public class EventService : IEventService
         return Result<Event>.Success(@event);
     }
 
-    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize)
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
         var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
-        return await GetPaginatedEventsAsync(organizerEvents, page, pageSize);
+        var filteredOrganizerEvents = ApplyEventFilters(organizerEvents, eventFilters);
+        return await GetPaginatedEventsAsync(filteredOrganizerEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetOrganizerEventsPaginationDetailsAsync(Organizer organizer, int pageSize)
@@ -105,16 +111,56 @@ public class EventService : IEventService
         return await _paginationService.GetPaginationDetailsAsync(organizerEvents, pageSize);
     }
 
-    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize)
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
         var events = _eventRepository.GetEvents();
-        return await GetPaginatedEventsAsync(events, page, pageSize);
+        var filteredEvents = ApplyEventFilters(events, eventFilters);
+        return await GetPaginatedEventsAsync(filteredEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize)
     {
         var events = _eventRepository.GetEvents();
         return await _paginationService.GetPaginationDetailsAsync(events, pageSize);
+    }
+
+    public async Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId)
+    {
+        var eventResult = await _eventRepository.GetEventByIdAsync(eventId);
+
+        if (eventResult.IsError)
+        {
+            return Result<GetEventDetailsResponseDto>.PropagateError(eventResult);
+        }
+
+        var ev = eventResult.Value!;
+
+        var categories = ev.Categories.Count > 0
+            ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList()
+            : new List<GetEventResponseCategoryDto>();
+        
+        var ticketTypes = ev.TicketTypes.Count > 0
+            ? ev.TicketTypes.Select((t) => new GetEventDetailsResponseTicketTypeDto(t.Id, t.Description, t.Price,
+                t.Currency, t.AvailableFrom, _ticketService.GetNumberOfAvailableTicketsByType(t).Value)).ToList()
+            : new List<GetEventDetailsResponseTicketTypeDto>();
+        
+        var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
+            ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
+        
+        var details = new GetEventDetailsResponseDto(
+            ev.Id,
+            ev.Name,
+            ev.Description,
+            ev.StartDate,
+            ev.EndDate,
+            ev.MinimumAge,
+            categories,
+            ticketTypes,
+            ev.EventStatus,
+            address
+        );
+        
+        return Result<GetEventDetailsResponseDto>.Success(details);
     }
 
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
@@ -129,11 +175,28 @@ public class EventService : IEventService
 
         return Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData);
     }
+
+    private IQueryable<Event> ApplyEventFilters(IQueryable<Event> events, EventFiltersDto? eventFilters = null)
+    {
+        if (eventFilters is null)
+        {
+            return events;
+        }
+        var ef = new EventFilter(events);
+        var eventFiltersApplier = new EventFilterApplier(ef);
+        var filteredEvents = eventFiltersApplier.ApplyFilters(eventFilters);
+        return filteredEvents;
+    }
     
     private static GetEventResponseDto MapEventToGetEventResponseDto(Event ev)
     {
         var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
-        return new GetEventResponseDto(ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, categories, ev.EventStatus, address);
+        
+        var minimumPrice = ev.TicketTypes.Min(t => t.Price);
+        var maximumPrice = ev.TicketTypes.Max(t => t.Price);
+        
+        return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
+            minimumPrice, maximumPrice, categories, ev.EventStatus, address);
     }
 }

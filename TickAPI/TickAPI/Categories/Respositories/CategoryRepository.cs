@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.Models;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Categories.Respositories;
@@ -29,6 +30,18 @@ public class CategoryRepository : ICategoryRepository
         }
         
         return Result<Category>.Success(category);
+    }
+
+    public Result<IQueryable<Category>> GetCategoriesByNames(IEnumerable<string> categoryNames)
+    {
+        var categories = _tickApiDbContext.Categories.Where(c => categoryNames.Contains(c.Name));
+
+        if (categories.Count() < categoryNames.Count())
+        {
+            return Result<IQueryable<Category>>.Failure(StatusCodes.Status404NotFound, "one or more of category names is invalid");
+        }
+        
+        return Result<IQueryable<Category>>.Success(categories);
     }
 
     public async Task AddNewCategoryAsync(Category category)

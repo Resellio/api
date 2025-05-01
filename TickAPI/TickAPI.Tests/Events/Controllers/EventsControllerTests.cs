@@ -20,6 +20,8 @@ namespace TickAPI.Tests.Events.Controllers;
 
 public class EventsControllerTests
 {
+    private readonly EventFiltersDto _emptyFilters = new EventFiltersDto(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    
     [Fact]
     public async Task CreateEvent_WhenDataIsValid_ShouldReturnSuccess()
     {
@@ -31,7 +33,7 @@ public class EventsControllerTests
         uint? minimumAge = 18;
         const string email = "123@mail.com";
         const EventStatus eventStatus = EventStatus.TicketsAvailable;
-        Guid id = Guid.NewGuid();
+        Guid id = Guid.Parse("c5aa4979-af8c-4cf9-a827-b273317fbc70");
         List<CreateEventCategoryDto> categories =
         [
             new CreateEventCategoryDto("concert"),
@@ -178,14 +180,14 @@ public class EventsControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize))
+            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize, _emptyFilters))
             .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
         
         var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
         
         // Act
-        var response = await sut.GetOrganizerEvents(pageSize, page);
+        var response = await sut.GetOrganizerEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -228,7 +230,7 @@ public class EventsControllerTests
         };
         
         // Act
-        var response = await sut.GetOrganizerEvents(pageSize, page);
+        var response = await sut.GetOrganizerEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -275,7 +277,7 @@ public class EventsControllerTests
         sut.ControllerContext = controllerContext;
         
         // Act
-        var response = await sut.GetOrganizerEvents(pageSize, page);
+        var response = await sut.GetOrganizerEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -320,14 +322,14 @@ public class EventsControllerTests
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize))
+            .Setup(m => m.GetOrganizerEventsAsync(organizer, page, pageSize, _emptyFilters))
             .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Failure(StatusCodes.Status400BadRequest, errorMessage));
         
         var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         sut.ControllerContext = controllerContext;
         
         // Act
-        var response = await sut.GetOrganizerEvents(pageSize, page);
+        var response = await sut.GetOrganizerEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -467,13 +469,13 @@ public class EventsControllerTests
         );
         
         eventServiceMock
-            .Setup(m => m.GetEventsAsync(page, pageSize))
+            .Setup(m => m.GetEventsAsync(page, pageSize, _emptyFilters))
             .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData));
         
         var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         
         // Act
-        var response = await sut.GetEvents(pageSize, page);
+        var response = await sut.GetEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -504,13 +506,13 @@ public class EventsControllerTests
         var organizerServiceMock = new Mock<IOrganizerService>();
         
         eventServiceMock
-            .Setup(m => m.GetEventsAsync(page, pageSize))
+            .Setup(m => m.GetEventsAsync(page, pageSize, _emptyFilters))
             .ReturnsAsync(Result<PaginatedData<GetEventResponseDto>>.Failure(statusCode, errorMessage));
         
         var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
         
         // Act
-        var response = await sut.GetEvents(pageSize, page);
+        var response = await sut.GetEvents(pageSize, page, _emptyFilters);
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
@@ -576,5 +578,62 @@ public class EventsControllerTests
         var objectResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(statusCode, objectResult.StatusCode);
         Assert.Equal(errorMessage, objectResult.Value);
-}
+    }
+
+    [Fact]
+    public async Task GetEventDetails_WhenAllOperationsSucceed_ShouldReturnOkWithEventDetails()
+    {
+        // Arrange
+        var id = Guid.Parse("c5aa4979-af8c-4cf9-a827-b273317fbc70");
+        var eventDetails = Utils.CreateSampleEventDetailsDto("Event");
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+
+        eventServiceMock
+            .Setup(m => m.GetEventDetailsAsync(id))
+            .ReturnsAsync(Result<GetEventDetailsResponseDto>.Success(eventDetails));
+        
+        var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEventDetails(id);
+
+        // Assert
+        var result = Assert.IsType<ActionResult<GetEventDetailsResponseDto>>(response);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
+        
+        var returnedEventDetails = Assert.IsType<GetEventDetailsResponseDto>(okResult.Value);
+        Assert.Equal(eventDetails, returnedEventDetails);
+    }
+    
+    [Fact]
+    public async Task GetEventDetails_WhenOperationFails_ShouldReturnErrorWithCorrectStatusCode()
+    {
+        // Arrange
+        var id = Guid.Parse("c5aa4979-af8c-4cf9-a827-b273317fbc70");
+        const string errorMessage = "Failed to retrieve event details";
+        const int statusCode = StatusCodes.Status500InternalServerError;
+        
+        var eventServiceMock = new Mock<IEventService>();
+        var claimsServiceMock = new Mock<IClaimsService>();
+        var organizerServiceMock = new Mock<IOrganizerService>();
+
+        eventServiceMock
+            .Setup(m => m.GetEventDetailsAsync(id))
+            .ReturnsAsync(Result<GetEventDetailsResponseDto>.Failure(statusCode, errorMessage));
+        
+        var sut = new EventsController(eventServiceMock.Object, claimsServiceMock.Object, organizerServiceMock.Object);
+        
+        // Act
+        var response = await sut.GetEventDetails(id);
+
+        // Assert
+        var result = Assert.IsType<ActionResult<GetEventDetailsResponseDto>>(response);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(statusCode, objectResult.StatusCode);
+        Assert.Equal(errorMessage, objectResult.Value);
+    }
 }
