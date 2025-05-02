@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Moq;
+using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
@@ -17,13 +18,14 @@ public class TicketServiceTests
         var type = new TicketType { MaxCount = 30 };
         var ticketList = new List<Ticket>(new Ticket[10]);
 
-        Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
         
         ticketRepositoryMock
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
 
-        var sut = new TicketService(ticketRepositoryMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
 
         // Act
         var result = sut.GetNumberOfAvailableTicketsByType(type);
@@ -40,13 +42,14 @@ public class TicketServiceTests
         var type = new TicketType { MaxCount = 30 };
         var ticketList = new List<Ticket>(new Ticket[50]);
 
-        Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
         
         ticketRepositoryMock
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
 
-        var sut = new TicketService(ticketRepositoryMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
 
         // Act
         var result = sut.GetNumberOfAvailableTicketsByType(type);
