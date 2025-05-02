@@ -38,7 +38,14 @@ Both services are managed using **Docker Compose**, and are defined in the `dock
    Create an `appsettings.json` file in the root of the project, following the structure
    of `appsettings.example.json` found in `TickAPI/TickAPI/appsettings.example.json`.
 
-4. Run application:
+4. Install Entity Framework and set up the database
+   
+   ```bash
+   dotnet tool install --global dotnet-ef --version 9.*
+   dotnet ef database update
+   ```
+
+5. Run application:
 
    ```bash
    cd TickAPI/TickAPI
