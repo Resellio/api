@@ -6,4 +6,5 @@ namespace TickAPI.Tickets.Abstractions;
 public interface ITicketRepository
 {
     public IQueryable<Ticket> GetAllTicketsByTicketType(TicketType ticketType);
+    public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
 }
