@@ -45,6 +45,9 @@ public class TicketService : ITicketService
             return Result<GetTicketDetailsResponseDto>.PropagateError(ticketRes);
         }
         var ticket = ticketRes.Value;
+        var ev = ticket.Type.Event;
+        var address = new GetTicketDetailsAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
+            ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
         var ticketDetails = new GetTicketDetailsResponseDto
         {
             NameOnTicket = ticket.NameOnTicket,
@@ -55,6 +58,8 @@ public class TicketService : ITicketService
             OrganizerName = ticket.Type.Event.Organizer.DisplayName,
             StartDate = ticket.Type.Event.StartDate,
             EndDate = ticket.Type.Event.EndDate,
+            Address = address,
+           
         };
         
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);

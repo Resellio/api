@@ -1,4 +1,6 @@
-﻿namespace TickAPI.Tickets.DTOs.Response;
+﻿using TickAPI.Addresses.Models;
+
+namespace TickAPI.Tickets.DTOs.Response;
 
 public class GetTicketDetailsResponseDto
 {
@@ -10,4 +12,6 @@ public class GetTicketDetailsResponseDto
     public string OrganizerName {get; set;}
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
+    
+    public GetTicketDetailsAddressDto Address { get; set; }
 }
