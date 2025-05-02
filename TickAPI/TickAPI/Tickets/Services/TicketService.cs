@@ -1,5 +1,6 @@
 ﻿using TickAPI.Common.Results.Generic;
 using TickAPI.Tickets.Abstractions;
+using TickAPI.Tickets.DTOs.Response;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Services;
@@ -27,5 +28,21 @@ public class TicketService : ITicketService
         }
         
         return Result<uint>.Success((uint)availableCount);
+    }
+
+    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(string email, Guid ticketGuid)
+    {
+        var exists = await _ticketRepository.CheckIfTicketBelongsToCustomerAsync(ticketGuid, email);
+        if (!exists.IsSuccess)
+        {
+            return Result<GetTicketDetailsResponseDto>.PropagateError(exists);
+        }
+
+        var ticket = await _ticketRepository.GetTicketByIdAsync(ticketGuid);
+        if (!ticket.IsSuccess)
+        {
+            return Result<GetTicketDetailsResponseDto>.PropagateError(ticket);
+        }
+        
     }
 }

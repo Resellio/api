@@ -1,4 +1,5 @@
-﻿using TickAPI.Tickets.Models;
+﻿using TickAPI.Common.Results.Generic;
+using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Abstractions;
@@ -6,4 +7,7 @@ namespace TickAPI.Tickets.Abstractions;
 public interface ITicketRepository
 {
     public IQueryable<Ticket> GetAllTicketsByTicketType(TicketType ticketType);
+    public Task<Result<bool>> CheckIfTicketBelongsToCustomerAsync(Guid id, string email);
+
+    public Task<Result<Ticket>> GetTicketByIdAsync(Guid id);
 }
