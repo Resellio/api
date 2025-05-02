@@ -1,4 +1,5 @@
-﻿using TickAPI.Common.Results.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
@@ -42,4 +43,5 @@ public class EventRepository : IEventRepository
         
         return Result<Event>.Success(@event);
     }
+    
 }

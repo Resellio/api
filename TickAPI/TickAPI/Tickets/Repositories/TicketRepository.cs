@@ -38,7 +38,8 @@ public class TicketRepository : ITicketRepository
 
     public async Task<Result<Ticket>> GetTicketByIdAsync(Guid id)
     {
-        var ticket = await _tickApiDbContext.Tickets.FindAsync(id);
+        var ticket = await _tickApiDbContext.Tickets.Include(t => t.Type).Include(t => t.Type.Event)
+            .Include(t => t.Type.Event.Organizer).FirstOrDefaultAsync();
         if (ticket == null)
         {
             return Result<Ticket>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");

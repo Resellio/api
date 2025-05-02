@@ -3,6 +3,7 @@ using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.TicketTypes.Models;
 
+
 namespace TickAPI.Tickets.Services;
 
 public class TicketService : ITicketService
@@ -38,11 +39,25 @@ public class TicketService : ITicketService
             return Result<GetTicketDetailsResponseDto>.PropagateError(exists);
         }
 
-        var ticket = await _ticketRepository.GetTicketByIdAsync(ticketGuid);
-        if (!ticket.IsSuccess)
+        var ticketRes = await _ticketRepository.GetTicketByIdAsync(ticketGuid);
+        if (!ticketRes.IsSuccess)
         {
-            return Result<GetTicketDetailsResponseDto>.PropagateError(ticket);
+            return Result<GetTicketDetailsResponseDto>.PropagateError(ticketRes);
         }
+        var ticket = ticketRes.Value;
+        var ticketDetails = new GetTicketDetailsResponseDto
+        {
+            NameOnTicket = ticket.NameOnTicket,
+            Seats = ticket.Seats,
+            Price = ticket.Type.Price,
+            Currency = ticket.Type.Currency,
+            EventName = ticket.Type.Event.Name,
+            OrganizerName = ticket.Type.Event.Organizer.DisplayName,
+            StartDate = ticket.Type.Event.StartDate,
+            EndDate = ticket.Type.Event.EndDate,
+        };
         
+        return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
+
     }
 }
