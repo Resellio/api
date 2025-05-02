@@ -1,4 +1,5 @@
-﻿using TickAPI.Common.TickApiDbContext;
+﻿using Microsoft.EntityFrameworkCore;
+using TickAPI.Common.TickApiDbContext;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
@@ -17,5 +18,13 @@ public class TicketRepository : ITicketRepository
     public IQueryable<Ticket> GetAllTicketsByTicketType(TicketType ticketType)
     {
         return _tickApiDbContext.Tickets.Where(t => t.Type == ticketType);
+    }
+
+    public IQueryable<Ticket> GetTicketsByEventId(Guid eventId)
+    {
+        return _tickApiDbContext.Tickets
+            .Include(t => t.Type)
+            .Include(t => t.Type.Event)
+            .Where(t => t.Type.Event.Id == eventId);
     }
 }
