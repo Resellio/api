@@ -39,6 +39,9 @@ using TickAPI.Common.Redis.Abstractions;
 using TickAPI.Common.Redis.Services;
 using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Mail.Services;
+using TickAPI.Common.Payment.Abstractions;
+using TickAPI.Common.Payment.Health;
+using TickAPI.Common.Payment.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -122,6 +125,7 @@ builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -180,7 +184,9 @@ builder.Services.AddCors(options =>
 
 // TODO: when we start using redis we should probably also check here if we can connect to it
 // Setup healtcheck
-builder.Services.AddHealthChecks().AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
+builder.Services.AddHealthChecks()
+    .AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "")
+    .AddCheck<PaymentGatewayHealthCheck>("PaymentGateway");
 
 // Add http client
 builder.Services.AddHttpClient();

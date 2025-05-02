@@ -1,5 +1,4 @@
-﻿using System.Net;
-using SendGrid;
+﻿using SendGrid;
 using SendGrid.Helpers.Mail;
 using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Mail.Models;
@@ -9,8 +8,8 @@ namespace TickAPI.Common.Mail.Services;
 
 public class MailService : IMailService
 {
-    private SendGridClient _client;
-    private EmailAddress _fromEmailAddress;
+    private readonly SendGridClient _client;
+    private readonly EmailAddress _fromEmailAddress;
     
     public MailService(IConfiguration configuration)
     {
