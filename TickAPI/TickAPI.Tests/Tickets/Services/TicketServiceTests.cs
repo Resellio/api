@@ -408,7 +408,7 @@ public class TicketServiceTests
     }
 
     [Fact]
-    public async Task GetTicketDetailsAsync_WhenTicketDoesntExistsForTheUser_ShouldReturnError()
+    public async Task GetTicketDetailsAsync_WhenTicketDoesNotExistForTheUser_ShouldReturnError()
     {
         
         // Arrange

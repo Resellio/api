@@ -51,11 +51,11 @@ public class TicketService : ITicketService
     public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email)
     {
         var ticketRes = await _ticketRepository.GetTicketWithDetailsByIdAndEmailAsync(ticketGuid, email);
-        if (!ticketRes.IsSuccess)
+        if (ticketRes.IsError)
         {
             return Result<GetTicketDetailsResponseDto>.PropagateError(ticketRes);
         }
-        var ticket = ticketRes.Value;
+        var ticket = ticketRes.Value!;
         var ev = ticket.Type.Event;
         var address = new GetTicketDetailsAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
             ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
