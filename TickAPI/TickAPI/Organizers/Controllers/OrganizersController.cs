@@ -83,7 +83,7 @@ public class OrganizersController : ControllerBase
         return new ActionResult<CreateOrganizerResponseDto>(new CreateOrganizerResponseDto(jwtTokenResult.Value!));
     }
     
-    // TODO: Add authorization with admin policy here
+    [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
     [HttpPost("verify")]
     public async Task<ActionResult> VerifyOrganizer([FromBody] VerifyOrganizerDto request)
     {

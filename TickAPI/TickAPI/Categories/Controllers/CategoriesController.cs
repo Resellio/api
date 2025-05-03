@@ -31,7 +31,7 @@ public class CategoriesController : Controller
         return Ok(res.Value);
     }
     
-    // TODO: Add appropriate policy verification (admin, maybe also organizer?)
+    [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
     [HttpPost]
     public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto request)
     {
