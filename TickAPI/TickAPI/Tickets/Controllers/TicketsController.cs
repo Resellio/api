@@ -5,8 +5,6 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Common.Pagination.Responses;
-using TickAPI.Tickets.Abstractions;
-using TickAPI.Tickets.DTOs.Response;
 
 namespace TickAPI.Tickets.Controllers;
 
@@ -33,7 +31,7 @@ public class TicketsController : ControllerBase
         }
         var email = emailResult.Value!;
         var ticket = await _ticketService.GetTicketDetailsAsync(id, email);
-        if (!ticket.IsSuccess)
+        if (ticket.IsError)
         {
             return  StatusCode(ticket.StatusCode, ticket.ErrorMsg);
         }
