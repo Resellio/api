@@ -47,4 +47,31 @@ public class TicketService : ITicketService
             t => new GetTicketForResellResponseDto(t.Id, t.Type.Price, t.Type.Currency, t.Type.Description, t.Seats));
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
+
+    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email)
+    {
+        var ticketRes = await _ticketRepository.GetTicketWithDetailsByIdAndEmailAsync(ticketGuid, email);
+        if (ticketRes.IsError)
+        {
+            return Result<GetTicketDetailsResponseDto>.PropagateError(ticketRes);
+        }
+        var ticket = ticketRes.Value!;
+        var ev = ticket.Type.Event;
+        var address = new GetTicketDetailsAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
+            ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
+        var ticketDetails = new GetTicketDetailsResponseDto
+        (
+            ticket.NameOnTicket,
+            ticket.Seats,
+            ticket.Type.Price,
+            ticket.Type.Currency,
+            ticket.Type.Event.Name,
+            ticket.Type.Event.Organizer.DisplayName, 
+            ticket.Type.Event.StartDate,
+            ticket.Type.Event.EndDate,
+            address,
+            ticket.Type.Event.Id
+        );
+        return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
+    }
 }
