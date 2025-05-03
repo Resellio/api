@@ -4,6 +4,9 @@ using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
+using TickAPI.Common.Pagination.Responses;
+using TickAPI.Tickets.Abstractions;
+using TickAPI.Tickets.DTOs.Response;
 
 namespace TickAPI.Tickets.Controllers;
 
@@ -37,4 +40,14 @@ public class TicketsController : ControllerBase
         return Ok(ticket.Value);
     }
     
+    [HttpGet("/for-resell")]
+    public async Task<ActionResult<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResell([FromQuery] Guid eventId, [FromQuery] int pageSize, [FromQuery] int page)
+    {
+        var result = await _ticketService.GetTicketsForResellAsync(eventId, page, pageSize);
+        if (result.IsError)
+        {
+            return StatusCode(result.StatusCode, result.ErrorMsg);
+        }
+        return result.Value!;
+    }
 }

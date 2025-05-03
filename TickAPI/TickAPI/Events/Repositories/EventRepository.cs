@@ -9,13 +9,13 @@ namespace TickAPI.Events.Repositories;
 
 public class EventRepository : IEventRepository
 {
-    
     private readonly TickApiDbContext _tickApiDbContext;
 
     public EventRepository(TickApiDbContext tickApiDbContext)
     {
         _tickApiDbContext = tickApiDbContext;
     }
+    
     public async Task AddNewEventAsync(Event @event)
     {
         _tickApiDbContext.Events.Add(@event);
@@ -24,17 +24,28 @@ public class EventRepository : IEventRepository
 
     public IQueryable<Event> GetEvents()
     {
-        return _tickApiDbContext.Events;
+        return _tickApiDbContext.Events
+            .Include(e => e.Address)
+            .Include(e => e.TicketTypes)
+            .Include(e => e.Categories);
     }
 
     public IQueryable<Event> GetEventsByOranizer(Organizer organizer)
     {
-        return _tickApiDbContext.Events.Where(e => e.Organizer.Id == organizer.Id);
+        return _tickApiDbContext.Events
+            .Include(e => e.Address)
+            .Include(e => e.TicketTypes)
+            .Include(e => e.Categories)
+            .Where(e => e.Organizer.Id == organizer.Id);
     }
 
-    public Result<Event> GetEventById(Guid eventId)
+    public async Task<Result<Event>> GetEventByIdAsync(Guid eventId)
     {
-        var @event = _tickApiDbContext.Events.Find(eventId);
+        var @event = await _tickApiDbContext.Events
+            .Include(e => e.Address)
+            .Include(e => e.TicketTypes)
+            .Include(e => e.Categories)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
 
         if (@event == null)
         {

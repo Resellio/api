@@ -4,12 +4,13 @@ using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
-using TickAPI.Categories.Models;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Events.DTOs.Request;
 using TickAPI.Events.DTOs.Response;
+using TickAPI.Events.Filters;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
 using TickAPI.Tickets.Abstractions;
@@ -61,12 +62,13 @@ public class EventService : IEventService
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
 
-        var categoriesConverted = categories.Select(c => new Category { Name = c.CategoryName }).ToList();
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
 
-        var categoriesExist = await _categoryService.CheckIfCategoriesExistAsync(categoriesConverted);
-        if (!categoriesExist)
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        
+        if (categoriesByNameResult.IsError)
         {
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Category does not exist");
+            return Result<Event>.PropagateError(categoriesByNameResult);
         }
 
         var ticketTypesConverted = ticketTypes.Select(t => new TicketType
@@ -87,7 +89,7 @@ public class EventService : IEventService
             EndDate = endDate,
             MinimumAge = minimumAge,
             Address = address.Value!,
-            Categories = categoriesConverted,
+            Categories = categoriesByNameResult.Value!,
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus,
             TicketTypes = ticketTypesConverted,
@@ -96,10 +98,11 @@ public class EventService : IEventService
         return Result<Event>.Success(@event);
     }
 
-    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize)
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
         var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
-        return await GetPaginatedEventsAsync(organizerEvents, page, pageSize);
+        var filteredOrganizerEvents = ApplyEventFilters(organizerEvents, eventFilters);
+        return await GetPaginatedEventsAsync(filteredOrganizerEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetOrganizerEventsPaginationDetailsAsync(Organizer organizer, int pageSize)
@@ -108,10 +111,11 @@ public class EventService : IEventService
         return await _paginationService.GetPaginationDetailsAsync(organizerEvents, pageSize);
     }
 
-    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize)
+    public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
         var events = _eventRepository.GetEvents();
-        return await GetPaginatedEventsAsync(events, page, pageSize);
+        var filteredEvents = ApplyEventFilters(events, eventFilters);
+        return await GetPaginatedEventsAsync(filteredEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize)
@@ -122,7 +126,7 @@ public class EventService : IEventService
 
     public async Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId)
     {
-        var eventResult = _eventRepository.GetEventById(eventId);
+        var eventResult = await _eventRepository.GetEventByIdAsync(eventId);
 
         if (eventResult.IsError)
         {
@@ -170,6 +174,18 @@ public class EventService : IEventService
         var paginatedData = _paginationService.MapData(paginatedEventsResult.Value!, MapEventToGetEventResponseDto);
 
         return Result<PaginatedData<GetEventResponseDto>>.Success(paginatedData);
+    }
+
+    private IQueryable<Event> ApplyEventFilters(IQueryable<Event> events, EventFiltersDto? eventFilters = null)
+    {
+        if (eventFilters is null)
+        {
+            return events;
+        }
+        var ef = new EventFilter(events);
+        var eventFiltersApplier = new EventFilterApplier(ef);
+        var filteredEvents = eventFiltersApplier.ApplyFilters(eventFilters);
+        return filteredEvents;
     }
     
     private static GetEventResponseDto MapEventToGetEventResponseDto(Event ev)

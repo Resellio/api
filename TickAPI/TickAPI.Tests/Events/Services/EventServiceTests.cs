@@ -105,7 +105,7 @@ public class EventServiceTests
         dateTimeServiceMock.Setup(m => m.GetCurrentDateTime()).Returns(new DateTime(2003, 7, 11));
         
         var categoryServiceMock = new Mock<ICategoryService>();
-        categoryServiceMock.Setup(c => c.CheckIfCategoriesExistAsync(It.IsAny<List<Category>>())).Returns(Task.FromResult(true));
+        categoryServiceMock.Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>())).Returns(Result<List<Category>>.Success(expectedCategories));
 
         var paginationServiceMock = new Mock<IPaginationService>();
         
@@ -626,8 +626,8 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
         
         eventRepositoryMock
-            .Setup(m => m.GetEventById(@event.Id))
-            .Returns(Result<Event>.Success(@event));
+            .Setup(m => m.GetEventByIdAsync(@event.Id))
+            .ReturnsAsync(Result<Event>.Success(@event));
 
         ticketServiceMock
             .Setup(m => m.GetNumberOfAvailableTicketsByType(It.IsAny<TicketType>()))
@@ -669,8 +669,8 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
         
         eventRepositoryMock
-            .Setup(m => m.GetEventById(@event.Id))
-            .Returns(Result<Event>.Failure(StatusCodes.Status404NotFound, $"event with id {@event.Id} not found"));
+            .Setup(m => m.GetEventByIdAsync(@event.Id))
+            .ReturnsAsync(Result<Event>.Failure(StatusCodes.Status404NotFound, $"event with id {@event.Id} not found"));
         
         var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
             dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);

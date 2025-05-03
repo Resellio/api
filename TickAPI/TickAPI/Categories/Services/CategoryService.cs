@@ -5,6 +5,7 @@ using TickAPI.Categories.Models;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Events.Models;
 
 namespace TickAPI.Categories.Services;
 
@@ -56,11 +57,16 @@ public class CategoryService : ICategoryService
         await _categoryRepository.AddNewCategoryAsync(category);
         return Result<Category>.Success(category);
     }
-    
-    public async Task<bool> CheckIfCategoriesExistAsync(IEnumerable<Category> categories)
+
+    public Result<List<Category>> GetCategoriesByNames(IList<string> categoryNames)
     {
-        var dbCategories = _categoryRepository.GetCategories();
-        int count = await dbCategories.Where(cdb => categories.Any(c => c.Name == cdb.Name)).CountAsync();
-        return count == categories.Count();
+        var result = _categoryRepository.GetCategoriesByNames(categoryNames);
+
+        if (result.IsError)
+        {
+            return Result<List<Category>>.PropagateError(result);
+        }
+        
+        return Result<List<Category>>.Success(result.Value!.ToList());
     }
 }

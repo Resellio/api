@@ -10,4 +10,5 @@ public interface ITicketRepository
     public Task<Result<bool>> CheckIfTicketBelongsToCustomerAsync(Guid id, string email);
 
     public Task<Result<Ticket>> GetTicketByIdAsync(Guid id);
+    public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
 }

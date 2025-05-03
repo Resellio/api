@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using Microsoft.EntityFrameworkCore;
 using TickAPI.Common.TickApiDbContext;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
@@ -20,6 +21,14 @@ public class TicketRepository : ITicketRepository
     public IQueryable<Ticket> GetAllTicketsByTicketType(TicketType ticketType)
     {
         return _tickApiDbContext.Tickets.Where(t => t.Type == ticketType);
+    }
+
+    public IQueryable<Ticket> GetTicketsByEventId(Guid eventId)
+    {
+        return _tickApiDbContext.Tickets
+            .Include(t => t.Type)
+            .Include(t => t.Type.Event)
+            .Where(t => t.Type.Event.Id == eventId);
     }
 
     public async Task<Result<bool>> CheckIfTicketBelongsToCustomerAsync(Guid id, string email)
