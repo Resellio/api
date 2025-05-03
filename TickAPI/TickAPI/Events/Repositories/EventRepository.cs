@@ -54,5 +54,4 @@ public class EventRepository : IEventRepository
         
         return Result<Event>.Success(@event);
     }
-    
 }

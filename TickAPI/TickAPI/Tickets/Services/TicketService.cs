@@ -48,15 +48,9 @@ public class TicketService : ITicketService
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
 
-    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(string email, Guid ticketGuid)
+    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email)
     {
-        var exists = await _ticketRepository.CheckIfTicketBelongsToCustomerAsync(ticketGuid, email);
-        if (!exists.IsSuccess)
-        {
-            return Result<GetTicketDetailsResponseDto>.PropagateError(exists);
-        }
-
-        var ticketRes = await _ticketRepository.GetTicketByIdAsync(ticketGuid);
+        var ticketRes = await _ticketRepository.GetTicketWithDetailsByIdAndEmailAsync(ticketGuid, email);
         if (!ticketRes.IsSuccess)
         {
             return Result<GetTicketDetailsResponseDto>.PropagateError(ticketRes);
@@ -66,20 +60,18 @@ public class TicketService : ITicketService
         var address = new GetTicketDetailsAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
             ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
         var ticketDetails = new GetTicketDetailsResponseDto
-        {
-            NameOnTicket = ticket.NameOnTicket,
-            Seats = ticket.Seats,
-            Price = ticket.Type.Price,
-            Currency = ticket.Type.Currency,
-            EventName = ticket.Type.Event.Name,
-            OrganizerName = ticket.Type.Event.Organizer.DisplayName,
-            StartDate = ticket.Type.Event.StartDate,
-            EndDate = ticket.Type.Event.EndDate,
-            Address = address,
-           
-        };
-        
+        (
+            ticket.NameOnTicket,
+            ticket.Seats,
+            ticket.Type.Price,
+            ticket.Type.Currency,
+            ticket.Type.Event.Name,
+            ticket.Type.Event.Organizer.DisplayName, 
+            ticket.Type.Event.StartDate,
+            ticket.Type.Event.EndDate,
+            address,
+            ticket.Type.Event.Id
+        );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
-
     }
 }

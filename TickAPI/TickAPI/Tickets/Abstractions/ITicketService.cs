@@ -8,8 +8,7 @@ namespace TickAPI.Tickets.Abstractions;
 public interface ITicketService
 {
     public Result<uint> GetNumberOfAvailableTicketsByType(TicketType ticketType);
-    public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(string email, Guid ticketGuid);
-
-    Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page,
+    public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email);
+    public Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page,
         int pageSize);
 }

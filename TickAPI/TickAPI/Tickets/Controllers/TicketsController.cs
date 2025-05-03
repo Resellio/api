@@ -32,7 +32,7 @@ public class TicketsController : ControllerBase
             return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
         }
         var email = emailResult.Value!;
-        var ticket = await _ticketService.GetTicketDetailsAsync(email, id);
+        var ticket = await _ticketService.GetTicketDetailsAsync(id, email);
         if (!ticket.IsSuccess)
         {
             return  StatusCode(ticket.StatusCode, ticket.ErrorMsg);

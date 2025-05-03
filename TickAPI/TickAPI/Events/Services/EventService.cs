@@ -199,5 +199,4 @@ public class EventService : IEventService
         return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
             minimumPrice, maximumPrice, categories, ev.EventStatus, address);
     }
-    
 }

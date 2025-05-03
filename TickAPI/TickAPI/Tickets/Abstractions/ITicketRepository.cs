@@ -7,8 +7,7 @@ namespace TickAPI.Tickets.Abstractions;
 public interface ITicketRepository
 {
     public IQueryable<Ticket> GetAllTicketsByTicketType(TicketType ticketType);
-    public Task<Result<bool>> CheckIfTicketBelongsToCustomerAsync(Guid id, string email);
 
-    public Task<Result<Ticket>> GetTicketByIdAsync(Guid id);
+    public Task<Result<Ticket>> GetTicketWithDetailsByIdAndEmailAsync(Guid id, string email);
     public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
 }

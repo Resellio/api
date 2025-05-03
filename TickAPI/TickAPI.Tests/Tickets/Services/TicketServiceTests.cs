@@ -337,6 +337,7 @@ public class TicketServiceTests
     {
         
         // Arrange
+        var eventGuid = Guid.NewGuid();
         var ticket = new Ticket
         {
             Id = Guid.NewGuid(),
@@ -345,6 +346,7 @@ public class TicketServiceTests
             Seats = null,
             Type = new TicketType
             {
+                Id = eventGuid,
                 Currency = "USD",
                 Price = 20,
                 Event = new Event
@@ -371,18 +373,17 @@ public class TicketServiceTests
         string email = "123@123.com";
         
         Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
-        ticketRepositoryMock.Setup(m =>
-            m.CheckIfTicketBelongsToCustomerAsync(ticket.Id, email)).ReturnsAsync(Result<bool>.Success(true));
         
         var paginationServiceMock = new Mock<IPaginationService>();
 
-        ticketRepositoryMock.Setup(m => m.GetTicketByIdAsync(ticket.Id)).ReturnsAsync(Result<Ticket>.Success(ticket));
+        ticketRepositoryMock.Setup(m => m.GetTicketWithDetailsByIdAndEmailAsync(ticket.Id, email))
+            .ReturnsAsync(Result<Ticket>.Success(ticket));
         
         var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
         
         // Act
 
-        var res = await sut.GetTicketDetailsAsync(email, ticket.Id);
+        var res = await sut.GetTicketDetailsAsync(ticket.Id, email);
         
         // Assert
 
@@ -416,8 +417,8 @@ public class TicketServiceTests
         string email = "123@123.com";
         
         Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
-        ticketRepositoryMock.Setup(m => m.CheckIfTicketBelongsToCustomerAsync(ticketId, email)).
-            ReturnsAsync(Result<bool>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist " +
+        ticketRepositoryMock.Setup(m => m.GetTicketWithDetailsByIdAndEmailAsync(ticketId, email)).
+            ReturnsAsync(Result<Ticket>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist " +
                                                                              "for this user"));
         var paginationServiceMock = new Mock<IPaginationService>();
         
@@ -425,7 +426,7 @@ public class TicketServiceTests
         
         // Act
 
-        var res = await sut.GetTicketDetailsAsync(email, ticketId);
+        var res = await sut.GetTicketDetailsAsync(ticketId, email);
         
         // Assert
         
