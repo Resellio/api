@@ -26,6 +26,16 @@ public record Result
         return new Result(false, statusCode, errorMsg);
     }
 
+    public static Result PropagateError(Result other)
+    {
+        if (other.IsSuccess)
+        {
+            throw new ArgumentException("Trying to propagate error from successful value");
+        }
+        
+        return Failure(other.StatusCode, other.ErrorMsg);
+    }
+    
     public static Result PropagateError<TE>(Result<TE> other)
     {
         if (other.IsSuccess)

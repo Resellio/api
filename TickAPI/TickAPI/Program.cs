@@ -43,6 +43,7 @@ using TickAPI.Common.Payment.Abstractions;
 using TickAPI.Common.Payment.Health;
 using TickAPI.Common.Payment.Services;
 using TickAPI.ShoppingCarts.Abstractions;
+using TickAPI.ShoppingCarts.Repositories;
 using TickAPI.ShoppingCarts.Services;
 
 // Builder constants
@@ -117,6 +118,10 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 // Add category services.
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
+// Add shopping cart services.
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();

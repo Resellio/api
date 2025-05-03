@@ -31,6 +31,21 @@ public class ResultTests
     }
     
     [Fact]
+    public void PropagateError_WhenResultWithErrorPassed_ShouldReturnResultWithError()
+    {
+        const int statusCode = 500;
+        const string errorMsg = "error message";
+        var resultWithError = Result.Failure(statusCode, errorMsg);
+
+        var result = Result.PropagateError(resultWithError);
+        
+        Assert.True(result.IsError);
+        Assert.False(result.IsSuccess);
+        Assert.Equal(errorMsg, result.ErrorMsg);
+        Assert.Equal(statusCode, result.StatusCode);
+    }
+    
+    [Fact]
     public void PropagateError_WhenGenericResultWithErrorPassed_ShouldReturnResultWithError()
     {
         const int statusCode = 500;
@@ -43,6 +58,16 @@ public class ResultTests
         Assert.False(result.IsSuccess);
         Assert.Equal(errorMsg, result.ErrorMsg);
         Assert.Equal(statusCode, result.StatusCode);
+    }
+    
+    [Fact]
+    public void PropagateError_WhenResultWithSuccessPassed_ShouldThrowArgumentException()
+    {
+        var resultWithSuccess = Result.Success();
+
+        var act = () => Result.PropagateError(resultWithSuccess);
+
+        Assert.Throws<ArgumentException>(act);
     }
     
     [Fact]

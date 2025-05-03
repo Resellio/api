@@ -4,5 +4,6 @@ namespace TickAPI.ShoppingCarts.Models;
 
 public class ShoppingCart
 {
-    public List<ShoppingCartTicket> Tickets { get; set; }
+    public List<ShoppingCartNewTicket> Tickets { get; set; } = [];
+    public List<ShoppingCartResellTicket> ResellTickets { get; set; } = [];
 }
