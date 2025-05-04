@@ -28,6 +28,15 @@ public class TicketRepository : ITicketRepository
             .Include(t => t.Type.Event)
             .Where(t => t.Type.Event.Id == eventId);
     }
+
+    public IQueryable<Ticket> GetTicketsByCustomerEmail(string email)
+    {
+        return _tickApiDbContext.Tickets
+            .Include(t => t.Owner)
+            .Include(t => t.Type)
+            .Include(t =>t.Type.Event)
+            .Where(t => t.Owner.Email == email);
+    }
     
     public async Task<Result<Ticket>> GetTicketWithDetailsByIdAndEmailAsync(Guid id, string email)
     {

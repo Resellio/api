@@ -48,4 +48,21 @@ public class TicketsController : ControllerBase
         }
         return result.Value!;
     }
+
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpGet]
+    public async Task<ActionResult<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomer([FromQuery] int pageSize, [FromQuery] int page)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize);
+        if (tickets.IsError)
+        {
+            return StatusCode(tickets.StatusCode, tickets.ErrorMsg);
+        }
+        return Ok(tickets.Value);
+    }
 }

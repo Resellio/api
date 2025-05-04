@@ -47,6 +47,21 @@ public class TicketService : ITicketService
             t => new GetTicketForResellResponseDto(t.Id, t.Type.Price, t.Type.Currency, t.Type.Description, t.Seats));
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
+    //TODO: Maybe apply some filtering over here?
+    public async Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page, int pageSize)
+    {
+        var customerTickets = _ticketRepository.GetTicketsByCustomerEmail(email);
+        var paginatedCustomerTickets = await _paginationService.PaginateAsync(customerTickets, pageSize, page);
+        if (paginatedCustomerTickets.IsError)
+        {
+            return Result<PaginatedData<GetTicketForCustomerDto>>.PropagateError(paginatedCustomerTickets);
+        }
+
+        var paginatedResult = _paginationService.MapData(paginatedCustomerTickets.Value!,
+            t => new GetTicketForCustomerDto(t.Type.Event.Name, t.Type.Event.StartDate, t.Type.Event.EndDate));
+        
+        return Result<PaginatedData<GetTicketForCustomerDto>>.Success(paginatedResult);
+    }
 
     public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email)
     {
