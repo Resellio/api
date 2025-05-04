@@ -434,4 +434,118 @@ public class TicketServiceTests
         Assert.Equal(StatusCodes.Status404NotFound, res.StatusCode);
         Assert.Equal("Ticket with this id doesn't exist for this user", res.ErrorMsg);
     }
+    
+    [Fact]
+    public async Task GetTicketsForCustomerAsync_WithValidInput_ReturnsSuccessResult()
+    {
+        // Arrange
+        var email = "test@example.com";
+        var page = 0;
+        var pageSize = 10;
+        
+        var tickets = new List<Ticket>
+        {
+            new Ticket
+            {
+                Type = new TicketType
+                {
+                    Event = new Event
+                    {
+                        Name = "EventName",
+                        StartDate = new DateTime(2025, 10, 10),
+                        EndDate = new DateTime(2025, 10, 20),
+                    }
+                }
+            },
+            new Ticket
+            {
+                Type = new TicketType
+                {
+                    Event = new Event
+                    {
+                        Name = "EventName2",
+                        StartDate = new DateTime(2025, 11, 10),
+                        EndDate = new DateTime(2025, 11, 20),
+                    }
+                }
+            }
+        };
+        
+        var paginatedData = new PaginatedData<Ticket>
+        (
+            tickets,
+            page, 
+            pageSize,
+            false,
+            false,
+            new PaginationDetails(0, 2)
+        );
+        var mappedData1 = new GetTicketForCustomerDto("EventName", new DateTime(2025, 10, 10), new DateTime(2025, 10, 20));
+        var mappedData2 = new GetTicketForCustomerDto("EventName2", new DateTime(2025, 11, 10), new DateTime(2025, 11, 20));
+        var mappedPaginatedData = new PaginatedData<GetTicketForCustomerDto>
+        (
+            new List<GetTicketForCustomerDto>{mappedData1, mappedData2},
+            page,
+            pageSize,
+            false,
+            false, 
+            new PaginationDetails(0, 2)
+        );
+
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        ticketRepositoryMock.Setup(r => r.GetTicketsByCustomerEmail(email)).Returns(tickets.AsQueryable());
+        
+        var paginationServiceMock = new Mock<IPaginationService>();
+        paginationServiceMock.Setup(p => p.PaginateAsync(tickets.AsQueryable(), pageSize, page))
+            .ReturnsAsync(Result<PaginatedData<Ticket>>.Success(paginatedData));
+        
+        paginationServiceMock.Setup(p => p.MapData(paginatedData, It.IsAny<Func<Ticket, GetTicketForCustomerDto>>()))
+            .Returns(mappedPaginatedData);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+
+        // Act
+        var result = await sut.GetTicketsForCustomerAsync(email, page, pageSize);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(mappedPaginatedData, result.Value);
+        Assert.Equal(mappedData1, result.Value!.Data[0]);
+        Assert.Equal(mappedData2, result.Value!.Data[1]);
+    }
+
+    [Fact]
+    public async Task GetTicketsForCustomerAsync_WhenUserHasNoTickets_ReturnsEmptyPagination()
+    {
+        // Arrange
+        var email = "empty@example.com";
+        var page = 0;
+        var pageSize = 10;
+        
+        var emptyTickets = new List<Ticket>();
+        
+        var emptyPaginatedData = new PaginatedData<Ticket>(emptyTickets, page, pageSize,  
+            false, false, new PaginationDetails(0, 0));
+        
+        var paginatedResult = Result<PaginatedData<Ticket>>.Success(emptyPaginatedData);
+
+        var mappedEmptyPaginatedData = new PaginatedData<GetTicketForCustomerDto>(new List<GetTicketForCustomerDto>(), 
+            page, pageSize, false, false, new PaginationDetails(0, 0));
+
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        ticketRepositoryMock.Setup(r => r.GetTicketsByCustomerEmail(email)).Returns(emptyTickets.AsQueryable());
+
+        var paginationServiceMock = new Mock<IPaginationService>();
+        paginationServiceMock.Setup(p => p.PaginateAsync(emptyTickets.AsQueryable(), pageSize, page)).ReturnsAsync(paginatedResult);
+        paginationServiceMock.Setup(p => p.MapData(emptyPaginatedData, It.IsAny<Func<Ticket, GetTicketForCustomerDto>>()))
+            .Returns(mappedEmptyPaginatedData);
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+    
+        // Act
+        var result = await sut.GetTicketsForCustomerAsync(email, page, pageSize);
+    
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value!.Data);
+    }
 }
