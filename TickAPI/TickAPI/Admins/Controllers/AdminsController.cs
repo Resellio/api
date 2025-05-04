@@ -31,20 +31,20 @@ public class AdminsController : ControllerBase
     public async Task<ActionResult<GoogleAdminLoginResponseDto>> GoogleLogin([FromBody] GoogleAdminLoginDto request)
     {
         var userDataResult = await _googleAuthService.GetUserDataFromAccessToken(request.AccessToken);
-        if(userDataResult.IsError)
-            return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
+        if (userDataResult.IsError)
+            return userDataResult.ToObjectResult();
 
         var userData = userDataResult.Value!;
         
         var adminResult = await _adminService.GetAdminByEmailAsync(userData.Email);
         if (adminResult.IsError)
         {
-            return StatusCode(adminResult.StatusCode, adminResult.ErrorMsg);
+            return adminResult.ToObjectResult();
         }
         
         var jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.Admin);
         if (jwtTokenResult.IsError)
-            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+            return jwtTokenResult.ToObjectResult();
         
         return new ActionResult<GoogleAdminLoginResponseDto>(new GoogleAdminLoginResponseDto(jwtTokenResult.Value!));
     }
@@ -56,7 +56,7 @@ public class AdminsController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         
@@ -66,8 +66,7 @@ public class AdminsController : ControllerBase
                 "cannot find user with admin privilages in database for authorized admin request");
 
         var admin = adminResult.Value!;
-        var aboutMeResponse =
-            new AboutMeAdminResponseDto(admin.Email, admin.Login);
+        var aboutMeResponse = new AboutMeAdminResponseDto(admin.Email, admin.Login);
         return new ActionResult<AboutMeAdminResponseDto>(aboutMeResponse);
     }
 }
