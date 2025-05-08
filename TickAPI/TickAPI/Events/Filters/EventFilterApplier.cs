@@ -31,7 +31,9 @@ public class EventFilterApplier : IEventFilterApplier
             { f => !string.IsNullOrEmpty(f.AddressStreet), f => _eventFilter.FilterByAddressStreet(
                 f.AddressStreet!, 
                 f.HouseNumber, 
-                f.FlatNumber) }
+                f.FlatNumber) },
+            {f => !string.IsNullOrEmpty(f.PostalCode), f => _eventFilter.FilterByAddressPostalCode(f.PostalCode!)},
+            {f => f.CategoriesNames is { Count: > 0 }, f => _eventFilter.FilterByCategoriesNames(f.CategoriesNames!)}
         };
     }
 
