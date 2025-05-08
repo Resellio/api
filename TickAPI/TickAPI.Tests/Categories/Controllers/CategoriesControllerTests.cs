@@ -32,7 +32,7 @@ public class CategoriesControllerTests
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetCategoryResponseDto>>>(res);
-        var objectResult = Assert.IsType<OkObjectResult>(result.Result);
+        var objectResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(200, objectResult.StatusCode);
         Assert.NotNull(objectResult.Value);
     }
