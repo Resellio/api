@@ -65,4 +65,15 @@ public class TicketsController : ControllerBase
         }
         return Ok(tickets.Value);
     }
+
+    [HttpPost("/scan/{id:guid}")]
+    public async Task<ActionResult<bool>> ScanTicket(Guid id)
+    {
+       var res = await _ticketService.ScanTicket(id);
+       if (res.IsError)
+       {
+           return StatusCode(res.StatusCode, res.ErrorMsg);
+       }
+       return Ok(res.Value);
+    }
 }

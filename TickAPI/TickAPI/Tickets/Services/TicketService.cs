@@ -89,4 +89,15 @@ public class TicketService : ITicketService
         );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
+
+    public async Task<Result<bool>> ScanTicket(Guid ticketGuid)
+    {
+        var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);
+        if (res.IsError)
+        {
+            return Result<bool>.PropagateError(res);
+        }
+
+        return res;
+    }
 }

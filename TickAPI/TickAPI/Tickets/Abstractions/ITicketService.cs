@@ -13,4 +13,5 @@ public interface ITicketService
         int pageSize);
     public Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page,
         int pageSize);
+    public Task<Result<bool>> ScanTicket(Guid ticketGuid);
 }
