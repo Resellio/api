@@ -1,5 +1,4 @@
 ﻿using TickAPI.Common.Results;
-using TickAPI.Common.Results.Generic;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.Tickets.Models;
 
