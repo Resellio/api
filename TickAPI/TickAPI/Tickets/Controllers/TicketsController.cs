@@ -5,6 +5,8 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Events.DTOs.Request;
+using TickAPI.Tickets.DTOs.Request;
 
 namespace TickAPI.Tickets.Controllers;
 
@@ -51,14 +53,14 @@ public class TicketsController : ControllerBase
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet]
-    public async Task<ActionResult<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomer([FromQuery] int pageSize, [FromQuery] int page)
+    public async Task<ActionResult<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomer([FromQuery] int pageSize, [FromQuery] int page, [FromQuery] TicketFiltersDto filters)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
             return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
         }
-        var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize);
+        var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize, filters);
         if (tickets.IsError)
         {
             return StatusCode(tickets.StatusCode, tickets.ErrorMsg);
