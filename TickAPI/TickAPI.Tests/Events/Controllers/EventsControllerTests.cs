@@ -20,7 +20,7 @@ namespace TickAPI.Tests.Events.Controllers;
 
 public class EventsControllerTests
 {
-    private readonly EventFiltersDto _emptyFilters = new EventFiltersDto(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+    private readonly EventFiltersDto _emptyFilters = new EventFiltersDto(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     
     [Fact]
     public async Task CreateEvent_WhenDataIsValid_ShouldReturnSuccess()
