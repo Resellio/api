@@ -582,7 +582,7 @@ public class TicketServiceTests
         ticketRepositoryMock.Setup(m => m.MarkTicketAsUsed(guid)).ReturnsAsync(Result<bool>.Success(true));
         var paginationServiceMock = new Mock<IPaginationService>();
         var qrServiceMock = new Mock<IQRCodeService>();
-        var sut =  new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
         
         // Act
         var res = await sut.ScanTicket(guid);

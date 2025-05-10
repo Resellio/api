@@ -10,7 +10,7 @@ public class QRCodeService : IQRCodeService
         var qrGenerator = new QRCodeGenerator();
         var qrData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
         var qrCode = new PngByteQRCode(qrData);
-        var  qrCodeImage = qrCode.GetGraphic(20);
+        var qrCodeImage = qrCode.GetGraphic(20);
         return qrCodeImage;
     }
 }
