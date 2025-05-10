@@ -1,4 +1,5 @@
-﻿using TickAPI.Common.Pagination.Abstractions;
+﻿using Azure.Core;
+using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.QR.Abstractions;
 using TickAPI.Common.Results.Generic;
@@ -72,7 +73,7 @@ public class TicketService : ITicketService
         return Result<PaginatedData<GetTicketForCustomerDto>>.Success(paginatedResult);
     }
 
-    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email)
+    public async Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email, string scanUrl)
     {
         var ticketRes = await _ticketRepository.GetTicketWithDetailsByIdAndEmailAsync(ticketGuid, email);
         if (ticketRes.IsError)
@@ -83,8 +84,8 @@ public class TicketService : ITicketService
         var ev = ticket.Type.Event;
         var address = new GetTicketDetailsAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
             ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
-
-        var qrbytes = _qrCodeService.GenerateQrCode(ticketGuid);
+        
+        var qrbytes = _qrCodeService.GenerateQrCode(scanUrl);
         var qrcode = Convert.ToBase64String(qrbytes);
         var ticketDetails = new GetTicketDetailsResponseDto
         (
@@ -113,4 +114,6 @@ public class TicketService : ITicketService
 
         return res;
     }
+    
+    
 }

@@ -2,5 +2,5 @@
 
 public interface IQRCodeService
 {
-    public byte[] GenerateQrCode(Guid ticketId);
+    public byte[] GenerateQrCode(string url);
 }

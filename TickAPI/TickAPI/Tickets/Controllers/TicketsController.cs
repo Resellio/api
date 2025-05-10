@@ -31,11 +31,12 @@ public class TicketsController : ControllerBase
             return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
-        var ticket = await _ticketService.GetTicketDetailsAsync(id, email);
+        string? scanTicketUrl = Url.Action("ScanTicket", "Tickets", new { id = id }, Request.Scheme);
+        var ticket = await _ticketService.GetTicketDetailsAsync(id, email, scanTicketUrl);
         return ticket.ToObjectResult();
     }
     
-    [HttpGet("/for-resell")]
+    [HttpGet("for-resell")]
     public async Task<ActionResult<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResell([FromQuery] Guid eventId, [FromQuery] int pageSize, [FromQuery] int page)
     {
         var result = await _ticketService.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -55,8 +56,8 @@ public class TicketsController : ControllerBase
         return tickets.ToObjectResult();
     }
 
-    [HttpPost("/scan/{id:guid}")]
-    public async Task<ActionResult<bool>> ScanTicket(Guid id)
+    [HttpGet("scan/{id:guid}")]
+    public async Task<ActionResult<bool>> ScanTicket([FromQuery] Guid id)
     {
        var res = await _ticketService.ScanTicket(id);
        if (res.IsError)
@@ -65,4 +66,5 @@ public class TicketsController : ControllerBase
        }
        return Ok(res.Value);
     }
+    
 }
