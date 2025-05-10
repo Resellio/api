@@ -1,8 +1,7 @@
 ﻿namespace TickAPI.Events.DTOs.Request;
 
 public record EventFiltersDto(
-    string? Name,
-    string? Descritpion,
+    string? SearchQuery,
     DateTime? StartDate,
     DateTime? MinStartDate,
     DateTime? MaxStartDate,

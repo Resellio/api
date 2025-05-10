@@ -24,8 +24,7 @@ public class EventFilterApplierTests
     {
         // Arrange
         var filters = new EventFiltersDto(
-            Name: "test event",
-            Descritpion: null,
+            SearchQuery: "test event",
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -49,52 +48,18 @@ public class EventFilterApplierTests
         _eventFilterApplier.ApplyFilters(filters);
 
         // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByName(filters.Name!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByName(filters.SearchQuery!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByDescription(filters.SearchQuery!), Times.Once);
         _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
     }
-
-    [Fact]
-    public void ApplyFilters_WithDescription_ShouldCallFilterByDescription()
-    {
-        // Arrange
-        var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: "test description",
-            StartDate: null,
-            MinStartDate: null,
-            MaxStartDate: null,
-            EndDate: null,
-            MinEndDate: null,
-            MaxEndDate: null,
-            MinPrice: null,
-            MaxPrice: null,
-            MinAge: null,
-            MaxMinimumAge: null,
-            AddressCountry: null,
-            AddressCity: null,
-            AddressStreet: null,
-            HouseNumber: null,
-            FlatNumber: null,
-            PostalCode: null,
-            CategoriesNames: null
-        );
-
-        // Act
-        _eventFilterApplier.ApplyFilters(filters);
-
-        // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByDescription(filters.Descritpion!), Times.Once);
-        _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
-    }
-
+    
     [Fact]
     public void ApplyFilters_WithStartDate_ShouldCallFilterByStartDate()
     {
         // Arrange
         var startDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: startDate,
             MinStartDate: null,
             MaxStartDate: null,
@@ -128,8 +93,7 @@ public class EventFilterApplierTests
         // Arrange
         var minStartDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: minStartDate,
             MaxStartDate: null,
@@ -163,8 +127,7 @@ public class EventFilterApplierTests
         // Arrange
         var maxStartDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: maxStartDate,
@@ -198,8 +161,7 @@ public class EventFilterApplierTests
         // Arrange
         var endDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -233,8 +195,7 @@ public class EventFilterApplierTests
         // Arrange
         var minEndDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -268,8 +229,7 @@ public class EventFilterApplierTests
         // Arrange
         var maxEndDate = new DateTime(2025, 5, 1);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -303,8 +263,7 @@ public class EventFilterApplierTests
         // Arrange
         decimal minPrice = 100;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -338,8 +297,7 @@ public class EventFilterApplierTests
         // Arrange
         decimal maxPrice = 200;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -373,8 +331,7 @@ public class EventFilterApplierTests
         // Arrange
         uint minAge = 18;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -408,8 +365,7 @@ public class EventFilterApplierTests
         // Arrange
         uint maxMinimumAge = 21;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -442,8 +398,7 @@ public class EventFilterApplierTests
     {
         // Arrange
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -476,8 +431,7 @@ public class EventFilterApplierTests
     {
         // Arrange
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -510,8 +464,7 @@ public class EventFilterApplierTests
     {
         // Arrange
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -545,8 +498,7 @@ public class EventFilterApplierTests
         // Arrange
         uint houseNumber = 12;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -581,8 +533,7 @@ public class EventFilterApplierTests
         uint houseNumber = 12;
         uint flatNumber = 5;
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -615,8 +566,7 @@ public class EventFilterApplierTests
     {
         // Arrange
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -650,8 +600,7 @@ public class EventFilterApplierTests
         // Arrange
         var categoriesNames = new List<string> { "Concert", "Festival", "Exhibition" };
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
@@ -687,8 +636,7 @@ public class EventFilterApplierTests
         decimal minPrice = 50;
         decimal maxPrice = 200;
         var filters = new EventFiltersDto(
-            Name: "Concert",
-            Descritpion: null,
+            SearchQuery: "Concert",
             StartDate: startDate,
             MinStartDate: null,
             MaxStartDate: null,
@@ -712,7 +660,8 @@ public class EventFilterApplierTests
         _eventFilterApplier.ApplyFilters(filters);
 
         // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByName(filters.Name!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByName(filters.SearchQuery!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByDescription(filters.SearchQuery!), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByStartDate(filters.StartDate!.Value), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByMinPrice(filters.MinPrice!.Value), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByMaxPrice(filters.MaxPrice!.Value), Times.Once);
@@ -730,8 +679,7 @@ public class EventFilterApplierTests
         }.AsQueryable();
         _mockEventFilter.Setup(ef => ef.GetEvents()).Returns(expectedResult);
         var filters = new EventFiltersDto(
-            Name: null,
-            Descritpion: null,
+            SearchQuery: null,
             StartDate: null,
             MinStartDate: null,
             MaxStartDate: null,
