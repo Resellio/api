@@ -10,4 +10,5 @@ public interface ITicketRepository
     public Task<Result<Ticket>> GetTicketWithDetailsByIdAndEmailAsync(Guid id, string email);
     public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
     public IQueryable<Ticket> GetTicketsByCustomerEmail(string email);
+    public Task<Result<bool>> MarkTicketAsUsed(Guid id);
 }

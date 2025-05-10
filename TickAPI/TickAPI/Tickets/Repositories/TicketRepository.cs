@@ -49,4 +49,16 @@ public class TicketRepository : ITicketRepository
         }
         return Result<Ticket>.Success(ticket);
     }
+
+    public async Task<Result<bool>> MarkTicketAsUsed(Guid id)
+    {
+        var ticket = await _tickApiDbContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
+        if (ticket == null || ticket.Used)
+        {
+            return Result<bool>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");
+        }
+        ticket.Used = true;
+        await _tickApiDbContext.SaveChangesAsync();
+        return Result<bool>.Success(true);
+    }
 }
