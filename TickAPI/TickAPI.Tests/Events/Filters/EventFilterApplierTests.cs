@@ -40,7 +40,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -72,7 +74,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -105,7 +109,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -138,7 +144,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -171,7 +179,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -204,7 +214,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -237,7 +249,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -270,7 +284,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -303,7 +319,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -336,7 +354,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -369,7 +389,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -402,7 +424,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -434,7 +458,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -466,7 +492,9 @@ public class EventFilterApplierTests
             AddressCity: "Warsaw",
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -498,7 +526,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: "Marszałkowska",
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -531,7 +561,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: "Marszałkowska",
             HouseNumber: houseNumber,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -565,7 +597,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: "Marszałkowska",
             HouseNumber: houseNumber,
-            FlatNumber: flatNumber
+            FlatNumber: flatNumber,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -573,6 +607,75 @@ public class EventFilterApplierTests
 
         // Assert
         _mockEventFilter.Verify(ef => ef.FilterByAddressStreet(filters.AddressStreet!, filters.HouseNumber, filters.FlatNumber), Times.Once);
+        _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
+    }
+    
+    [Fact]
+    public void ApplyFilters_WithPostalCode_ShouldCallFilterByAddressPostalCode()
+    {
+        // Arrange
+        var filters = new EventFiltersDto(
+            Name: null,
+            Descritpion: null,
+            StartDate: null,
+            MinStartDate: null,
+            MaxStartDate: null,
+            EndDate: null,
+            MinEndDate: null,
+            MaxEndDate: null,
+            MinPrice: null,
+            MaxPrice: null,
+            MinAge: null,
+            MaxMinimumAge: null,
+            AddressCountry: null,
+            AddressCity: null,
+            AddressStreet: null,
+            HouseNumber: null,
+            FlatNumber: null,
+            PostalCode: "00-001",
+            CategoriesNames: null
+        );
+
+        // Act
+        _eventFilterApplier.ApplyFilters(filters);
+
+        // Assert
+        _mockEventFilter.Verify(ef => ef.FilterByAddressPostalCode(filters.PostalCode!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
+    }
+
+    [Fact]
+    public void ApplyFilters_WithCategoriesNames_ShouldCallFilterByCategoriesNames()
+    {
+        // Arrange
+        var categoriesNames = new List<string> { "Concert", "Festival", "Exhibition" };
+        var filters = new EventFiltersDto(
+            Name: null,
+            Descritpion: null,
+            StartDate: null,
+            MinStartDate: null,
+            MaxStartDate: null,
+            EndDate: null,
+            MinEndDate: null,
+            MaxEndDate: null,
+            MinPrice: null,
+            MaxPrice: null,
+            MinAge: null,
+            MaxMinimumAge: null,
+            AddressCountry: null,
+            AddressCity: null,
+            AddressStreet: null,
+            HouseNumber: null,
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: categoriesNames
+        );
+
+        // Act
+        _eventFilterApplier.ApplyFilters(filters);
+
+        // Assert
+        _mockEventFilter.Verify(ef => ef.FilterByCategoriesNames(filters.CategoriesNames!), Times.Once);
         _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
     }
 
@@ -600,7 +703,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act
@@ -641,7 +746,9 @@ public class EventFilterApplierTests
             AddressCity: null,
             AddressStreet: null,
             HouseNumber: null,
-            FlatNumber: null
+            FlatNumber: null,
+            PostalCode: null,
+            CategoriesNames: null
         );
 
         // Act

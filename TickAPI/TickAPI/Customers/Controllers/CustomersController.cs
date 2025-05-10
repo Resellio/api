@@ -30,8 +30,8 @@ public class CustomersController : ControllerBase
     public async Task<ActionResult<GoogleCustomerLoginResponseDto>> GoogleLogin([FromBody] GoogleCustomerLoginDto request)
     {
         var userDataResult = await _googleAuthService.GetUserDataFromAccessToken(request.AccessToken);
-        if(userDataResult.IsError)
-            return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
+        if (userDataResult.IsError)
+            return userDataResult.ToObjectResult();
 
         var userData = userDataResult.Value!;
         
@@ -40,12 +40,12 @@ public class CustomersController : ControllerBase
         {
             var newCustomerResult = await _customerService.CreateNewCustomerAsync(userData.Email, userData.GivenName, userData.FamilyName);
             if (newCustomerResult.IsError)
-                return StatusCode(newCustomerResult.StatusCode, newCustomerResult.ErrorMsg);
+                return newCustomerResult.ToObjectResult();
         }
         
         var jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.Customer);
         if (jwtTokenResult.IsError)
-            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+            return jwtTokenResult.ToObjectResult();
         
         return new ActionResult<GoogleCustomerLoginResponseDto>(new GoogleCustomerLoginResponseDto(jwtTokenResult.Value!));
     }
@@ -57,7 +57,7 @@ public class CustomersController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         

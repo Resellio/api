@@ -1,4 +1,6 @@
-﻿namespace TickAPI.Common.Results.Generic;
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace TickAPI.Common.Results.Generic;
 
 public record Result<T>
 {
@@ -44,5 +46,21 @@ public record Result<T>
         }
 
         return Failure(other.StatusCode, other.ErrorMsg);
+    }
+    
+    public ObjectResult ToObjectResult(int successCode = StatusCodes.Status200OK)
+    {
+        if (IsError)
+        {
+            return new ObjectResult(ErrorMsg)
+            {
+                StatusCode = StatusCode
+            };
+        }
+
+        return new ObjectResult(Value)
+        {
+            StatusCode = successCode
+        };
     }
 }

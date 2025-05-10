@@ -47,8 +47,8 @@ public static class Utils
             new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             new DateTime(1970, 1, 2, 0, 0, 0, DateTimeKind.Utc),
             18,
-            100,
-            300,
+            new GetEventResponsePriceInfoDto(100, "PLN"),
+            new GetEventResponsePriceInfoDto(300, "PLN"),
             [new GetEventResponseCategoryDto("Test")],
             EventStatus.TicketsAvailable,
             new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null)
