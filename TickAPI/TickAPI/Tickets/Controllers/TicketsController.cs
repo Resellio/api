@@ -5,6 +5,7 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Tickets.DTOs.Request;
 
 namespace TickAPI.Tickets.Controllers;
 
@@ -27,43 +28,31 @@ public class TicketsController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         var ticket = await _ticketService.GetTicketDetailsAsync(id, email);
-        if (ticket.IsError)
-        {
-            return  StatusCode(ticket.StatusCode, ticket.ErrorMsg);
-        }
-        return Ok(ticket.Value);
+        return ticket.ToObjectResult();
     }
     
     [HttpGet("/for-resell")]
     public async Task<ActionResult<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResell([FromQuery] Guid eventId, [FromQuery] int pageSize, [FromQuery] int page)
     {
         var result = await _ticketService.GetTicketsForResellAsync(eventId, page, pageSize);
-        if (result.IsError)
-        {
-            return StatusCode(result.StatusCode, result.ErrorMsg);
-        }
-        return result.Value!;
+        return result.ToObjectResult();
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet]
-    public async Task<ActionResult<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomer([FromQuery] int pageSize, [FromQuery] int page)
+    public async Task<ActionResult<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomer([FromQuery] int pageSize, [FromQuery] int page, [FromQuery] TicketFiltersDto filters)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
-        var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize);
-        if (tickets.IsError)
-        {
-            return StatusCode(tickets.StatusCode, tickets.ErrorMsg);
-        }
-        return Ok(tickets.Value);
+        var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize, filters);
+        return tickets.ToObjectResult();
     }
 
     [HttpPost("/scan/{id:guid}")]

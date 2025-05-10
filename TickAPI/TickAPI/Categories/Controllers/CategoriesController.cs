@@ -24,11 +24,7 @@ public class CategoriesController : Controller
     public async Task<ActionResult<PaginatedData<GetCategoryResponseDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
         var res = await _categoryService.GetCategoriesResponsesAsync(pageSize, page);
-        if (res.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, res.ErrorMsg);
-        }
-        return Ok(res.Value);
+        return res.ToObjectResult();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
@@ -37,8 +33,8 @@ public class CategoriesController : Controller
     {
         var newCategoryResult = await _categoryService.CreateNewCategoryAsync(request.Name);
         
-        if(newCategoryResult.IsError)
-            return StatusCode(newCategoryResult.StatusCode, newCategoryResult.ErrorMsg);
+        if (newCategoryResult.IsError)
+            return newCategoryResult.ToObjectResult();
         
         return Ok("category created successfully");
     }

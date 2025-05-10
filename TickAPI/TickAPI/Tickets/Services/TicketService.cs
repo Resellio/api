@@ -3,7 +3,9 @@ using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.QR.Abstractions;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Tickets.Abstractions;
+using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
+using TickAPI.Tickets.Filters;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Services;
@@ -49,10 +51,15 @@ public class TicketService : ITicketService
             t => new GetTicketForResellResponseDto(t.Id, t.Type.Price, t.Type.Currency, t.Type.Description, t.Seats));
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
-    //TODO: Maybe apply some filtering over here?
-    public async Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page, int pageSize)
+    public async Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page, int pageSize, TicketFiltersDto ? ticketFilters = null)
     {
         var customerTickets = _ticketRepository.GetTicketsByCustomerEmail(email);
+        if (ticketFilters != null)
+        {
+            var filter = new TicketFilter(customerTickets);
+            var applier = new  TicketFilterApplier(filter);
+            customerTickets = applier.ApplyFilters(ticketFilters);   
+        }
         var paginatedCustomerTickets = await _paginationService.PaginateAsync(customerTickets, pageSize, page);
         if (paginatedCustomerTickets.IsError)
         {
@@ -60,7 +67,7 @@ public class TicketService : ITicketService
         }
 
         var paginatedResult = _paginationService.MapData(paginatedCustomerTickets.Value!,
-            t => new GetTicketForCustomerDto(t.Type.Event.Name, t.Type.Event.StartDate, t.Type.Event.EndDate));
+            t => new GetTicketForCustomerDto(t.Id, t.Type.Event.Name, t.Type.Event.StartDate, t.Type.Event.EndDate, t.Used));
         
         return Result<PaginatedData<GetTicketForCustomerDto>>.Success(paginatedResult);
     }
