@@ -1,5 +1,6 @@
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.TicketTypes.Models;
 
@@ -12,5 +13,5 @@ public interface ITicketService
     public Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page,
         int pageSize);
     public Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page,
-        int pageSize);
+        int pageSize, TicketFiltersDto ? ticketFilters = null);
 }
