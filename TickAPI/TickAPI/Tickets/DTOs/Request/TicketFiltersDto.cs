@@ -1,10 +1,20 @@
 ﻿namespace TickAPI.Tickets.DTOs.Request;
 
-public record TicketFiltersDto
+public enum UsageFilter
 {
-    public bool usedOnly { get; set; }
-    public bool unusedOnly { get; set; }
-    public bool forResellOnly { get; set; }
-    public bool notForResellOnly { get; set; }
-    public string ? EventName { get; set; }
+    OnlyUsed,
+    OnlyNotUsed
 }
+
+public enum ResellFilter
+{
+    OnlyForResell,
+    OnlyNotForResell
+}
+
+public record TicketFiltersDto
+(
+    UsageFilter? Usage,
+    ResellFilter? Resell,
+    string? EventName
+);

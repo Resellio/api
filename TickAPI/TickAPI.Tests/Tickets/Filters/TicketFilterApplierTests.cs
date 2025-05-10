@@ -24,13 +24,11 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = "concert",
-            usedOnly = false,
-            unusedOnly = false,
-            forResellOnly = false,
-            notForResellOnly = false
-        };
+        (
+            null,
+            null,
+            "concert"
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
@@ -45,13 +43,11 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = null,
-            usedOnly = true,
-            unusedOnly = false,
-            forResellOnly = false,
-            notForResellOnly = false
-        };
+        (
+            UsageFilter.OnlyUsed,
+            null, 
+            null
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
@@ -66,13 +62,11 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = null,
-            usedOnly = false,
-            unusedOnly = true,
-            forResellOnly = false,
-            notForResellOnly = false
-        };
+        (
+            UsageFilter.OnlyNotUsed,
+            null, 
+            null
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
@@ -87,13 +81,11 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = null,
-            usedOnly = false,
-            unusedOnly = false,
-            forResellOnly = true,
-            notForResellOnly = false
-        };
+        (
+            null,
+            ResellFilter.OnlyForResell, 
+            null
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
@@ -108,13 +100,11 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = null,
-            usedOnly = false,
-            unusedOnly = false,
-            forResellOnly = false,
-            notForResellOnly = true
-        };
+        (
+            null,
+            ResellFilter.OnlyNotForResell, 
+            null
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
@@ -129,23 +119,21 @@ public class TicketFilterApplierTests
     {
         // Arrange
         var filters = new TicketFiltersDto
-        {
-            EventName = "concert",
-            usedOnly = true,
-            unusedOnly = false,
-            forResellOnly = true,
-            notForResellOnly = false
-        };
+        (  
+            UsageFilter.OnlyNotUsed,
+            ResellFilter.OnlyNotForResell,
+            "concert"
+        );
 
         // Act
         _ticketFilterApplier.ApplyFilters(filters);
 
         // Assert
         _mockTicketFilter.Verify(tf => tf.FilterTicketsByEventName(filters.EventName!), Times.Once);
-        _mockTicketFilter.Verify(tf => tf.FilterUsedTickets(), Times.Once);
-        _mockTicketFilter.Verify(tf => tf.FilterTicketsForResell(), Times.Once);
-        _mockTicketFilter.Verify(tf => tf.FilterUnusedTickets(), Times.Never);
-        _mockTicketFilter.Verify(tf => tf.FilterTicketsNotForResell(), Times.Never);
+        _mockTicketFilter.Verify(tf => tf.FilterUsedTickets(), Times.Never);
+        _mockTicketFilter.Verify(tf => tf.FilterTicketsForResell(), Times.Never);
+        _mockTicketFilter.Verify(tf => tf.FilterUnusedTickets(), Times.Once);
+        _mockTicketFilter.Verify(tf => tf.FilterTicketsNotForResell(), Times.Once);
         _mockTicketFilter.Verify(tf => tf.GetTickets(), Times.Once);
     }
 
@@ -159,13 +147,11 @@ public class TicketFilterApplierTests
         }.AsQueryable();
         _mockTicketFilter.Setup(tf => tf.GetTickets()).Returns(expectedResult);
         var filters = new TicketFiltersDto
-        {
-            EventName = null,
-            usedOnly = false,
-            unusedOnly = false,
-            forResellOnly = false,
-            notForResellOnly = false
-        };
+        (
+            null,
+            null,
+            null
+        );
 
         // Act
         var result = _ticketFilterApplier.ApplyFilters(filters);

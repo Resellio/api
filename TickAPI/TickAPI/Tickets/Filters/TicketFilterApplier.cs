@@ -15,10 +15,10 @@ public class TicketFilterApplier
         _filterActions = new Dictionary<Func<TicketFiltersDto, bool>, Action<TicketFiltersDto>>
         {
             { f => !string.IsNullOrEmpty(f.EventName), f => _ticketFilter.FilterTicketsByEventName(f.EventName!) },
-            { f => f.usedOnly, f => _ticketFilter.FilterUsedTickets() },
-            { f => f.unusedOnly, f => _ticketFilter.FilterUnusedTickets() },
-            { f => f.forResellOnly, f => _ticketFilter.FilterTicketsForResell() },
-            { f => f.notForResellOnly, f => _ticketFilter.FilterTicketsNotForResell() },
+            { f => f.Usage == UsageFilter.OnlyUsed, f => _ticketFilter.FilterUsedTickets() },
+            { f => f.Usage == UsageFilter.OnlyNotUsed, f => _ticketFilter.FilterUnusedTickets() },
+            { f => f.Resell == ResellFilter.OnlyForResell, f => _ticketFilter.FilterTicketsForResell() },
+            { f => f.Resell == ResellFilter.OnlyNotForResell, f => _ticketFilter.FilterTicketsNotForResell() },
         };
     }
     
