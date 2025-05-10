@@ -191,7 +191,7 @@ public class EventsControllerTests
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var okResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         
         var returnedPaginatedData = Assert.IsType<PaginatedData<GetEventResponseDto>>(okResult.Value);
@@ -385,7 +385,7 @@ public class EventsControllerTests
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var okResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         
         var returnedPaginationDetails = Assert.IsType<PaginationDetails>(okResult.Value);
@@ -479,7 +479,7 @@ public class EventsControllerTests
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginatedData<GetEventResponseDto>>>(response);
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var okResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         
         var returnedPaginatedData = Assert.IsType<PaginatedData<GetEventResponseDto>>(okResult.Value);
@@ -544,7 +544,7 @@ public class EventsControllerTests
         
         // Assert
         var result = Assert.IsType<ActionResult<PaginationDetails>>(response);
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var okResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         
         var returnedPaginationDetails = Assert.IsType<PaginationDetails>(okResult.Value);
@@ -602,7 +602,7 @@ public class EventsControllerTests
 
         // Assert
         var result = Assert.IsType<ActionResult<GetEventDetailsResponseDto>>(response);
-        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var okResult = Assert.IsType<ObjectResult>(result.Result);
         Assert.Equal(StatusCodes.Status200OK, okResult.StatusCode);
         
         var returnedEventDetails = Assert.IsType<GetEventDetailsResponseDto>(okResult.Value);
