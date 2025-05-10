@@ -53,15 +53,12 @@ public class TicketRepository : ITicketRepository
     public async Task<Result<bool>> MarkTicketAsUsed(Guid id)
     {
         var ticket = await _tickApiDbContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
-
-        if (ticket != null)
+        if (ticket == null || ticket.Used)
         {
-            ticket.Used = true;
-            await _tickApiDbContext.SaveChangesAsync(); // 🔄 This actually writes changes to the DB
-            return Result<bool>.Success(true);
+            return Result<bool>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");
         }
-        
-        return Result<bool>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");
-        
+        ticket.Used = true;
+        await _tickApiDbContext.SaveChangesAsync();
+        return Result<bool>.Success(true);
     }
 }
