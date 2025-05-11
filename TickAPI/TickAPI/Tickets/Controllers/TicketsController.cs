@@ -5,6 +5,7 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Common.Results;
 using TickAPI.Tickets.DTOs.Request;
 
 namespace TickAPI.Tickets.Controllers;
@@ -31,11 +32,12 @@ public class TicketsController : ControllerBase
             return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
-        var ticket = await _ticketService.GetTicketDetailsAsync(id, email);
+        string? scanTicketUrl = Url.Action("ScanTicket", "Tickets", new { id = id }, Request.Scheme);
+        var ticket = await _ticketService.GetTicketDetailsAsync(id, email, scanTicketUrl!);
         return ticket.ToObjectResult();
     }
     
-    [HttpGet("/for-resell")]
+    [HttpGet("for-resell")]
     public async Task<ActionResult<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResell([FromQuery] Guid eventId, [FromQuery] int pageSize, [FromQuery] int page)
     {
         var result = await _ticketService.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -54,4 +56,12 @@ public class TicketsController : ControllerBase
         var tickets = await _ticketService.GetTicketsForCustomerAsync(emailResult.Value!, page, pageSize, filters);
         return tickets.ToObjectResult();
     }
+
+    [HttpGet("scan/{id:guid}")]
+    public async Task<ActionResult<bool>> ScanTicket(Guid id)
+    {
+       var res = await _ticketService.ScanTicket(id);
+       return res.ToObjectResult();
+    }
+    
 }

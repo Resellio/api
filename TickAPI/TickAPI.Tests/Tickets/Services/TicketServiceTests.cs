@@ -4,6 +4,8 @@ using Moq;
 using TickAPI.Addresses.Models;
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
+using TickAPI.Common.QR.Abstractions;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Models;
 using TickAPI.Events.Models;
@@ -27,12 +29,13 @@ public class TicketServiceTests
 
         var ticketRepositoryMock = new Mock<ITicketRepository>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
         
         ticketRepositoryMock
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
 
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
         // Act
         var result = sut.GetNumberOfAvailableTicketsByType(type);
@@ -51,12 +54,13 @@ public class TicketServiceTests
 
         var ticketRepositoryMock = new Mock<ITicketRepository>();
         var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
         
         ticketRepositoryMock
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
 
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
         // Act
         var result = sut.GetNumberOfAvailableTicketsByType(type);
@@ -150,7 +154,9 @@ public class TicketServiceTests
                 It.IsAny<Func<Ticket, GetTicketForResellResponseDto>>()))
             .Returns(mappedData);
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var qrServiceMock = new Mock<IQRCodeService>();
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object,  qrServiceMock.Object);
         
         // Act
         var result = await sut.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -226,8 +232,9 @@ public class TicketServiceTests
                 paginatedData,
                 It.IsAny<Func<Ticket, GetTicketForResellResponseDto>>()))
             .Returns(mappedData);
+        var qrServiceMock = new Mock<IQRCodeService>();
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
         
         // Act
         var result = await sut.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -270,7 +277,9 @@ public class TicketServiceTests
         paginationServiceMock.Setup(p => p.PaginateAsync(It.IsAny<IQueryable<Ticket>>(), pageSize, page))
             .ReturnsAsync(Result<PaginatedData<Ticket>>.Failure(statusCode, errorMsg));
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var qrServiceMock = new Mock<IQRCodeService>();
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object,  qrServiceMock.Object);
         
         // Act
         var result = await sut.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -321,8 +330,9 @@ public class TicketServiceTests
                 paginatedData,
                 It.IsAny<Func<Ticket, GetTicketForResellResponseDto>>()))
             .Returns(mappedData);
+        var qrServiceMock = new Mock<IQRCodeService>();
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
         
         // Act
         var result = await sut.GetTicketsForResellAsync(eventId, page, pageSize);
@@ -371,7 +381,7 @@ public class TicketServiceTests
             },
         };
         string email = "123@123.com";
-        
+        string scanurl = "http://localhost";
         Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
         
         var paginationServiceMock = new Mock<IPaginationService>();
@@ -379,11 +389,14 @@ public class TicketServiceTests
         ticketRepositoryMock.Setup(m => m.GetTicketWithDetailsByIdAndEmailAsync(ticket.Id, email))
             .ReturnsAsync(Result<Ticket>.Success(ticket));
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var qrServiceMock = new Mock<IQRCodeService>();
+        qrServiceMock.Setup(m => m.GenerateQrCode(scanurl)).Returns([]);
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
         
         // Act
 
-        var res = await sut.GetTicketDetailsAsync(ticket.Id, email);
+        var res = await sut.GetTicketDetailsAsync(ticket.Id, email, scanurl);
         
         // Assert
 
@@ -415,18 +428,20 @@ public class TicketServiceTests
         
         Guid  ticketId = Guid.NewGuid();
         string email = "123@123.com";
+        string scanUrl = "http://localhost";
         
         Mock<ITicketRepository> ticketRepositoryMock = new Mock<ITicketRepository>();
         ticketRepositoryMock.Setup(m => m.GetTicketWithDetailsByIdAndEmailAsync(ticketId, email)).
             ReturnsAsync(Result<Ticket>.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist " +
                                                                              "for this user"));
         var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object,  qrServiceMock.Object);
         
         // Act
 
-        var res = await sut.GetTicketDetailsAsync(ticketId, email);
+        var res = await sut.GetTicketDetailsAsync(ticketId, email, scanUrl);
         
         // Assert
         
@@ -505,7 +520,10 @@ public class TicketServiceTests
         
         paginationServiceMock.Setup(p => p.MapData(paginatedData, It.IsAny<Func<Ticket, GetTicketForCustomerDto>>()))
             .Returns(mappedPaginatedData);
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        
+        var qrServiceMock = new Mock<IQRCodeService>();
+
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
         // Act
         var result = await sut.GetTicketsForCustomerAsync(email, page, pageSize);
@@ -543,7 +561,9 @@ public class TicketServiceTests
         paginationServiceMock.Setup(p => p.MapData(emptyPaginatedData, It.IsAny<Func<Ticket, GetTicketForCustomerDto>>()))
             .Returns(mappedEmptyPaginatedData);
         
-        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object);
+        var qrServiceMock = new Mock<IQRCodeService>();
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
     
         // Act
         var result = await sut.GetTicketsForCustomerAsync(email, page, pageSize);
@@ -551,5 +571,23 @@ public class TicketServiceTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Value!.Data);
+    }
+
+    [Fact]
+    public async Task ScanTicket_WhenScanningSuccesful_ShouldReturnSuccess()
+    {
+        // Arrange
+        var guid = Guid.NewGuid();
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        ticketRepositoryMock.Setup(m => m.MarkTicketAsUsed(guid)).ReturnsAsync(Result.Success());
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+        
+        // Act
+        var res = await sut.ScanTicket(guid);
+        
+        // Assert
+        Assert.True(res.IsSuccess);
     }
 }

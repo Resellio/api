@@ -42,6 +42,8 @@ using TickAPI.Common.Mail.Services;
 using TickAPI.Common.Payment.Abstractions;
 using TickAPI.Common.Payment.Health;
 using TickAPI.Common.Payment.Services;
+using TickAPI.Common.QR.Abstractions;
+using TickAPI.Common.QR.Services;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -126,6 +128,7 @@ builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
