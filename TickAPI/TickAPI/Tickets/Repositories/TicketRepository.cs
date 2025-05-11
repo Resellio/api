@@ -54,7 +54,7 @@ public class TicketRepository : ITicketRepository
     public async Task<Result> MarkTicketAsUsed(Guid id)
     {
         var ticket = await _tickApiDbContext.Tickets.FirstOrDefaultAsync(t => t.Id == id);
-        if (ticket == null || ticket.Used)
+        if (ticket == null)
         {
             return Result.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");
         }
