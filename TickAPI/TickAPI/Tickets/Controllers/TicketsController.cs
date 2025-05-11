@@ -58,14 +58,10 @@ public class TicketsController : ControllerBase
     }
 
     [HttpGet("scan/{id:guid}")]
-    public async Task<ActionResult<bool>> ScanTicket([FromQuery] Guid id)
+    public async Task<ActionResult<bool>> ScanTicket(Guid id)
     {
        var res = await _ticketService.ScanTicket(id);
-       if (res.IsError)
-       {
-           return StatusCode(res.StatusCode, res.ErrorMsg);
-       }
-       return Ok(res.Value);
+       return res.ToObjectResult();
     }
     
 }

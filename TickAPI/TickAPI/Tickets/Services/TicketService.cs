@@ -2,6 +2,7 @@
 using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.QR.Abstractions;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Request;
@@ -104,14 +105,9 @@ public class TicketService : ITicketService
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
 
-    public async Task<Result<bool>> ScanTicket(Guid ticketGuid)
+    public async Task<Result> ScanTicket(Guid ticketGuid)
     {
         var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);
-        if (res.IsError)
-        {
-            return Result<bool>.PropagateError(res);
-        }
-
         return res;
     }
     

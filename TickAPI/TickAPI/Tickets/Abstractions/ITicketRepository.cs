@@ -1,4 +1,5 @@
-﻿using TickAPI.Common.Results.Generic;
+﻿using TickAPI.Common.Results;
+using TickAPI.Common.Results.Generic;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
 
@@ -10,5 +11,5 @@ public interface ITicketRepository
     public Task<Result<Ticket>> GetTicketWithDetailsByIdAndEmailAsync(Guid id, string email);
     public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
     public IQueryable<Ticket> GetTicketsByCustomerEmail(string email);
-    public Task<Result<bool>> MarkTicketAsUsed(Guid id);
+    public Task<Result> MarkTicketAsUsed(Guid id);
 }

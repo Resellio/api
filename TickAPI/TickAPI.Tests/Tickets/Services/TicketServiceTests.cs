@@ -579,7 +579,7 @@ public class TicketServiceTests
         // Arrange
         var guid = Guid.NewGuid();
         var ticketRepositoryMock = new Mock<ITicketRepository>();
-        ticketRepositoryMock.Setup(m => m.MarkTicketAsUsed(guid)).ReturnsAsync(Result<bool>.Success(true));
+        ticketRepositoryMock.Setup(m => m.MarkTicketAsUsed(guid)).ReturnsAsync(Result.Success());
         var paginationServiceMock = new Mock<IPaginationService>();
         var qrServiceMock = new Mock<IQRCodeService>();
         var sut = new TicketService(ticketRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
