@@ -4,6 +4,7 @@ using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
+using TickAPI.Common.Results;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
@@ -40,32 +41,31 @@ public class EventService : IEventService
         _ticketService = ticketService;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description, DateTime startDate, DateTime endDate, 
         uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories, List<CreateEventTicketTypeDto> ticketTypes,
         EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
             return Result<Event>.PropagateError(organizerResult);
-        
 
-        if (endDate < startDate)
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
+        var datesCheck = CheckEventDates(startDate, endDate);
+        if (datesCheck.IsError)
+            return Result<Event>.PropagateError(datesCheck);
         
-        if (startDate < _dateTimeService.GetCurrentDateTime())
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
-
         if (ticketTypes.Any(t => t.AvailableFrom > endDate))
         {
             return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
         }
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
-
-        var categoryNames = categories.Select(c => c.CategoryName).ToList();
-
-        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        if (address.IsError)
+        {
+            return Result<Event>.PropagateError(address);
+        }
         
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
         if (categoriesByNameResult.IsError)
         {
             return Result<Event>.PropagateError(categoriesByNameResult);
@@ -163,6 +163,51 @@ public class EventService : IEventService
         return Result<GetEventDetailsResponseDto>.Success(details);
     }
 
+    public async Task<Result<Event>> EditEventAsync(Organizer organizer, Guid eventId, string name, string description, DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto editAddress, List<EditEventCategoryDto> categories,
+        EventStatus eventStatus)
+    {
+        var existingEventResult = await _eventRepository.GetEventByIdAndOrganizerAsync(eventId, organizer);
+        if (existingEventResult.IsError)
+        {
+            return existingEventResult;
+        }
+        var existingEvent = existingEventResult.Value!;
+        
+        var datesCheck = CheckEventDates(startDate, endDate);
+        if (datesCheck.IsError)
+            return Result<Event>.PropagateError(datesCheck);
+
+        var address = await _addressService.GetOrCreateAddressAsync(editAddress);
+        if (address.IsError)
+        {
+            return Result<Event>.PropagateError(address);
+        }
+        
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        if (categoriesByNameResult.IsError)
+        {
+            return Result<Event>.PropagateError(categoriesByNameResult);
+        }
+
+        existingEvent.Name = name;
+        existingEvent.Description = description;
+        existingEvent.StartDate = startDate;
+        existingEvent.EndDate = endDate;
+        existingEvent.MinimumAge = minimumAge;
+        existingEvent.Address = address.Value!;
+        existingEvent.Categories = categoriesByNameResult.Value!;
+        existingEvent.EventStatus = eventStatus;
+
+        var saveResult = await _eventRepository.SaveEventAsync(existingEvent);
+        if (saveResult.IsError)
+        {
+            return Result<Event>.PropagateError(saveResult);
+        }
+
+        return Result<Event>.Success(existingEvent);
+    }
+
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
     {
         var paginatedEventsResult = await _paginationService.PaginateAsync(events, pageSize, page);
@@ -202,5 +247,16 @@ public class EventService : IEventService
         
         return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
             minimumPrice, maximumPrice, categories, ev.EventStatus, address);
+    }
+
+    private Result CheckEventDates(DateTime startDate, DateTime endDate)
+    {
+        if (endDate < startDate)
+            return Result.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
+        
+        if (startDate < _dateTimeService.GetCurrentDateTime())
+            return Result.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
+
+        return Result.Success();
     }
 }
