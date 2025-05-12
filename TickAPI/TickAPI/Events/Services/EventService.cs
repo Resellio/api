@@ -63,7 +63,6 @@ public class EventService : IEventService
         {
             return Result<Event>.PropagateError(address);
         }
-        
         var categoryNames = categories.Select(c => c.CategoryName).ToList();
         var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
         if (categoriesByNameResult.IsError)
