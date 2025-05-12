@@ -49,14 +49,19 @@ public class EventService : IEventService
         if (!organizerResult.IsSuccess)
             return Result<Event>.PropagateError(organizerResult);
 
-        var datesCheck = CheckEventDates(startDate, endDate);
+        var ticketTypesConverted = ticketTypes.Select(t => new TicketType
+            {
+                Description = t.Description,
+                AvailableFrom = t.AvailableFrom,
+                Currency = t.Currency,
+                MaxCount = t.MaxCount,
+                Price = t.Price,
+            })
+            .ToList();
+        
+        var datesCheck = CheckEventDates(startDate, endDate, ticketTypesConverted);
         if (datesCheck.IsError)
             return Result<Event>.PropagateError(datesCheck);
-        
-        if (ticketTypes.Any(t => t.AvailableFrom > endDate))
-        {
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
-        }
         
         var address = await _addressService.GetOrCreateAddressAsync(createAddress);
         if (address.IsError)
@@ -69,17 +74,7 @@ public class EventService : IEventService
         {
             return Result<Event>.PropagateError(categoriesByNameResult);
         }
-
-        var ticketTypesConverted = ticketTypes.Select(t => new TicketType
-            {
-                Description = t.Description,
-                AvailableFrom = t.AvailableFrom,
-                Currency = t.Currency,
-                MaxCount = t.MaxCount,
-                Price = t.Price,
-            })
-            .ToList();
-
+        
         var @event = new Event
         {
             Name = name,
@@ -172,7 +167,7 @@ public class EventService : IEventService
         }
         var existingEvent = existingEventResult.Value!;
         
-        var datesCheck = CheckEventDates(startDate, endDate);
+        var datesCheck = CheckEventDates(startDate, endDate, existingEvent.TicketTypes, existingEvent.StartDate == startDate);
         if (datesCheck.IsError)
             return Result<Event>.PropagateError(datesCheck);
 
@@ -248,13 +243,18 @@ public class EventService : IEventService
             minimumPrice, maximumPrice, categories, ev.EventStatus, address);
     }
 
-    private Result CheckEventDates(DateTime startDate, DateTime endDate)
+    private Result CheckEventDates(DateTime startDate, DateTime endDate, IEnumerable<TicketType> ticketTypes, bool skipStartDateEvaluation = false)
     {
         if (endDate < startDate)
             return Result.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
         
-        if (startDate < _dateTimeService.GetCurrentDateTime())
+        if (!skipStartDateEvaluation && startDate < _dateTimeService.GetCurrentDateTime())
             return Result.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
+        
+        if (ticketTypes.Any(t => t.AvailableFrom > endDate))
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
+        }
 
         return Result.Success();
     }
