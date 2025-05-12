@@ -114,4 +114,31 @@ public class EventsController : ControllerBase
         var eventDetailsResult = await _eventService.GetEventDetailsAsync(id);
         return eventDetailsResult.ToObjectResult();
     }
+
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<EditEventResponseDto>> EditEvent([FromRoute] Guid id, [FromBody] EditEventDto request)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
+        if (organizerResult.IsError)
+        {
+            return organizerResult.ToObjectResult();
+        }
+        var organizer = organizerResult.Value!;
+
+        var editedEventResult = await _eventService.EditEventAsync(organizer, id, request.Name, request.Description, request.StartDate, request.EndDate, request.MinimumAge,
+            request.EditAddress, request.Categories, request.EventStatus);
+        
+        if (editedEventResult.IsError)
+            return editedEventResult.ToObjectResult();
+        
+        return Ok("Event edited succesfully");
+    }
 }

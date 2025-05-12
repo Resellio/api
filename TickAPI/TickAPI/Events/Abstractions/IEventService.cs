@@ -20,4 +20,5 @@ public interface IEventService
     public Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize, EventFiltersDto? eventFilters = null);
     public Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize);
     public Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId);
+    public Task<Result<Event>> EditEventAsync(Organizer organizer, Guid eventId, string name, string description, DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto editAddress, List<EditEventCategoryDto> categories, EventStatus eventStatus);
 }
