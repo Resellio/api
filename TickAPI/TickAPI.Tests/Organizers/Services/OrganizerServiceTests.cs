@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Moq;
+using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.Time.Abstractions;
@@ -29,9 +30,12 @@ public class OrganizerServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
 
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -55,9 +59,12 @@ public class OrganizerServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
 
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -94,9 +101,12 @@ public class OrganizerServiceTests
             .Setup(m => m.GetCurrentDateTime())
             .Returns(currentDate);
         
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -138,9 +148,12 @@ public class OrganizerServiceTests
             .Setup(m => m.GetCurrentDateTime())
             .Returns(currentDate);
         
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -173,9 +186,12 @@ public class OrganizerServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -199,9 +215,12 @@ public class OrganizerServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
@@ -223,9 +242,12 @@ public class OrganizerServiceTests
         
         var dateTimeServiceMock = new Mock<IDateTimeService>();
         
+        var paginationServiceMock = new Mock<IPaginationService>();
+                     
         var sut = new OrganizerService(
             organizerRepositoryMock.Object,
-            dateTimeServiceMock.Object
+            dateTimeServiceMock.Object,
+            paginationServiceMock.Object
         );
 
         // Act
