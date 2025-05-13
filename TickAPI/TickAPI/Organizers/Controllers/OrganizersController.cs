@@ -3,6 +3,7 @@ using TickAPI.Common.Auth.Abstractions;
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Claims.Abstractions;
+using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.DTOs.Request;
@@ -89,6 +90,14 @@ public class OrganizersController : ControllerBase
     {
         var verifyOrganizerResult = await _organizerService.VerifyOrganizerByEmailAsync(request.Email);
         return verifyOrganizerResult.ToObjectResult();
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
+    [HttpGet("unverified")]
+    public async Task<ActionResult<PaginatedData<GetUnverifiedOrganizerResponseDto>>> GetUnverifiedOrganizers([FromQuery] int page, [FromQuery] int pageSize)
+    {
+        var result = await _organizerService.GetUnverifiedOrganizersAsync(page, pageSize);
+        return result.ToObjectResult();
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CreatedOrganizerPolicy)]
