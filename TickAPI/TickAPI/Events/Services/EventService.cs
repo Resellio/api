@@ -193,8 +193,12 @@ public class EventService : IEventService
         var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
         
-        var minimumPrice = ev.TicketTypes.Min(t => t.Price);
-        var maximumPrice = ev.TicketTypes.Max(t => t.Price);
+        // Here we assume that there is at least one ticket type in each event
+        var ttMinimumPrice = ev.TicketTypes.MinBy(t => t.Price)!;
+        var ttMaximumPrice = ev.TicketTypes.MaxBy(t => t.Price)!;
+
+        var minimumPrice = new GetEventResponsePriceInfoDto(ttMinimumPrice.Price, ttMinimumPrice.Currency);
+        var maximumPrice = new GetEventResponsePriceInfoDto(ttMaximumPrice.Price, ttMaximumPrice.Currency);
         
         return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
             minimumPrice, maximumPrice, categories, ev.EventStatus, address);

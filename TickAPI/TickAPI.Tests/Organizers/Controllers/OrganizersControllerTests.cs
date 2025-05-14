@@ -268,7 +268,7 @@ public class OrganizersControllerTests
         var actionResult = await sut.VerifyOrganizer(new VerifyOrganizerDto(email));
         
         // Assert
-        var result = Assert.IsType<OkResult>(actionResult);
+        var result = Assert.IsType<ObjectResult>(actionResult);
         Assert.Equal(StatusCodes.Status200OK, result.StatusCode);
     }
 

@@ -24,21 +24,17 @@ public class CategoriesController : Controller
     public async Task<ActionResult<PaginatedData<GetCategoryResponseDto>>> GetCategories([FromQuery] int pageSize, [FromQuery] int page)
     {
         var res = await _categoryService.GetCategoriesResponsesAsync(pageSize, page);
-        if (res.IsError)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError, res.ErrorMsg);
-        }
-        return Ok(res.Value);
+        return res.ToObjectResult();
     }
     
-    // TODO: Add appropriate policy verification (admin, maybe also organizer?)
+    [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
     [HttpPost]
     public async Task<ActionResult> CreateCategory([FromBody] CreateCategoryDto request)
     {
         var newCategoryResult = await _categoryService.CreateNewCategoryAsync(request.Name);
         
-        if(newCategoryResult.IsError)
-            return StatusCode(newCategoryResult.StatusCode, newCategoryResult.ErrorMsg);
+        if (newCategoryResult.IsError)
+            return newCategoryResult.ToObjectResult();
         
         return Ok("category created successfully");
     }

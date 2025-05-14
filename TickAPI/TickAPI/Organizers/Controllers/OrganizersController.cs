@@ -32,8 +32,8 @@ public class OrganizersController : ControllerBase
     public async Task<ActionResult<GoogleOrganizerLoginResponseDto>> GoogleLogin([FromBody] GoogleOrganizerLoginDto request)
     {
         var userDataResult = await _googleAuthService.GetUserDataFromAccessToken(request.AccessToken);
-        if(userDataResult.IsError)
-            return StatusCode(userDataResult.StatusCode, userDataResult.ErrorMsg);
+        if (userDataResult.IsError)
+            return userDataResult.ToObjectResult();
         
         var userData = userDataResult.Value!;
 
@@ -42,9 +42,9 @@ public class OrganizersController : ControllerBase
         if (existingOrganizerResult.IsError)
         {
             jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, UserRole.NewOrganizer);
-            
-            if(jwtTokenResult.IsError)
-                return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+
+            if (jwtTokenResult.IsError)
+                return jwtTokenResult.ToObjectResult();
             
             return new ActionResult<GoogleOrganizerLoginResponseDto>(new GoogleOrganizerLoginResponseDto(jwtTokenResult.Value!, true, false));
         }
@@ -54,9 +54,9 @@ public class OrganizersController : ControllerBase
         var role = isVerified ? UserRole.Organizer : UserRole.UnverifiedOrganizer;
         
         jwtTokenResult = _jwtService.GenerateJwtToken(userData.Email, role);
-        
-        if(jwtTokenResult.IsError)
-            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+
+        if (jwtTokenResult.IsError)
+            return jwtTokenResult.ToObjectResult();
         
         return new ActionResult<GoogleOrganizerLoginResponseDto>(new GoogleOrganizerLoginResponseDto(jwtTokenResult.Value!, false, isVerified));
     }
@@ -68,31 +68,27 @@ public class OrganizersController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(StatusCodes.Status400BadRequest, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         
         var newOrganizerResult = await _organizerService.CreateNewOrganizerAsync(email, request.FirstName, request.LastName, request.DisplayName);
-        if(newOrganizerResult.IsError)
-            return StatusCode(newOrganizerResult.StatusCode, newOrganizerResult.ErrorMsg);
+        if (newOrganizerResult.IsError)
+            return newOrganizerResult.ToObjectResult();
         
         var jwtTokenResult = _jwtService.GenerateJwtToken(newOrganizerResult.Value!.Email, newOrganizerResult.Value!.IsVerified ? UserRole.Organizer : UserRole.UnverifiedOrganizer);
-        if(jwtTokenResult.IsError)
-            return StatusCode(jwtTokenResult.StatusCode, jwtTokenResult.ErrorMsg);
+        if (jwtTokenResult.IsError)
+            return jwtTokenResult.ToObjectResult();
         
         return new ActionResult<CreateOrganizerResponseDto>(new CreateOrganizerResponseDto(jwtTokenResult.Value!));
     }
     
-    // TODO: Add authorization with admin policy here
+    [AuthorizeWithPolicy(AuthPolicies.AdminPolicy)]
     [HttpPost("verify")]
     public async Task<ActionResult> VerifyOrganizer([FromBody] VerifyOrganizerDto request)
     {
         var verifyOrganizerResult = await _organizerService.VerifyOrganizerByEmailAsync(request.Email);
-        
-        if(verifyOrganizerResult.IsError)
-            return StatusCode(verifyOrganizerResult.StatusCode, verifyOrganizerResult.ErrorMsg);
-        
-        return Ok();
+        return verifyOrganizerResult.ToObjectResult();
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CreatedOrganizerPolicy)]
@@ -102,7 +98,7 @@ public class OrganizersController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(StatusCodes.Status400BadRequest, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         
