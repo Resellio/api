@@ -1,5 +1,7 @@
 ﻿using TickAPI.Common.Results;
+using TickAPI.Common.Results.Generic;
 using TickAPI.ShoppingCarts.Abstractions;
+using TickAPI.ShoppingCarts.DTOs.Response;
 using TickAPI.Tickets.Models;
 
 namespace TickAPI.ShoppingCarts.Services;
@@ -24,7 +26,7 @@ public class ShoppingCartService : IShoppingCartService
         
         var cart = getShoppingCartResult.Value!;
         
-        cart.Tickets.Add(new ShoppingCartNewTicket()
+        cart.NewTickets.Add(new ShoppingCartNewTicket()
         {
             TicketTypeId = ticketTypeId,
             NameOnTicket = nameOnTicket,
@@ -41,9 +43,19 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public Task<Result> GetTicketsAsync()
+    public async Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsAsync(string customerEmail)
     {
-        throw new NotImplementedException();
+        var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
+
+        if (getShoppingCartResult.IsError)
+        {
+            return Result<GetShoppingCartTicketsResponseDto>.PropagateError(getShoppingCartResult);
+        }
+        
+        var cart = getShoppingCartResult.Value!;
+        var result = new GetShoppingCartTicketsResponseDto(cart.NewTickets, cart.ResellTickets);
+        
+        return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }
 
     public Task<Result> RemoveTicketAsync()
