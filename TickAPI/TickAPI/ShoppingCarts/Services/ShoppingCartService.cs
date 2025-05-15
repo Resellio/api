@@ -15,7 +15,7 @@ public class ShoppingCartService : IShoppingCartService
         _shoppingCartRepository = shoppingCartRepository;
     }
     
-    public async Task<Result> AddNewTicketAsync(Guid ticketTypeId, string customerEmail, string? nameOnTicket, string? seats)
+    public async Task<Result> AddNewTicketToCartAsync(Guid ticketTypeId, string customerEmail, string? nameOnTicket, string? seats)
     {
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
@@ -43,7 +43,7 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public async Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsAsync(string customerEmail)
+    public async Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail)
     {
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
@@ -58,7 +58,7 @@ public class ShoppingCartService : IShoppingCartService
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }
 
-    public Task<Result> RemoveTicketAsync()
+    public Task<Result> RemoveTicketFromCartAsync()
     {
         throw new NotImplementedException();
     }

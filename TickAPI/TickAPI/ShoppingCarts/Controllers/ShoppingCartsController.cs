@@ -4,6 +4,7 @@ using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Claims.Abstractions;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Request;
+using TickAPI.ShoppingCarts.DTOs.Response;
 
 namespace TickAPI.ShoppingCarts.Controllers;
 
@@ -31,7 +32,7 @@ public class ShoppingCartsController : ControllerBase
         }
         var email = emailResult.Value!;
 
-        var addTicketResult = await _shoppingCartService.AddNewTicketAsync(addNewTicketDto.TicketTypeId, email,
+        var addTicketResult = await _shoppingCartService.AddNewTicketToCartAsync(addNewTicketDto.TicketTypeId, email,
             addNewTicketDto.NameOnTicket, addNewTicketDto.Seats);
         if (addTicketResult.IsError)
         {
@@ -43,9 +44,22 @@ public class ShoppingCartsController : ControllerBase
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet("tickets")]
-    public async Task<ActionResult> GetTickets()
+    public async Task<ActionResult<GetShoppingCartTicketsResponseDto>> GetTickets()
     {
-        throw new NotImplementedException();
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
+
+        var getTicketsResult = await _shoppingCartService.GetTicketsFromCartAsync(email);
+        if (getTicketsResult.IsError)
+        {
+            return StatusCode(getTicketsResult.StatusCode, getTicketsResult.ErrorMsg);
+        }
+
+        return Ok(getTicketsResult.Value);
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]

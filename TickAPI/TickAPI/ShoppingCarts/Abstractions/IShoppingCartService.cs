@@ -6,8 +6,8 @@ namespace TickAPI.ShoppingCarts.Abstractions;
 
 public interface IShoppingCartService
 {
-    public Task<Result> AddNewTicketAsync(Guid ticketTypeId, string customerEmail, string? nameOnTicket, string? seats);
-    public Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsAsync(string customerEmail);
-    public Task<Result> RemoveTicketAsync();
+    public Task<Result> AddNewTicketToCartAsync(Guid ticketTypeId, string customerEmail, string? nameOnTicket, string? seats);
+    public Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail);
+    public Task<Result> RemoveTicketFromCartAsync();
     public Task<Result> CheckoutAsync();
 }
