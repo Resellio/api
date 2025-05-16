@@ -2,6 +2,5 @@
 
 public record AddNewTicketDto(
     Guid TicketTypeId,
-    string? NameOnTicket,
-    string? Seats
+    uint Amount
 );

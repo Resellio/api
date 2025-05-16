@@ -8,6 +8,7 @@ using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Tickets.Filters;
+using TickAPI.TicketTypes.Abstractions;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Services;
@@ -15,11 +16,14 @@ namespace TickAPI.Tickets.Services;
 public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
+    private readonly ITicketTypeRepository _ticketTypeRepository;
     private readonly IPaginationService _paginationService;
     private readonly IQRCodeService _qrCodeService;
-    public TicketService(ITicketRepository ticketRepository, IPaginationService paginationService, IQRCodeService qrCodeService)
+    public TicketService(ITicketRepository ticketRepository, ITicketTypeRepository ticketTypeRepository,
+        IPaginationService paginationService, IQRCodeService qrCodeService)
     {
         _ticketRepository = ticketRepository;
+        _ticketTypeRepository = ticketTypeRepository;
         _paginationService = paginationService;
         _qrCodeService = qrCodeService;
     }
@@ -38,6 +42,32 @@ public class TicketService : ITicketService
         }
         
         return Result<uint>.Success((uint)availableCount);
+    }
+
+    public Result<uint> GetNumberOfAvailableTicketsByTypeId(Guid ticketTypeId)
+    {
+        var ticketTypeResult = _ticketTypeRepository.GetTicketTypeById(ticketTypeId);
+
+        if (ticketTypeResult.IsError)
+        {
+            return Result<uint>.PropagateError(ticketTypeResult);
+        }
+        
+        return GetNumberOfAvailableTicketsByType(ticketTypeResult.Value!);
+    }
+
+    public Result<bool> CheckTicketAvailabilityByTypeId(Guid ticketTypeId, uint amount)
+    {
+        var numberOfTicketsResult = GetNumberOfAvailableTicketsByTypeId(ticketTypeId);
+
+        if (numberOfTicketsResult.IsError)
+        {
+            return Result<bool>.PropagateError(numberOfTicketsResult);
+        }
+        
+        var availableAmount = numberOfTicketsResult.Value!;
+
+        return availableAmount >= amount ? Result<bool>.Success(true) : Result<bool>.Success(false);
     }
 
     public async Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page, int pageSize)

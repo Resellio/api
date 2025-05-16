@@ -1,7 +1,9 @@
 ﻿using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Events.Models;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Response;
+using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
 
 namespace TickAPI.ShoppingCarts.Services;
@@ -9,14 +11,28 @@ namespace TickAPI.ShoppingCarts.Services;
 public class ShoppingCartService : IShoppingCartService
 {
     private readonly IShoppingCartRepository _shoppingCartRepository;
+    private readonly ITicketService _ticketService;
 
-    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository)
+    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, ITicketService ticketService)
     {
         _shoppingCartRepository = shoppingCartRepository;
+        _ticketService = ticketService;
     }
     
-    public async Task<Result> AddNewTicketToCartAsync(Guid ticketTypeId, string customerEmail, string? nameOnTicket, string? seats)
+    public async Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail)
     {
+        var availabilityResult = _ticketService.CheckTicketAvailabilityByTypeId(ticketTypeId, amount);
+
+        if (availabilityResult.IsError)
+        {
+            return Result.PropagateError(availabilityResult);
+        }
+
+        if (!availabilityResult.Value)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, $"not enough available tickets of type {ticketTypeId}");
+        }
+
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
         if (getShoppingCartResult.IsError)
@@ -26,12 +42,20 @@ public class ShoppingCartService : IShoppingCartService
         
         var cart = getShoppingCartResult.Value!;
         
-        cart.NewTickets.Add(new ShoppingCartNewTicket()
+        var existingEntry = cart.NewTickets.FirstOrDefault(t => t.TicketTypeId == ticketTypeId);
+
+        if (existingEntry != null)
         {
-            TicketTypeId = ticketTypeId,
-            NameOnTicket = nameOnTicket,
-            Seats = seats,
-        });
+            existingEntry.Quantity += amount;
+        }
+        else
+        {
+            cart.NewTickets.Add(new ShoppingCartNewTicket
+            {
+                TicketTypeId = ticketTypeId,
+                Quantity = amount
+            });
+        }
         
         var updateShoppingCartResult = await _shoppingCartRepository.UpdateShoppingCartAsync(customerEmail, cart);
 
@@ -58,7 +82,7 @@ public class ShoppingCartService : IShoppingCartService
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }
 
-    public Task<Result> RemoveTicketFromCartAsync()
+    public Task<Result> RemoveNewTicketsFromCartAsync()
     {
         throw new NotImplementedException();
     }

@@ -47,6 +47,8 @@ using TickAPI.Common.QR.Services;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.Repositories;
 using TickAPI.ShoppingCarts.Services;
+using TickAPI.TicketTypes.Abstractions;
+using TickAPI.TicketTypes.Repositories;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -124,6 +126,9 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 // Add shopping cart services.
 builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+
+// Add ticket type services
+builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
 
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();

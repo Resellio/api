@@ -3,6 +3,5 @@
 public class ShoppingCartNewTicket
 {
     public Guid TicketTypeId { get; set; }
-    public string? NameOnTicket { get; set; }
-    public string? Seats { get; set; }
+    public uint? Quantity { get; set; }
 }
