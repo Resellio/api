@@ -21,6 +21,11 @@ public class ShoppingCartService : IShoppingCartService
     
     public async Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail)
     {
+        if (amount <= 0)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, "amount of bought tickets must be greater than 0");
+        }
+        
         var availabilityResult = _ticketService.CheckTicketAvailabilityByTypeId(ticketTypeId, amount);
 
         if (availabilityResult.IsError)
@@ -32,36 +37,12 @@ public class ShoppingCartService : IShoppingCartService
         {
             return Result.Failure(StatusCodes.Status400BadRequest, $"not enough available tickets of type {ticketTypeId}");
         }
-
-        var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
-
-        if (getShoppingCartResult.IsError)
-        {
-            return Result.PropagateError(getShoppingCartResult);
-        }
         
-        var cart = getShoppingCartResult.Value!;
-        
-        var existingEntry = cart.NewTickets.FirstOrDefault(t => t.TicketTypeId == ticketTypeId);
+        var addTicketToCartResult = await _shoppingCartRepository.AddNewTicketToCartAsync(customerEmail, ticketTypeId, amount);
 
-        if (existingEntry != null)
+        if (addTicketToCartResult.IsError)
         {
-            existingEntry.Quantity += amount;
-        }
-        else
-        {
-            cart.NewTickets.Add(new ShoppingCartNewTicket
-            {
-                TicketTypeId = ticketTypeId,
-                Quantity = amount
-            });
-        }
-        
-        var updateShoppingCartResult = await _shoppingCartRepository.UpdateShoppingCartAsync(customerEmail, cart);
-
-        if (updateShoppingCartResult.IsError)
-        {
-            return Result.PropagateError(updateShoppingCartResult);
+            return Result.PropagateError(addTicketToCartResult);
         }
         
         return Result.Success();

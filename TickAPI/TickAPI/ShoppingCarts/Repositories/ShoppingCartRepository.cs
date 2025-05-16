@@ -3,6 +3,7 @@ using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.Models;
+using TickAPI.Tickets.Models;
 
 namespace TickAPI.ShoppingCarts.Repositories;
 
@@ -49,6 +50,42 @@ public class ShoppingCartRepository : IShoppingCartRepository
         catch (Exception e)
         {
             return Result.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+        
+        return Result.Success();
+    }
+
+    public async Task<Result> AddNewTicketToCartAsync(string customerEmail, Guid ticketTypeId, uint amount)
+    {
+        var getShoppingCartResult = await GetShoppingCartByEmailAsync(customerEmail);
+
+        if (getShoppingCartResult.IsError)
+        {
+            return Result.PropagateError(getShoppingCartResult);
+        }
+        
+        var cart = getShoppingCartResult.Value!;
+        
+        var existingEntry = cart.NewTickets.FirstOrDefault(t => t.TicketTypeId == ticketTypeId);
+
+        if (existingEntry != null)
+        {
+            existingEntry.Quantity += amount;
+        }
+        else
+        {
+            cart.NewTickets.Add(new ShoppingCartNewTicket
+            {
+                TicketTypeId = ticketTypeId,
+                Quantity = amount
+            });
+        }
+        
+        var updateShoppingCartResult = await UpdateShoppingCartAsync(customerEmail, cart);
+
+        if (updateShoppingCartResult.IsError)
+        {
+            return Result.PropagateError(updateShoppingCartResult);
         }
         
         return Result.Success();
