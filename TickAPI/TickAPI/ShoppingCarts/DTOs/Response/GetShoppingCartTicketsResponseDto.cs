@@ -1,8 +1,6 @@
-﻿using TickAPI.Tickets.Models;
-
-namespace TickAPI.ShoppingCarts.DTOs.Response;
+﻿namespace TickAPI.ShoppingCarts.DTOs.Response;
 
 public record GetShoppingCartTicketsResponseDto(
-    List<ShoppingCartNewTicket> NewTickets,
-    List<ShoppingCartResellTicket> ResellTickets
+    List<GetShoppingCartTicketsNewTicketDetailsResponseDto> NewTickets,
+    List<GetShoppingCartTicketsResellTicketDetailsResponseDto> ResellTickets
 );
