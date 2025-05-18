@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
 using TickAPI.Events.Abstractions;
@@ -53,5 +54,25 @@ public class EventRepository : IEventRepository
         }
         
         return Result<Event>.Success(@event);
+    }
+
+    public async Task<Result> SaveEventAsync(Event ev)
+    {
+        var fromDb = await GetEventByIdAsync(ev.Id);
+        if (fromDb.IsError)
+            return Result.PropagateError(fromDb);
+        await _tickApiDbContext.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result<Event>> GetEventByIdAndOrganizerAsync(Guid eventId, Organizer organizer)
+    {
+        var organizerEvents = GetEventsByOranizer(organizer);
+        var ev = await organizerEvents.Where(e => e.Id == eventId).FirstAsync();
+        if (ev is null)
+        {
+            return Result<Event>.Failure(StatusCodes.Status404NotFound, $"Event with id {eventId} not found for organizer with id {organizer.Id}");
+        }
+        return Result<Event>.Success(ev);
     }
 }
