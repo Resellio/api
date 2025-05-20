@@ -9,4 +9,5 @@ public interface IOrganizerRepository
     Task<Result<Organizer>> GetOrganizerByEmailAsync(string organizerEmail);
     Task AddNewOrganizerAsync(Organizer organizer);
     Task<Result> VerifyOrganizerByEmailAsync(string organizerEmail);
+    IQueryable<Organizer> GetOrganizers();
 }
