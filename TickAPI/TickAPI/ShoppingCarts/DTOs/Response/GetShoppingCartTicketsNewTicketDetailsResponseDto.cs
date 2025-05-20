@@ -1,7 +1,7 @@
 ﻿namespace TickAPI.ShoppingCarts.DTOs.Response;
 
 public record GetShoppingCartTicketsNewTicketDetailsResponseDto(
-    Guid TicketId,
+    Guid TicketTypeId,
     string EventName,
     string TicketType,
     string OrganizerName,

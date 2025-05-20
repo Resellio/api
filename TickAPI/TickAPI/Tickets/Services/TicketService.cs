@@ -44,9 +44,9 @@ public class TicketService : ITicketService
         return Result<uint>.Success((uint)availableCount);
     }
 
-    public Result<uint> GetNumberOfAvailableTicketsByTypeId(Guid ticketTypeId)
+    public async Task<Result<uint>> GetNumberOfAvailableTicketsByTypeIdAsync(Guid ticketTypeId)
     {
-        var ticketTypeResult = _ticketTypeRepository.GetTicketTypeById(ticketTypeId);
+        var ticketTypeResult = await _ticketTypeRepository.GetTicketTypeByIdAsync(ticketTypeId);
 
         if (ticketTypeResult.IsError)
         {
@@ -56,9 +56,9 @@ public class TicketService : ITicketService
         return GetNumberOfAvailableTicketsByType(ticketTypeResult.Value!);
     }
 
-    public Result<bool> CheckTicketAvailabilityByTypeId(Guid ticketTypeId, uint amount)
+    public async Task<Result<bool>> CheckTicketAvailabilityByTypeIdAsync(Guid ticketTypeId, uint amount)
     {
-        var numberOfTicketsResult = GetNumberOfAvailableTicketsByTypeId(ticketTypeId);
+        var numberOfTicketsResult = await GetNumberOfAvailableTicketsByTypeIdAsync(ticketTypeId);
 
         if (numberOfTicketsResult.IsError)
         {
@@ -133,6 +133,18 @@ public class TicketService : ITicketService
             qrcode
         );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
+    }
+
+    public async Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId)
+    {
+        var ticketTypeResult = await _ticketTypeRepository.GetTicketTypeByIdAsync(ticketTypeId);
+
+        if (ticketTypeResult.IsError)
+        {
+            return Result<TicketType>.PropagateError(ticketTypeResult);
+        }
+        
+        return Result<TicketType>.Success(ticketTypeResult.Value!);
     }
 
     public async Task<Result> ScanTicket(Guid ticketGuid)

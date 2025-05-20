@@ -10,8 +10,8 @@ namespace TickAPI.Tickets.Abstractions;
 public interface ITicketService
 {
     public Result<uint> GetNumberOfAvailableTicketsByType(TicketType ticketType);
-    public Result<uint> GetNumberOfAvailableTicketsByTypeId(Guid ticketTypeId);
-    public Result<bool> CheckTicketAvailabilityByTypeId(Guid ticketTypeId, uint amount);
+    public Task<Result<uint>> GetNumberOfAvailableTicketsByTypeIdAsync(Guid ticketTypeId);
+    public Task<Result<bool>> CheckTicketAvailabilityByTypeIdAsync(Guid ticketTypeId, uint amount);
     public Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page,
         int pageSize);
     public Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page,
@@ -19,4 +19,5 @@ public interface ITicketService
     public Task<Result> ScanTicket(Guid ticketGuid);
     public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email,
         string scanUrl);
+    public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
 }

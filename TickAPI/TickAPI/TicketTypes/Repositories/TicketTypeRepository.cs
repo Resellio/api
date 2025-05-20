@@ -16,11 +16,13 @@ public class TicketTypeRepository : ITicketTypeRepository
         _tickApiDbContext = tickApiDbContext;
     }
     
-    public Result<TicketType> GetTicketTypeById(Guid ticketTypeId)
+    public async Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId)
     {
-        var ticketType =
+        var ticketType = await 
             _tickApiDbContext.TicketTypes
-                .FirstOrDefault(t => t.Id == ticketTypeId);
+                .Include(t => t.Event)
+                .Include(t => t.Event.Organizer)
+                .FirstOrDefaultAsync(t => t.Id == ticketTypeId);
 
         if (ticketType == null)
         {

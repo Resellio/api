@@ -3,6 +3,7 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Events.Models;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Response;
+using TickAPI.ShoppingCarts.Mappers;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
 
@@ -26,7 +27,7 @@ public class ShoppingCartService : IShoppingCartService
             return Result.Failure(StatusCodes.Status400BadRequest, "amount of bought tickets must be greater than 0");
         }
         
-        var availabilityResult = _ticketService.CheckTicketAvailabilityByTypeId(ticketTypeId, amount);
+        var availabilityResult = await _ticketService.CheckTicketAvailabilityByTypeIdAsync(ticketTypeId, amount);
 
         if (availabilityResult.IsError)
         {
@@ -58,7 +59,26 @@ public class ShoppingCartService : IShoppingCartService
         }
         
         var cart = getShoppingCartResult.Value!;
-        var result = new GetShoppingCartTicketsResponseDto(cart.NewTickets, cart.ResellTickets);
+        
+        var newTickets = new List<GetShoppingCartTicketsNewTicketDetailsResponseDto>();
+
+        foreach (var ticket in cart.NewTickets)
+        {
+            var newTicketResult = await _ticketService.GetTicketTypeByIdAsync(ticket.TicketTypeId);
+
+            if (newTicketResult.IsError)
+            {
+                return Result<GetShoppingCartTicketsResponseDto>.PropagateError(newTicketResult);
+            }
+
+            var newTicket =
+                ShoppingCartMapper.MapTicketTypeToGetShoppingCartTicketsNewTicketDetailsResponseDto(
+                    newTicketResult.Value!, ticket.Quantity);
+            
+            newTickets.Add(newTicket);
+        }
+        
+        var result = new GetShoppingCartTicketsResponseDto(newTickets, []);
         
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }

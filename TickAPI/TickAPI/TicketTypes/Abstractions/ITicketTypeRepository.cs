@@ -6,5 +6,5 @@ namespace TickAPI.TicketTypes.Abstractions;
 
 public interface ITicketTypeRepository
 {
-    public Result<TicketType> GetTicketTypeById(Guid ticketTypeId);
+    public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
 }
