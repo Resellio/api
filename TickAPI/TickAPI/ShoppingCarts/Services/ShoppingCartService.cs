@@ -22,11 +22,6 @@ public class ShoppingCartService : IShoppingCartService
     
     public async Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail)
     {
-        if (amount <= 0)
-        {
-            return Result.Failure(StatusCodes.Status400BadRequest, "amount of bought tickets must be greater than 0");
-        }
-        
         var availabilityResult = await _ticketService.CheckTicketAvailabilityByTypeIdAsync(ticketTypeId, amount);
 
         if (availabilityResult.IsError)
@@ -39,11 +34,11 @@ public class ShoppingCartService : IShoppingCartService
             return Result.Failure(StatusCodes.Status400BadRequest, $"not enough available tickets of type {ticketTypeId}");
         }
         
-        var addTicketToCartResult = await _shoppingCartRepository.AddNewTicketToCartAsync(customerEmail, ticketTypeId, amount);
+        var addTicketsToCartResult = await _shoppingCartRepository.AddNewTicketsToCartAsync(customerEmail, ticketTypeId, amount);
 
-        if (addTicketToCartResult.IsError)
+        if (addTicketsToCartResult.IsError)
         {
-            return Result.PropagateError(addTicketToCartResult);
+            return Result.PropagateError(addTicketsToCartResult);
         }
         
         return Result.Success();
@@ -83,9 +78,16 @@ public class ShoppingCartService : IShoppingCartService
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }
 
-    public Task<Result> RemoveNewTicketsFromCartAsync()
+    public async Task<Result> RemoveNewTicketsFromCartAsync(Guid ticketTypeId, uint amount, string customerEmail)
     {
-        throw new NotImplementedException();
+        var removeTicketsFromCartResult = await _shoppingCartRepository.RemoveNewTicketsFromCartAsync(customerEmail, ticketTypeId, amount);
+
+        if (removeTicketsFromCartResult.IsError)
+        {
+            return Result.PropagateError(removeTicketsFromCartResult);
+        }
+        
+        return Result.Success();
     }
 
     public Task<Result> CheckoutAsync()

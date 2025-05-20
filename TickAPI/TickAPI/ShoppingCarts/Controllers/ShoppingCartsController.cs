@@ -23,7 +23,7 @@ public class ShoppingCartsController : ControllerBase
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpPost]
-    public async Task<ActionResult> AddTickets([FromBody] AddNewTicketDto addNewTicketDto)
+    public async Task<ActionResult> AddTickets([FromBody] AddNewTicketDto addTicketDto)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
@@ -33,7 +33,7 @@ public class ShoppingCartsController : ControllerBase
         var email = emailResult.Value!;
 
         var addTicketResult =
-            await _shoppingCartService.AddNewTicketsToCartAsync(addNewTicketDto.TicketTypeId, addNewTicketDto.Amount,
+            await _shoppingCartService.AddNewTicketsToCartAsync(addTicketDto.TicketTypeId, addTicketDto.Amount,
                 email);
         if (addTicketResult.IsError)
         {
@@ -65,9 +65,24 @@ public class ShoppingCartsController : ControllerBase
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpDelete]
-    public async Task<ActionResult> DeleteTicket()
+    public async Task<ActionResult> RemoveTickets([FromBody] RemoveNewTicketDto removeTicketDto)
     {
-        throw new NotImplementedException();
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
+
+        var addTicketResult =
+            await _shoppingCartService.RemoveNewTicketsFromCartAsync(removeTicketDto.TicketTypeId, removeTicketDto.Amount,
+                email);
+        if (addTicketResult.IsError)
+        {
+            return StatusCode(addTicketResult.StatusCode, addTicketResult.ErrorMsg);
+        }
+
+        return Ok();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]

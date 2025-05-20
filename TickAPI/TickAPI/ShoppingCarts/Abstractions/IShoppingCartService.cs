@@ -8,6 +8,6 @@ public interface IShoppingCartService
 {
     public Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail);
     public Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail);
-    public Task<Result> RemoveNewTicketsFromCartAsync();
+    public Task<Result> RemoveNewTicketsFromCartAsync(Guid ticketTypeId, uint amount, string customerEmail);
     public Task<Result> CheckoutAsync();
 }
