@@ -86,8 +86,8 @@ public class ShoppingCartsController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
-    [HttpGet("due/{currency}")]
-    public async Task<ActionResult<decimal>> GetDueAmount([FromRoute] string currency)
+    [HttpGet("due")]
+    public async Task<ActionResult<Dictionary<string, decimal>>> GetDueAmount()
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
@@ -96,7 +96,7 @@ public class ShoppingCartsController : ControllerBase
         }
         var email = emailResult.Value!;
 
-        var dueAmountResult = await _shoppingCartService.GetDueAmountAsync(email, currency);
+        var dueAmountResult = await _shoppingCartService.GetDueAmountAsync(email);
 
         if (dueAmountResult.IsError)
         {

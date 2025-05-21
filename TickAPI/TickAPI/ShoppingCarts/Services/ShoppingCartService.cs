@@ -1,4 +1,5 @@
-﻿using TickAPI.Common.Payment.Abstractions;
+﻿using Google.Apis.Auth.OAuth2.Web;
+using TickAPI.Common.Payment.Abstractions;
 using TickAPI.Common.Payment.Models;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
@@ -97,18 +98,18 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public async Task<Result<decimal>> GetDueAmountAsync(string customerEmail, string currency)
+    public async Task<Result<Dictionary<string, decimal>>> GetDueAmountAsync(string customerEmail)
     {
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
         if (getShoppingCartResult.IsError)
         {
-            return Result<decimal>.PropagateError(getShoppingCartResult);
+            return Result<Dictionary<string, decimal>>.PropagateError(getShoppingCartResult);
         }
         
         var cart = getShoppingCartResult.Value!;
 
-        decimal total = 0;
+        Dictionary<string, decimal> dueAmount = new Dictionary<string, decimal>();
 
         foreach (var newTicket in cart.NewTickets)
         {
@@ -116,34 +117,44 @@ public class ShoppingCartService : IShoppingCartService
 
             if (ticketTypeResult.IsError)
             {
-                return Result<decimal>.PropagateError(ticketTypeResult);
+                return Result<Dictionary<string, decimal>>.PropagateError(ticketTypeResult);
             }
             
             var ticketType = ticketTypeResult.Value!;
-
-            if (ticketType.Currency == currency)
+            
+            if(dueAmount.ContainsKey(ticketType.Currency))
             {
-                total += newTicket.Quantity * ticketType.Price;
+                dueAmount[ticketType.Currency] += newTicket.Quantity * ticketType.Price;
+            }
+            else
+            {
+                dueAmount.Add(ticketType.Currency, newTicket.Quantity * ticketType.Price);
             }
         }
         
         // TODO: Add resell tickets to the calculations
         
-        return Result<decimal>.Success(total);
+        return Result<Dictionary<string, decimal>>.Success(dueAmount);
     }
 
     public async Task<Result<PaymentResponsePG>> CheckoutAsync(string customerEmail, decimal amount, string currency,
         string cardNumber, string cardExpiry, string cvv)
     {
-        var dueAmountResult = await GetDueAmountAsync(customerEmail, currency);
+        var dueAmountResult = await GetDueAmountAsync(customerEmail);
 
         if (dueAmountResult.IsError)
         {
             return Result<PaymentResponsePG>.PropagateError(dueAmountResult);
         }
 
-        var dueAmount = dueAmountResult.Value;
+        var currencyExists = dueAmountResult.Value!.TryGetValue(currency, out var dueAmount);
 
+        if (!currencyExists)
+        {
+            return Result<PaymentResponsePG>.Failure(StatusCodes.Status400BadRequest,
+                $"no tickets paid in {currency} found in cart");
+        }
+        
         if (dueAmount != amount)
         {
             return Result<PaymentResponsePG>.Failure(StatusCodes.Status400BadRequest,
@@ -158,9 +169,21 @@ public class ShoppingCartService : IShoppingCartService
         {
             return Result<PaymentResponsePG>.PropagateError(paymentResult);
         }
+        
+        var generateTicketsResult = await GenerateBoughtTicketsAsync(customerEmail, currency);
 
+        if (generateTicketsResult.IsError)
+        {
+            return Result<PaymentResponsePG>.PropagateError(generateTicketsResult);
+        }
+        
         var payment = paymentResult.Value!;
 
         return Result<PaymentResponsePG>.Success(payment);
+    }
+
+    private static async Task<Result> GenerateBoughtTicketsAsync(string customerEmail, string currency)
+    {
+        throw new NotImplementedException();
     }
 }
