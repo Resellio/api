@@ -5,5 +5,6 @@ public record GetShoppingCartTicketsNewTicketDetailsResponseDto(
     string EventName,
     string TicketType,
     string OrganizerName,
-    uint Quantity
+    uint Quantity,
+    decimal UnitPrice
 );

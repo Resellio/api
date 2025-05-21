@@ -1,4 +1,6 @@
-﻿using TickAPI.Common.Results;
+﻿using TickAPI.Common.Payment.Abstractions;
+using TickAPI.Common.Payment.Models;
+using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Events.Models;
 using TickAPI.ShoppingCarts.Abstractions;
@@ -13,11 +15,14 @@ public class ShoppingCartService : IShoppingCartService
 {
     private readonly IShoppingCartRepository _shoppingCartRepository;
     private readonly ITicketService _ticketService;
+    private readonly IPaymentGatewayService _paymentGatewayService;
 
-    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, ITicketService ticketService)
+    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, ITicketService ticketService,
+        IPaymentGatewayService paymentGatewayService)
     {
         _shoppingCartRepository = shoppingCartRepository;
         _ticketService = ticketService;
+        _paymentGatewayService = paymentGatewayService;
     }
     
     public async Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail)
@@ -73,6 +78,8 @@ public class ShoppingCartService : IShoppingCartService
             newTickets.Add(newTicket);
         }
         
+        // TODO: Add resell ticket parsing
+        
         var result = new GetShoppingCartTicketsResponseDto(newTickets, []);
         
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
@@ -90,8 +97,70 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public Task<Result> CheckoutAsync()
+    public async Task<Result<decimal>> GetDueAmountAsync(string customerEmail, string currency)
     {
-        throw new NotImplementedException();
+        var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
+
+        if (getShoppingCartResult.IsError)
+        {
+            return Result<decimal>.PropagateError(getShoppingCartResult);
+        }
+        
+        var cart = getShoppingCartResult.Value!;
+
+        decimal total = 0;
+
+        foreach (var newTicket in cart.NewTickets)
+        {
+            var ticketTypeResult = await _ticketService.GetTicketTypeByIdAsync(newTicket.TicketTypeId);
+
+            if (ticketTypeResult.IsError)
+            {
+                return Result<decimal>.PropagateError(ticketTypeResult);
+            }
+            
+            var ticketType = ticketTypeResult.Value!;
+
+            if (ticketType.Currency == currency)
+            {
+                total += newTicket.Quantity * ticketType.Price;
+            }
+        }
+        
+        // TODO: Add resell tickets to the calculations
+        
+        return Result<decimal>.Success(total);
+    }
+
+    public async Task<Result<PaymentResponsePG>> CheckoutAsync(string customerEmail, decimal amount, string currency,
+        string cardNumber, string cardExpiry, string cvv)
+    {
+        var dueAmountResult = await GetDueAmountAsync(customerEmail, currency);
+
+        if (dueAmountResult.IsError)
+        {
+            return Result<PaymentResponsePG>.PropagateError(dueAmountResult);
+        }
+
+        var dueAmount = dueAmountResult.Value;
+
+        if (dueAmount != amount)
+        {
+            return Result<PaymentResponsePG>.Failure(StatusCodes.Status400BadRequest,
+                $"the given amount {amount} {currency} is different than the expected amount of {dueAmount} {currency}");
+        }
+
+        var paymentResult =
+            await _paymentGatewayService.ProcessPayment(new PaymentRequestPG(amount, currency, cardNumber, cardExpiry,
+                cvv, false));
+
+        if (paymentResult.IsError)
+        {
+            return Result<PaymentResponsePG>.PropagateError(paymentResult);
+        }
+
+        var payment = paymentResult.Value!;
+
+        return Result<PaymentResponsePG>.Success(payment);
     }
 }
