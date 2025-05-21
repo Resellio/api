@@ -108,8 +108,25 @@ public class ShoppingCartsController : ControllerBase
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpPost("checkout")]
-    public async Task<ActionResult> Checkout()
+    public async Task<ActionResult<CheckoutResponseDto>> Checkout([FromBody] CheckoutDto checkoutDto)
     {
-        throw new NotImplementedException();
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+        }
+        var email = emailResult.Value!;
+
+        var checkoutResult = await _shoppingCartService.CheckoutAsync(email, checkoutDto.Amount, checkoutDto.Currency,
+            checkoutDto.CardNumber, checkoutDto.CardExpiry, checkoutDto.Cvv);
+
+        if (checkoutResult.IsError)
+        {
+            return StatusCode(checkoutResult.StatusCode, checkoutResult.ErrorMsg);
+        }
+        
+        var checkout = checkoutResult.Value!;
+        
+        return Ok(new CheckoutResponseDto(checkout.TransactionId, checkout.Status));
     }
 }
