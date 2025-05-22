@@ -4,10 +4,13 @@ using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.QR.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Customers.Abstractions;
+using TickAPI.Customers.Models;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Tickets.Filters;
+using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Abstractions;
 using TickAPI.TicketTypes.Models;
 
@@ -19,7 +22,8 @@ public class TicketService : ITicketService
     private readonly ITicketTypeRepository _ticketTypeRepository;
     private readonly IPaginationService _paginationService;
     private readonly IQRCodeService _qrCodeService;
-    public TicketService(ITicketRepository ticketRepository, ITicketTypeRepository ticketTypeRepository,
+
+    public TicketService(ITicketRepository ticketRepository, ITicketTypeRepository ticketTypeRepository, 
         IPaginationService paginationService, IQRCodeService qrCodeService)
     {
         _ticketRepository = ticketRepository;
@@ -147,11 +151,27 @@ public class TicketService : ITicketService
         return Result<TicketType>.Success(ticketTypeResult.Value!);
     }
 
+    public async Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+        string? seats = null)
+    {
+        var ticket = new Ticket
+        {
+            Type = type,
+            Owner = owner,
+            NameOnTicket = nameOnTicket,
+            Seats = seats,
+            ForResell = false,
+            Used = false,
+        };
+        
+        var addTicketResult = await _ticketRepository.AddTicketAsync(ticket);
+
+        return addTicketResult;
+    }
+
     public async Task<Result> ScanTicket(Guid ticketGuid)
     {
         var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);
         return res;
     }
-    
-    
 }

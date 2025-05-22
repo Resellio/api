@@ -12,6 +12,5 @@ public interface IShoppingCartService
     public Task<Result> RemoveNewTicketsFromCartAsync(Guid ticketTypeId, uint amount, string customerEmail);
     public Task<Result<Dictionary<string, decimal>>> GetDueAmountAsync(string customerEmail);
     public Task<Result<PaymentResponsePG>> CheckoutAsync(string customerEmail, decimal amount, string currency,
-        string cardNumber,
-        string cardExpiry, string cvv);
+        string cardNumber, string cardExpiry, string cvv);
 }

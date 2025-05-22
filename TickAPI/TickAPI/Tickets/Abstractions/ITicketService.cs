@@ -1,6 +1,7 @@
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Customers.Models;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.TicketTypes.Models;
@@ -20,4 +21,7 @@ public interface ITicketService
     public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email,
         string scanUrl);
     public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
+
+    public Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+        string? seats = null);
 }

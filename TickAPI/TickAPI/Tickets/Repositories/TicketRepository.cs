@@ -2,6 +2,7 @@
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.TickApiDbContext;
+using TickAPI.Customers.Models;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
@@ -68,6 +69,22 @@ public class TicketRepository : ITicketRepository
         }
         ticket.Used = true;
         await _tickApiDbContext.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result> AddTicketAsync(Ticket ticket)
+    {
+        var maxCount = ticket.Type.MaxCount;
+
+        if (maxCount <= _tickApiDbContext.Tickets.Count(t => t.Type.Id == ticket.Type.Id))
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest,
+                "The ticket you are trying to buy has already reached its max count");
+        }
+        
+        _tickApiDbContext.Tickets.Add(ticket);
+        await _tickApiDbContext.SaveChangesAsync();
+        
         return Result.Success();
     }
 }

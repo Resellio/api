@@ -3,25 +3,29 @@ using TickAPI.Common.Payment.Abstractions;
 using TickAPI.Common.Payment.Models;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Customers.Abstractions;
 using TickAPI.Events.Models;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Response;
 using TickAPI.ShoppingCarts.Mappers;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
+using TickAPI.TicketTypes.Abstractions;
 
 namespace TickAPI.ShoppingCarts.Services;
 
 public class ShoppingCartService : IShoppingCartService
 {
     private readonly IShoppingCartRepository _shoppingCartRepository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly ITicketService _ticketService;
     private readonly IPaymentGatewayService _paymentGatewayService;
 
-    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, ITicketService ticketService,
-        IPaymentGatewayService paymentGatewayService)
+    public ShoppingCartService(IShoppingCartRepository shoppingCartRepository, ICustomerRepository customerRepository, 
+        ITicketService ticketService, IPaymentGatewayService paymentGatewayService)
     {
         _shoppingCartRepository = shoppingCartRepository;
+        _customerRepository = customerRepository;
         _ticketService = ticketService;
         _paymentGatewayService = paymentGatewayService;
     }
@@ -182,8 +186,52 @@ public class ShoppingCartService : IShoppingCartService
         return Result<PaymentResponsePG>.Success(payment);
     }
 
-    private static async Task<Result> GenerateBoughtTicketsAsync(string customerEmail, string currency)
+    private async Task<Result> GenerateBoughtTicketsAsync(string customerEmail, string currency)
     {
-        throw new NotImplementedException();
+        var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
+
+        if (getShoppingCartResult.IsError)
+        {
+            return Result.PropagateError(getShoppingCartResult);
+        }
+        
+        var cart = getShoppingCartResult.Value!;
+        
+        var getCustomerResult = await _customerRepository.GetCustomerByEmailAsync(customerEmail);
+
+        if (getCustomerResult.IsError)
+        {
+            return Result.PropagateError(getCustomerResult);
+        }
+        
+        var owner = getCustomerResult.Value!;
+
+        foreach (var ticket in cart.NewTickets)
+        {
+            var ticketTypeResult = await _ticketService.GetTicketTypeByIdAsync(ticket.TicketTypeId);
+
+            if (ticketTypeResult.IsError)
+            {  
+                return Result.PropagateError(ticketTypeResult);
+            }
+            
+            var type = ticketTypeResult.Value!;
+
+            if (type.Currency == currency)
+            {
+                for (var i = 0; i < ticket.Quantity; i++)
+                {
+                    // TODO: add seats/name on ticket setting
+                    var createTicketResult = await _ticketService.CreateTicketAsync(type, owner);
+
+                    if (createTicketResult.IsError)
+                    {
+                        return Result.PropagateError(createTicketResult);
+                    }
+                }
+            }
+        }
+
+        return Result.Success();
     }
 }
