@@ -142,8 +142,108 @@ public class ShoppingCartRepository : IShoppingCartRepository
         return Result.Success();
     }
 
+    public async Task<Result<long>> GetAmountOfTicketTypeAsync(Guid ticketTypeId)
+    {
+        long? amount; 
+        
+        try
+        {
+            amount = await _redisService.GetLongValueAsync(GetAmountKey(ticketTypeId));
+        }
+        catch (Exception e)
+        {
+            return Result<long>.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+        
+        if (amount is null)
+        {
+            return Result<long>.Failure(StatusCodes.Status500InternalServerError, "the amount of tickets could not be retrieved");
+        }
+
+        return Result<long>.Success(amount.Value);
+    }
+
+    public async Task<Result> SetAmountOfTicketTypeAsync(Guid ticketTypeId, long amount)
+    {
+        bool success;
+        
+        try
+        {
+            success = await _redisService.SetLongValueAsync(GetAmountKey(ticketTypeId), amount);
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        if (!success)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "the amount of tickets could not be updated");
+        }
+        
+        return Result.Success();
+    }
+
+    public async Task<Result<long>> IncrementAmountOfTicketTypeAsync(Guid ticketTypeId, long amount)
+    {
+        long? newAmount; 
+        
+        try
+        {
+            newAmount = await _redisService.IncrementValueAsync(GetAmountKey(ticketTypeId));
+        }
+        catch (Exception e)
+        {
+            return Result<long>.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        return Result<long>.Success(newAmount.Value);
+    }
+
+    public async Task<Result<long>> DecrementAmountOfTicketTypeAsync(Guid ticketTypeId, long amount)
+    {
+        long? newAmount; 
+        
+        try
+        {
+            newAmount = await _redisService.DecrementValueAsync(GetAmountKey(ticketTypeId));
+        }
+        catch (Exception e)
+        {
+            return Result<long>.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        return Result<long>.Success(newAmount.Value);
+    }
+
+    public async Task<Result> RemoveAmountOfTicketTypeAsync(Guid ticketTypeId)
+    {
+        bool success;
+        
+        try
+        {
+            success = await _redisService.DeleteKeyAsync(GetAmountKey(ticketTypeId));
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        if (!success)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "the amount of tickets could not be updated");
+        }
+        
+        return Result.Success();
+    }
+
     private static string GetCartKey(string customerEmail)
     {
         return $"cart:{customerEmail}";
+    }
+
+    private static string GetAmountKey(Guid ticketTypeId)
+    {
+        return $"amount:{ticketTypeId}";
     }
 }
