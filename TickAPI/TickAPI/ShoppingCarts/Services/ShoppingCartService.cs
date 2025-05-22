@@ -175,6 +175,7 @@ public class ShoppingCartService : IShoppingCartService
         }
         
         var generateTicketsResult = await GenerateBoughtTicketsAsync(customerEmail, currency);
+        // TODO: Add passing ownership of resell tickets
 
         if (generateTicketsResult.IsError)
         {
@@ -205,6 +206,7 @@ public class ShoppingCartService : IShoppingCartService
         }
         
         var owner = getCustomerResult.Value!;
+        var removals = new List<(Guid id, uint amount)>();
 
         foreach (var ticket in cart.NewTickets)
         {
@@ -219,6 +221,8 @@ public class ShoppingCartService : IShoppingCartService
 
             if (type.Currency == currency)
             {
+                removals.Add((ticket.TicketTypeId, ticket.Quantity));
+                
                 for (var i = 0; i < ticket.Quantity; i++)
                 {
                     // TODO: add seats/name on ticket setting
@@ -229,6 +233,16 @@ public class ShoppingCartService : IShoppingCartService
                         return Result.PropagateError(createTicketResult);
                     }
                 }
+            }
+        }
+
+        foreach (var (id, amount) in removals)
+        {
+            var removalResult = await RemoveNewTicketsFromCartAsync(id, amount, customerEmail);
+
+            if (removalResult.IsError)
+            {
+                return Result.PropagateError(removalResult);
             }
         }
 
