@@ -133,10 +133,24 @@ public class EventService : IEventService
             ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList()
             : new List<GetEventResponseCategoryDto>();
         
-        var ticketTypes = ev.TicketTypes.Count > 0
-            ? ev.TicketTypes.Select((t) => new GetEventDetailsResponseTicketTypeDto(t.Id, t.Description, t.Price,
-                t.Currency, t.AvailableFrom, _ticketService.GetNumberOfAvailableTicketsByType(t).Value)).ToList()
-            : new List<GetEventDetailsResponseTicketTypeDto>();
+        var ticketTypes = new List<GetEventDetailsResponseTicketTypeDto>();
+
+        if (ev.TicketTypes.Count > 0)
+        {
+            foreach (var t in ev.TicketTypes)
+            {
+                var availableCount = await _ticketService.GetNumberOfAvailableTicketsByTypeAsync(t);
+        
+                ticketTypes.Add(new GetEventDetailsResponseTicketTypeDto(
+                    t.Id,
+                    t.Description,
+                    t.Price,
+                    t.Currency,
+                    t.AvailableFrom,
+                    availableCount.Value
+                ));
+            }
+        }
         
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
             ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);

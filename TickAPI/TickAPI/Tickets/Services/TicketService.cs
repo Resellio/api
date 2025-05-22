@@ -6,6 +6,7 @@ using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Abstractions;
 using TickAPI.Customers.Models;
+using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
@@ -20,24 +21,34 @@ public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
     private readonly ITicketTypeRepository _ticketTypeRepository;
+    private readonly IShoppingCartRepository _shoppingCartRepository;
     private readonly IPaginationService _paginationService;
     private readonly IQRCodeService _qrCodeService;
 
     public TicketService(ITicketRepository ticketRepository, ITicketTypeRepository ticketTypeRepository, 
-        IPaginationService paginationService, IQRCodeService qrCodeService)
+        IShoppingCartRepository shoppingCartRepository, IPaginationService paginationService, IQRCodeService qrCodeService)
     {
         _ticketRepository = ticketRepository;
         _ticketTypeRepository = ticketTypeRepository;
+        _shoppingCartRepository = shoppingCartRepository;
         _paginationService = paginationService;
         _qrCodeService = qrCodeService;
     }
     
     // TODO: Update this method to also count tickets cached in Redis as unavailable
-    public Result<uint> GetNumberOfAvailableTicketsByType(TicketType ticketType)
+    public async Task<Result<uint>> GetNumberOfAvailableTicketsByTypeAsync(TicketType ticketType)
     {
         var unavailableTickets = _ticketRepository.GetAllTicketsByTicketType(ticketType);
+        var reservedTicketsAmountResult = await _shoppingCartRepository.GetAmountOfTicketTypeAsync(ticketType.Id);
+
+        if (reservedTicketsAmountResult.IsError)
+        {
+            return Result<uint>.PropagateError(reservedTicketsAmountResult);
+        }
         
-        var availableCount = ticketType.MaxCount - unavailableTickets.Count();
+        var reservedTicketsAmount = reservedTicketsAmountResult.Value;
+        
+        var availableCount = ticketType.MaxCount - unavailableTickets.Count() - reservedTicketsAmount;
 
         if (availableCount < 0)
         {
@@ -57,7 +68,7 @@ public class TicketService : ITicketService
             return Result<uint>.PropagateError(ticketTypeResult);
         }
         
-        return GetNumberOfAvailableTicketsByType(ticketTypeResult.Value!);
+        return await GetNumberOfAvailableTicketsByTypeAsync(ticketTypeResult.Value!);
     }
 
     public async Task<Result<bool>> CheckTicketAvailabilityByTypeIdAsync(Guid ticketTypeId, uint amount)

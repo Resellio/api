@@ -86,6 +86,13 @@ public class ShoppingCartRepository : IShoppingCartRepository
             });
         }
         
+        var incrementTicketAmountResult = await IncrementAmountOfTicketTypeAsync(ticketTypeId, amount);
+
+        if (incrementTicketAmountResult.IsError)
+        {
+            return Result.PropagateError(incrementTicketAmountResult);
+        }
+        
         var updateShoppingCartResult = await UpdateShoppingCartAsync(customerEmail, cart);
 
         if (updateShoppingCartResult.IsError)
@@ -130,6 +137,13 @@ public class ShoppingCartRepository : IShoppingCartRepository
         if (existingEntry.Quantity == 0)
         {
             cart.NewTickets.Remove(existingEntry);
+        }
+        
+        var decrementTicketAmountResult = await DecrementAmountOfTicketTypeAsync(ticketTypeId, amount);
+
+        if (decrementTicketAmountResult.IsError)
+        {
+            return Result.PropagateError(decrementTicketAmountResult);
         }
 
         var updateShoppingCartResult = await UpdateShoppingCartAsync(customerEmail, cart);

@@ -631,7 +631,7 @@ public class EventServiceTests
             .ReturnsAsync(Result<Event>.Success(@event));
 
         ticketServiceMock
-            .Setup(m => m.GetNumberOfAvailableTicketsByType(It.IsAny<TicketType>()))
+            .Setup(m => m.GetNumberOfAvailableTicketsByTypeAsync(It.IsAny<TicketType>()))
             .Returns((TicketType input) => 
                 Result<uint>.Success((uint)(input.Price / 10))
             );
