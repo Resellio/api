@@ -139,7 +139,12 @@ public class EventService : IEventService
         {
             foreach (var t in ev.TicketTypes)
             {
-                var availableCount = await _ticketService.GetNumberOfAvailableTicketsByTypeAsync(t);
+                var availableCountResult = await _ticketService.GetNumberOfAvailableTicketsByTypeAsync(t);
+
+                if (availableCountResult.IsError)
+                {
+                    return Result<GetEventDetailsResponseDto>.PropagateError(availableCountResult);
+                }
         
                 ticketTypes.Add(new GetEventDetailsResponseTicketTypeDto(
                     t.Id,
@@ -147,7 +152,7 @@ public class EventService : IEventService
                     t.Price,
                     t.Currency,
                     t.AvailableFrom,
-                    availableCount.Value
+                    availableCountResult.Value
                 ));
             }
         }

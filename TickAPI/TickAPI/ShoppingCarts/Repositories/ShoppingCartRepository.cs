@@ -171,7 +171,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
         
         if (amount is null)
         {
-            return Result<long>.Failure(StatusCodes.Status500InternalServerError, "the amount of tickets could not be retrieved");
+            return Result<long>.Success(0);
         }
 
         return Result<long>.Success(amount.Value);
@@ -204,7 +204,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
         
         try
         {
-            newAmount = await _redisService.IncrementValueAsync(GetAmountKey(ticketTypeId));
+            newAmount = await _redisService.IncrementValueAsync(GetAmountKey(ticketTypeId), amount);
         }
         catch (Exception e)
         {
@@ -220,7 +220,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
         
         try
         {
-            newAmount = await _redisService.DecrementValueAsync(GetAmountKey(ticketTypeId));
+            newAmount = await _redisService.DecrementValueAsync(GetAmountKey(ticketTypeId), amount);
         }
         catch (Exception e)
         {
