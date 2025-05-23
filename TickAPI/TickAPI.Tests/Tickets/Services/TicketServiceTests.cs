@@ -39,6 +39,10 @@ public class TicketServiceTests
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
 
+        shoppingCartRepositoryMock
+            .Setup(s => s.GetAmountOfTicketTypeAsync(type.Id))
+            .ReturnsAsync(Result<long>.Success(0));
+
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
@@ -66,6 +70,10 @@ public class TicketServiceTests
         ticketRepositoryMock
             .Setup(m => m.GetAllTicketsByTicketType(type))
             .Returns(ticketList.AsQueryable());
+        
+        shoppingCartRepositoryMock
+            .Setup(s => s.GetAmountOfTicketTypeAsync(type.Id))
+            .ReturnsAsync(Result<long>.Success(0));
 
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
