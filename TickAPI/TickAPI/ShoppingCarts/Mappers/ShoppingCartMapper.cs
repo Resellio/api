@@ -15,7 +15,8 @@ public static class ShoppingCartMapper
             type.Description,
             type.Event.Organizer.DisplayName,
             quantity,
-            type.Price
+            type.Price,
+            type.Currency
         );
     }
 
@@ -28,7 +29,8 @@ public static class ShoppingCartMapper
             ticket.Type.Description,
             ticket.Type.Event.Organizer.DisplayName,
             ticket.Owner.Email,
-            ticket.Type.Price
+            ticket.Type.Price,
+            ticket.Type.Currency
         );
     }
 }
