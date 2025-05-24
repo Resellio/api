@@ -123,7 +123,7 @@ public class TicketService : ITicketService
             return Result.PropagateError(ticketRes);
         }
 
-        if (ticketRes.Value!.Type.Price < 1.5m*resellPrice)
+        if (ticketRes.Value!.Type.Price*1.5m < resellPrice)
         {
             return Result.Failure(StatusCodes.Status500InternalServerError, "Resell price cannot exceed " +
                                                                             "value of original price times 1.5");
@@ -132,6 +132,11 @@ public class TicketService : ITicketService
         if (ticketRes.Value!.ForResell)
         {
             return Result.Failure(StatusCodes.Status500InternalServerError, "Ticket is already set for resell");
+        }
+
+        if (ticketRes.Value!.Used)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "Ticket is already used");
         }
         
         var res = await _ticketRepository.SetTicketForResell(ticketId, resellPrice);

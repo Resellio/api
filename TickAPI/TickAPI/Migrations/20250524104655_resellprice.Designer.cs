@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TickAPI.Common.TickApiDbContext;
 
@@ -11,9 +12,11 @@ using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Migrations
 {
     [DbContext(typeof(TickApiDbContext))]
-    partial class TickApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250524104655_resellprice")]
+    partial class resellprice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -279,7 +282,7 @@ namespace TickAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("OwnerId")
+                    b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal?>("ResellPrice")
@@ -352,7 +355,9 @@ namespace TickAPI.Migrations
                 {
                     b.HasOne("TickAPI.Customers.Models.Customer", "Owner")
                         .WithMany("Tickets")
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("TickAPI.TicketTypes.Models.TicketType", "Type")
                         .WithMany("Tickets")
