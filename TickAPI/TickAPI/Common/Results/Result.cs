@@ -57,7 +57,7 @@ public record Result
             };
         }
 
-        return new ObjectResult(null)
+        return new ObjectResult(string.Empty)
         {
             StatusCode = successCode
         };
