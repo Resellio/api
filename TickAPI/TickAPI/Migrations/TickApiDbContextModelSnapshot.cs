@@ -34,7 +34,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("EventsId");
 
-                    b.ToTable("CategoryEvent");
+                    b.ToTable("CategoryEvent", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Addresses.Models.Address", b =>
@@ -66,7 +66,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Addresses");
+                    b.ToTable("Addresses", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Admins.Models.Admin", b =>
@@ -85,7 +85,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Categories.Models.Category", b =>
@@ -100,7 +100,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -157,7 +157,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Events.Models.Event", b =>
@@ -198,7 +198,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("OrganizerId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Organizers.Models.Organizer", b =>
@@ -230,7 +230,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Organizers");
+                    b.ToTable("Organizers", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.TicketTypes.Models.TicketType", b =>
@@ -263,7 +263,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("TicketTypes");
+                    b.ToTable("TicketTypes", (string)null);
                 });
 
             modelBuilder.Entity("TickAPI.Tickets.Models.Ticket", b =>
@@ -300,7 +300,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Tickets");
+                    b.ToTable("Tickets", (string)null);
                 });
 
             modelBuilder.Entity("CategoryEvent", b =>
