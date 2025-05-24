@@ -46,6 +46,7 @@ using TickAPI.Common.QR.Abstractions;
 using TickAPI.Common.QR.Services;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.Background;
+using TickAPI.ShoppingCarts.Options;
 using TickAPI.ShoppingCarts.Repositories;
 using TickAPI.ShoppingCarts.Services;
 using TickAPI.TicketTypes.Abstractions;
@@ -128,6 +129,8 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 builder.Services.AddHostedService<ShoppingCartSyncBackgroundService>();
+builder.Services.Configure<ShoppingCartOptions>(
+    builder.Configuration.GetSection("ShoppingCart"));
 
 // Add ticket type services
 builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();

@@ -1,5 +1,7 @@
-﻿using TickAPI.Common.Redis.Abstractions;
+﻿using Microsoft.Extensions.Options;
+using TickAPI.Common.Redis.Abstractions;
 using TickAPI.ShoppingCarts.Models;
+using TickAPI.ShoppingCarts.Options;
 
 namespace TickAPI.ShoppingCarts.Background;
 
@@ -7,12 +9,14 @@ public class ShoppingCartSyncBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ShoppingCartSyncBackgroundService> _logger;
-    private static readonly TimeSpan SyncInterval = TimeSpan.FromMinutes(5);
+    private readonly TimeSpan _syncInterval;
 
-    public ShoppingCartSyncBackgroundService(IServiceProvider serviceProvider, ILogger<ShoppingCartSyncBackgroundService> logger)
+    public ShoppingCartSyncBackgroundService(IServiceProvider serviceProvider,
+        ILogger<ShoppingCartSyncBackgroundService> logger, IOptions<ShoppingCartOptions> options)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _syncInterval = TimeSpan.FromMinutes(options.Value.SyncIntervalMinutes);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,7 +34,7 @@ public class ShoppingCartSyncBackgroundService : BackgroundService
                 _logger.LogError(ex, "Error while syncing shopping cart ticket counters");
             }
 
-            await Task.Delay(SyncInterval, stoppingToken);
+            await Task.Delay(_syncInterval, stoppingToken);
         }
     }
 

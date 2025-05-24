@@ -1,8 +1,10 @@
-﻿using TickAPI.Common.Redis.Abstractions;
+﻿using Microsoft.Extensions.Options;
+using TickAPI.Common.Redis.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.Models;
+using TickAPI.ShoppingCarts.Options;
 using TickAPI.Tickets.Models;
 
 namespace TickAPI.ShoppingCarts.Repositories;
@@ -10,11 +12,12 @@ namespace TickAPI.ShoppingCarts.Repositories;
 public class ShoppingCartRepository : IShoppingCartRepository
 {
     private readonly IRedisService _redisService;
-    private static readonly TimeSpan DefaultExpiry = TimeSpan.FromMinutes(15);
+    private readonly TimeSpan _defaultExpiry;
 
-    public ShoppingCartRepository(IRedisService redisService)
+    public ShoppingCartRepository(IRedisService redisService, IOptions<ShoppingCartOptions> options)
     {
         _redisService = redisService;
+        _defaultExpiry = TimeSpan.FromMinutes(options.Value.LifetimeMinutes);
     }
     
     public async Task<Result<ShoppingCart>> GetShoppingCartByEmailAsync(string customerEmail)
@@ -25,7 +28,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
         try
         {
             cart = await _redisService.GetObjectAsync<ShoppingCart>(cartKey);
-            await _redisService.KeyExpireAsync(cartKey, DefaultExpiry);
+            await _redisService.KeyExpireAsync(cartKey, _defaultExpiry);
         }
         catch (Exception e)
         {
@@ -41,7 +44,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
 
         try
         {
-            var res = await _redisService.SetObjectAsync(cartKey, shoppingCart, DefaultExpiry);
+            var res = await _redisService.SetObjectAsync(cartKey, shoppingCart, _defaultExpiry);
             if (!res)
             {
                 return Result.Failure(StatusCodes.Status500InternalServerError, "the shopping cart could not be updated");
