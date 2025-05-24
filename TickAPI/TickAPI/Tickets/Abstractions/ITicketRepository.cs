@@ -12,4 +12,5 @@ public interface ITicketRepository
     public IQueryable<Ticket> GetTicketsByEventId(Guid eventId);
     public IQueryable<Ticket> GetTicketsByCustomerEmail(string email);
     public Task<Result> MarkTicketAsUsed(Guid id);
+    public Task<Result> SetTicketForResell(Guid ticketId, decimal newPrice);
 }

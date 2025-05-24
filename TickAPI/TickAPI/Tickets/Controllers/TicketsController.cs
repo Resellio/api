@@ -63,5 +63,18 @@ public class TicketsController : ControllerBase
        var res = await _ticketService.ScanTicket(id);
        return res.ToObjectResult();
     }
+
+    [HttpPost("resell/{id:guid}")]
+
+    public async Task<ActionResult<bool>> SetTicketForResell(Guid id, [FromBody] SetTicketForResellDataDto data)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var res = await _ticketService.SetTicketForResellAsync(id, emailResult.Value!, data.ResellPrice);
+        return res.ToObjectResult();
+    }
     
 }
