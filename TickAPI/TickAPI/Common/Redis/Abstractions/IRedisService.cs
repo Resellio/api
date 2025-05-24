@@ -13,4 +13,5 @@ public interface IRedisService
     public Task<long> DecrementValueAsync(string key, long value = 1);
     public Task<long?> GetLongValueAsync(string key);
     public Task<bool> SetLongValueAsync(string key, long value, TimeSpan? expiry = null);
+    public Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern);
 }
