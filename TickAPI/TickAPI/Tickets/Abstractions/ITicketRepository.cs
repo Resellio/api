@@ -1,6 +1,5 @@
 ﻿using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
-using TickAPI.Customers.Models;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
 

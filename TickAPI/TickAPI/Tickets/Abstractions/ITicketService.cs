@@ -21,7 +21,6 @@ public interface ITicketService
     public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email,
         string scanUrl);
     public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
-
     public Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
         string? seats = null);
 }

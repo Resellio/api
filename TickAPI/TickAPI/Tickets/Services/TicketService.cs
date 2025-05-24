@@ -35,7 +35,6 @@ public class TicketService : ITicketService
         _qrCodeService = qrCodeService;
     }
     
-    // TODO: Update this method to also count tickets cached in Redis as unavailable
     public async Task<Result<uint>> GetNumberOfAvailableTicketsByTypeAsync(TicketType ticketType)
     {
         var unavailableTickets = _ticketRepository.GetAllTicketsByTicketType(ticketType);

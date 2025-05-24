@@ -57,7 +57,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
 
     public async Task<Result> AddNewTicketsToCartAsync(string customerEmail, Guid ticketTypeId, uint amount)
     {
-        if (amount <= 0)
+        if (amount == 0)
         {
             return Result.Failure(StatusCodes.Status400BadRequest, "amount of bought tickets must be greater than 0");
         }
@@ -105,7 +105,7 @@ public class ShoppingCartRepository : IShoppingCartRepository
 
     public async Task<Result> RemoveNewTicketsFromCartAsync(string customerEmail, Guid ticketTypeId, uint amount)
     {
-        if (amount <= 0)
+        if (amount == 0)
         {
             return Result.Failure(StatusCodes.Status400BadRequest, "amount of removed tickets must be greater than 0");
         }
