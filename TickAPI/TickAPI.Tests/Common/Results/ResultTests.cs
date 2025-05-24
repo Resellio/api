@@ -122,7 +122,7 @@ public class ResultTests
         // Assert
         Assert.IsType<ObjectResult>(objectResult);
         Assert.Equal(StatusCodes.Status200OK, objectResult.StatusCode);
-        Assert.Null(objectResult.Value);
+        Assert.Equal(string.Empty, objectResult.Value);
     }
     
     [Fact]
@@ -138,6 +138,6 @@ public class ResultTests
         // Assert
         Assert.IsType<ObjectResult>(objectResult);
         Assert.Equal(customSuccessCode, objectResult.StatusCode);
-        Assert.Null(objectResult.Value);
+        Assert.Equal(string.Empty, objectResult.Value);
     }
 }
