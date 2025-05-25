@@ -20,35 +20,29 @@ public class MailService : IMailService
         _fromEmailAddress = new EmailAddress(fromEmail, fromName);
     }
 
-    public async Task<Result> SendTicketAsync(string toEmail, string toLogin, string eventName, byte[] pdfData)
+    public async Task<Result> SendTicketAsync(MailRecipient recipient, string eventName, byte[] pdfData)
     {
         var subject = $"Ticket for {eventName}";
         var htmlContent = "<strong>Download your ticket from attachments</strong>";
         var base64Content = Convert.ToBase64String(pdfData);
-        List<MailAttachment> attachments =
-        [
-            new MailAttachment
-            {
-                base64Content = base64Content,
-                fileName = "ticket.pdf",
-                fileType = "application/pdf"
-            }
+        List<MailAttachment> attachments = [
+            new MailAttachment("ticket.pdf", base64Content, "application/pdf")
         ];
-        var res = await SendMailAsync(toEmail, toLogin, subject, htmlContent, attachments);
+        var res = await SendMailAsync([recipient], subject, htmlContent, attachments);
         return res;
     }
 
-    public async Task<Result> SendMailAsync(string toEmail, string toLogin, string subject, string content,
+    public async Task<Result> SendMailAsync(IEnumerable<MailRecipient> recipients, string subject, string content,
         List<MailAttachment>? attachments = null)
     {
-        var toEmailAddress = new EmailAddress(toEmail, toLogin);
-        var msg = MailHelper.CreateSingleEmail(_fromEmailAddress, toEmailAddress, subject, 
-            null, content);
+        var toEmailAddresses = recipients.Select(r => new EmailAddress(r.Email, r.Login)).ToList();
+        var msg = MailHelper.CreateSingleEmailToMultipleRecipients(_fromEmailAddress, toEmailAddresses, subject, null, content);
+        
         if (attachments != null)
         {
             foreach (var a in attachments)
             {
-                msg.AddAttachment(a.fileName, a.base64Content, a.fileType);
+                msg.AddAttachment(a.FileName, a.Base64Content, a.FileType);
             }
         }
         
