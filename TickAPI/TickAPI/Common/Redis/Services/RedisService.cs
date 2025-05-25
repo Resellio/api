@@ -6,11 +6,13 @@ namespace TickAPI.Common.Redis.Services;
 
 public class RedisService : IRedisService
 {
+    private readonly IConnectionMultiplexer _connectionMultiplexer;
     private readonly IDatabase _database;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public RedisService(IConnectionMultiplexer connectionMultiplexer)
     {
+        _connectionMultiplexer = connectionMultiplexer;
         _database = connectionMultiplexer.GetDatabase();
     }
     
@@ -83,6 +85,12 @@ public class RedisService : IRedisService
     public async Task<bool> SetLongValueAsync(string key, long value, TimeSpan? expiry = null)
     {
         return await RetryAsync(async () => await _database.StringSetAsync(key, value.ToString(), expiry));
+    }
+
+    public async Task<IEnumerable<string>> GetKeysByPatternAsync(string pattern)
+    {
+        var server = _connectionMultiplexer.GetServer(_connectionMultiplexer.GetEndPoints().First());
+        return server.Keys(pattern: pattern).Select(k => k.ToString());
     }
 
     private static async Task<T> RetryAsync<T>(Func<Task<T>> action, int retryCount = 3, int millisecondsDelay = 100)

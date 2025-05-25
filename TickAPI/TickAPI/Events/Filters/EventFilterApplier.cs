@@ -14,8 +14,12 @@ public class EventFilterApplier : IEventFilterApplier
         _eventFilter = eventFilter;
         _filterActions = new Dictionary<Func<EventFiltersDto, bool>, Action<EventFiltersDto>>
         {
-            { f => !string.IsNullOrEmpty(f.Name), f => _eventFilter.FilterByName(f.Name!) },
-            { f => !string.IsNullOrEmpty(f.Descritpion), f => _eventFilter.FilterByDescription(f.Descritpion!) },
+            { f => !string.IsNullOrEmpty(f.SearchQuery), f =>
+                {
+                    _eventFilter.FilterByName(f.SearchQuery!);
+                    _eventFilter.FilterByDescription(f.SearchQuery!);
+                }
+            },
             { f => f.StartDate.HasValue, f => _eventFilter.FilterByStartDate(f.StartDate!.Value) },
             { f => f.MinStartDate.HasValue, f => _eventFilter.FilterByMinStartDate(f.MinStartDate!.Value) },
             { f => f.MaxStartDate.HasValue, f => _eventFilter.FilterByMaxStartDate(f.MaxStartDate!.Value) },
@@ -31,7 +35,9 @@ public class EventFilterApplier : IEventFilterApplier
             { f => !string.IsNullOrEmpty(f.AddressStreet), f => _eventFilter.FilterByAddressStreet(
                 f.AddressStreet!, 
                 f.HouseNumber, 
-                f.FlatNumber) }
+                f.FlatNumber) },
+            {f => !string.IsNullOrEmpty(f.PostalCode), f => _eventFilter.FilterByAddressPostalCode(f.PostalCode!)},
+            {f => f.CategoriesNames is { Count: > 0 }, f => _eventFilter.FilterByCategoriesNames(f.CategoriesNames!)}
         };
     }
 

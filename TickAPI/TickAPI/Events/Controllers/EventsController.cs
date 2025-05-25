@@ -33,16 +33,16 @@ public class EventsController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
         
         var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, 
             request.StartDate, request.EndDate, request.MinimumAge,  request.CreateAddress, request.Categories 
             , request.TicketTypes ,request.EventStatus, email);
-        
+
         if (newEventResult.IsError)
-            return StatusCode(newEventResult.StatusCode, newEventResult.ErrorMsg);
+            return newEventResult.ToObjectResult();
         
         return Ok("Event created succesfully");
     }
@@ -54,24 +54,19 @@ public class EventsController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
 
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
         if (organizerResult.IsError)
         {
-            return StatusCode(organizerResult.StatusCode, organizerResult.ErrorMsg);
+            return organizerResult.ToObjectResult();
         }
         var organizer = organizerResult.Value!;
 
         var paginatedDataResult = await _eventService.GetOrganizerEventsAsync(organizer, page, pageSize, eventFilters);
-        if (paginatedDataResult.IsError)
-        {
-            return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
-        }
-
-        return Ok(paginatedDataResult.Value!);
+        return paginatedDataResult.ToObjectResult();
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
@@ -81,24 +76,19 @@ public class EventsController : ControllerBase
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
-            return StatusCode(emailResult.StatusCode, emailResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
         var email = emailResult.Value!;
 
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
         if (organizerResult.IsError)
         {
-            return StatusCode(organizerResult.StatusCode, organizerResult.ErrorMsg);
+            return organizerResult.ToObjectResult();
         }
         var organizer = organizerResult.Value!;
 
         var paginationDetailsResult = await _eventService.GetOrganizerEventsPaginationDetailsAsync(organizer, pageSize);
-        if (paginationDetailsResult.IsError)
-        {
-            return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
-        }
-
-        return Ok(paginationDetailsResult.Value!);
+        return paginationDetailsResult.ToObjectResult();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
@@ -106,11 +96,7 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<PaginatedData<GetEventResponseDto>>> GetEvents([FromQuery] int pageSize, [FromQuery] int page, [FromQuery] EventFiltersDto eventFilters)
     {
         var paginatedDataResult = await _eventService.GetEventsAsync(page, pageSize, eventFilters);
-        if (paginatedDataResult.IsError)
-        {
-            return StatusCode(paginatedDataResult.StatusCode, paginatedDataResult.ErrorMsg);
-        }
-        return Ok(paginatedDataResult.Value!);
+        return paginatedDataResult.ToObjectResult();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
@@ -118,11 +104,7 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<PaginationDetails>> GetEventsPaginationDetails([FromQuery] int pageSize)
     {
         var paginationDetailsResult = await _eventService.GetEventsPaginationDetailsAsync(pageSize);
-        if (paginationDetailsResult.IsError)
-        {
-            return StatusCode(paginationDetailsResult.StatusCode, paginationDetailsResult.ErrorMsg);
-        }
-        return Ok(paginationDetailsResult.Value!);
+        return paginationDetailsResult.ToObjectResult();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedUserPolicy)]
@@ -130,10 +112,33 @@ public class EventsController : ControllerBase
     public async Task<ActionResult<GetEventDetailsResponseDto>> GetEventDetails([FromRoute] Guid id)
     {
         var eventDetailsResult = await _eventService.GetEventDetailsAsync(id);
-        if (eventDetailsResult.IsError)
+        return eventDetailsResult.ToObjectResult();
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<EditEventResponseDto>> EditEvent([FromRoute] Guid id, [FromBody] EditEventDto request)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
         {
-            return StatusCode(eventDetailsResult.StatusCode, eventDetailsResult.ErrorMsg);
+            return emailResult.ToObjectResult();
         }
-        return Ok(eventDetailsResult.Value!);
+        var email = emailResult.Value!;
+
+        var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
+        if (organizerResult.IsError)
+        {
+            return organizerResult.ToObjectResult();
+        }
+        var organizer = organizerResult.Value!;
+
+        var editedEventResult = await _eventService.EditEventAsync(organizer, id, request.Name, request.Description, request.StartDate, request.EndDate, request.MinimumAge,
+            request.EditAddress, request.Categories, request.EventStatus);
+        
+        if (editedEventResult.IsError)
+            return editedEventResult.ToObjectResult();
+        
+        return Ok("Event edited succesfully");
     }
 }

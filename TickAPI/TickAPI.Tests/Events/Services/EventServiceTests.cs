@@ -9,6 +9,7 @@ using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
 using TickAPI.Categories.Models;
+using TickAPI.Common.Results;
 using TickAPI.Events.Models;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
@@ -630,8 +631,8 @@ public class EventServiceTests
             .ReturnsAsync(Result<Event>.Success(@event));
 
         ticketServiceMock
-            .Setup(m => m.GetNumberOfAvailableTicketsByType(It.IsAny<TicketType>()))
-            .Returns((TicketType input) => 
+            .Setup(m => m.GetNumberOfAvailableTicketsByTypeAsync(It.IsAny<TicketType>()))
+            .ReturnsAsync((TicketType input) => 
                 Result<uint>.Success((uint)(input.Price / 10))
             );
         
@@ -682,5 +683,846 @@ public class EventServiceTests
         Assert.True(result.IsError);
         Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
         Assert.Equal($"event with id {@event.Id} not found", result.ErrorMsg);
+    }
+    
+    [Fact]
+    public async Task EditEventAsync_WhenDataValid_ShouldUpdateEvent()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description of a concert";
+        DateTime startDate = new DateTime(2025, 6, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Description = "Original description",
+            StartDate = new DateTime(2025, 5, 1),
+            EndDate = new DateTime(2025, 5, 15),
+            MinimumAge = 18,
+            EventStatus = EventStatus.TicketsAvailable,
+            Organizer = organizer,
+            Categories = new List<Category>
+            {
+                new Category { Name = "rock" }
+            },
+            Address = new Address
+            {
+                Country = "United States",
+                City = "Chicago",
+                Street = "State st",
+                HouseNumber = 100,
+                FlatNumber = null,
+                PostalCode = "60001"
+            },
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz"),
+            new EditEventCategoryDto("classical")
+        ];
+        
+        List<Category> expectedCategories =
+        [
+            new Category { Name = "jazz" },
+            new Category { Name = "classical" }
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        var updatedAddress = new Address
+        {
+            Country = "United States",
+            City = "New York",
+            Street = "Broadway",
+            HouseNumber = 42,
+            FlatNumber = null,
+            PostalCode = "10001"
+        };
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        eventRepositoryMock
+            .Setup(e => e.SaveEventAsync(It.IsAny<Event>()))
+            .ReturnsAsync(Result.Success());
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        addressServiceMock
+            .Setup(m => m.GetOrCreateAddressAsync(editAddress))
+            .ReturnsAsync(Result<Address>.Success(updatedAddress));
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        categoryServiceMock
+            .Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>()))
+            .Returns(Result<List<Category>>.Success(expectedCategories));
+
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(name, result.Value!.Name);
+        Assert.Equal(description, result.Value!.Description);
+        Assert.Equal(startDate, result.Value!.StartDate);
+        Assert.Equal(endDate, result.Value!.EndDate);
+        Assert.Equal(minimumAge, result.Value!.MinimumAge);
+        Assert.Equal(eventStatus, result.Value!.EventStatus);
+        Assert.Equal(expectedCategories.Count, result.Value!.Categories.Count);
+        Assert.Equal(updatedAddress, result.Value!.Address);
+        
+        // Verify repository was called to save the updated event
+        eventRepositoryMock.Verify(e => e.SaveEventAsync(It.IsAny<Event>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_WhenEventNotFound_ShouldReturnError()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 6, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz"),
+            new EditEventCategoryDto("classical")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Failure(StatusCodes.Status404NotFound, "Event not found or not owned by organizer"));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+        Assert.Equal("Event not found or not owned by organizer", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_WhenEndDateBeforeStartDate_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 7, 1);
+        DateTime endDate = new DateTime(2025, 6, 1); // End date before start date
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+        Assert.Equal("End date should be after start date", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_WhenStartDateChangedAndInPast_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 4, 1); // Start date in the past compared to current date
+        DateTime endDate = new DateTime(2025, 5, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [],
+            StartDate = new DateTime(2025, 3, 1),
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15)); // Current date is after start date
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+        Assert.Equal("Start date is in the past", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_StartDateNotChangedAndInPast_ShouldUpdateEvent()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description of a concert";
+        DateTime startDate = new DateTime(2020, 1, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Description = "Original description",
+            StartDate = new DateTime(2020, 1, 1),
+            EndDate = new DateTime(2025, 5, 15),
+            MinimumAge = 18,
+            EventStatus = EventStatus.TicketsAvailable,
+            Organizer = organizer,
+            Categories = new List<Category>
+            {
+                new Category { Name = "rock" }
+            },
+            Address = new Address
+            {
+                Country = "United States",
+                City = "Chicago",
+                Street = "State st",
+                HouseNumber = 100,
+                FlatNumber = null,
+                PostalCode = "60001"
+            },
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz"),
+            new EditEventCategoryDto("classical")
+        ];
+        
+        List<Category> expectedCategories =
+        [
+            new Category { Name = "jazz" },
+            new Category { Name = "classical" }
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        var updatedAddress = new Address
+        {
+            Country = "United States",
+            City = "New York",
+            Street = "Broadway",
+            HouseNumber = 42,
+            FlatNumber = null,
+            PostalCode = "10001"
+        };
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        eventRepositoryMock
+            .Setup(e => e.SaveEventAsync(It.IsAny<Event>()))
+            .ReturnsAsync(Result.Success());
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        addressServiceMock
+            .Setup(m => m.GetOrCreateAddressAsync(editAddress))
+            .ReturnsAsync(Result<Address>.Success(updatedAddress));
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        categoryServiceMock
+            .Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>()))
+            .Returns(Result<List<Category>>.Success(expectedCategories));
+
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(name, result.Value!.Name);
+        Assert.Equal(description, result.Value!.Description);
+        Assert.Equal(startDate, result.Value!.StartDate);
+        Assert.Equal(endDate, result.Value!.EndDate);
+        Assert.Equal(minimumAge, result.Value!.MinimumAge);
+        Assert.Equal(eventStatus, result.Value!.EventStatus);
+        Assert.Equal(expectedCategories.Count, result.Value!.Categories.Count);
+        Assert.Equal(updatedAddress, result.Value!.Address);
+        
+        // Verify repository was called to save the updated event
+        eventRepositoryMock.Verify(e => e.SaveEventAsync(It.IsAny<Event>()), Times.Once);
+    }
+    
+    [Fact]
+    public async Task EditEventAsync_WhenTicketTypeAvailableFromAfterEndDate_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 4, 1);
+        DateTime endDate = new DateTime(2025, 5, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [
+                new TicketType
+                {
+                    AvailableFrom = new DateTime(3000, 12, 12),
+                }
+            ],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        var addressServiceMock = new Mock<IAddressService>();
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2000, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+        Assert.Equal("Tickets can't be available after the event is over", result.ErrorMsg);
+    }
+    
+    [Fact]
+    public async Task EditEventAsync_WhenAddressServiceFails_ShouldPropagateError()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 6, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("", "", "", 0, null, ""); // Invalid address
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        addressServiceMock
+            .Setup(m => m.GetOrCreateAddressAsync(editAddress))
+            .ReturnsAsync(Result<Address>.Failure(StatusCodes.Status400BadRequest, "Invalid address data"));
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status400BadRequest, result.StatusCode);
+        Assert.Equal("Invalid address data", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_WhenCategoryServiceFails_ShouldPropagateError()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 6, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("non-existent-category")
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        var updatedAddress = new Address
+        {
+            Country = "United States",
+            City = "New York",
+            Street = "Broadway",
+            HouseNumber = 42,
+            FlatNumber = null,
+            PostalCode = "10001"
+        };
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        addressServiceMock
+            .Setup(m => m.GetOrCreateAddressAsync(editAddress))
+            .ReturnsAsync(Result<Address>.Success(updatedAddress));
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        categoryServiceMock
+            .Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>()))
+            .Returns(Result<List<Category>>.Failure(StatusCodes.Status404NotFound, "One or more categories not found"));
+        
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status404NotFound, result.StatusCode);
+        Assert.Equal("One or more categories not found", result.ErrorMsg);
+    }
+
+    [Fact]
+    public async Task EditEventAsync_WhenSaveEventFails_ShouldPropagateError()
+    {
+        // Arrange
+        var organizer = new Organizer
+        {
+            Email = "organizer@example.com",
+            IsVerified = true
+        };
+        var eventId = Guid.NewGuid();
+        string name = "Updated Concert";
+        string description = "Updated description";
+        DateTime startDate = new DateTime(2025, 6, 1);
+        DateTime endDate = new DateTime(2025, 7, 1);
+        uint? minimumAge = 21;
+        EventStatus eventStatus = EventStatus.SoldOut;
+        
+        var existingEvent = new Event
+        {
+            Id = eventId,
+            Name = "Original Concert",
+            Organizer = organizer,
+            TicketTypes = [],
+        };
+        
+        List<EditEventCategoryDto> categories =
+        [
+            new EditEventCategoryDto("jazz")
+        ];
+        
+        List<Category> expectedCategories =
+        [
+            new Category { Name = "jazz" }
+        ];
+        
+        CreateAddressDto editAddress = new CreateAddressDto("United States", "New York", "Broadway", 42, null, "10001");
+        var updatedAddress = new Address
+        {
+            Country = "United States",
+            City = "New York",
+            Street = "Broadway",
+            HouseNumber = 42,
+            FlatNumber = null,
+            PostalCode = "10001"
+        };
+        
+        var eventRepositoryMock = new Mock<IEventRepository>();
+        eventRepositoryMock
+            .Setup(e => e.GetEventByIdAndOrganizerAsync(eventId, organizer))
+            .ReturnsAsync(Result<Event>.Success(existingEvent));
+        eventRepositoryMock
+            .Setup(e => e.SaveEventAsync(It.IsAny<Event>()))
+            .ReturnsAsync(Result.Failure(StatusCodes.Status500InternalServerError, "Database error occurred"));
+        
+        var organizerServiceMock = new Mock<IOrganizerService>();
+        
+        var addressServiceMock = new Mock<IAddressService>();
+        addressServiceMock
+            .Setup(m => m.GetOrCreateAddressAsync(editAddress))
+            .ReturnsAsync(Result<Address>.Success(updatedAddress));
+        
+        var dateTimeServiceMock = new Mock<IDateTimeService>();
+        dateTimeServiceMock
+            .Setup(m => m.GetCurrentDateTime())
+            .Returns(new DateTime(2025, 4, 15));
+        
+        var categoryServiceMock = new Mock<ICategoryService>();
+        categoryServiceMock
+            .Setup(c => c.GetCategoriesByNames(It.IsAny<List<string>>()))
+            .Returns(Result<List<Category>>.Success(expectedCategories));
+        
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var ticketServiceMock = new Mock<ITicketService>();
+        
+        var sut = new EventService(
+            eventRepositoryMock.Object, 
+            organizerServiceMock.Object, 
+            addressServiceMock.Object, 
+            dateTimeServiceMock.Object, 
+            paginationServiceMock.Object, 
+            categoryServiceMock.Object, 
+            ticketServiceMock.Object);
+        
+        // Act
+        var result = await sut.EditEventAsync(
+            organizer, 
+            eventId, 
+            name, 
+            description, 
+            startDate, 
+            endDate, 
+            minimumAge, 
+            editAddress, 
+            categories, 
+            eventStatus);
+        
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(StatusCodes.Status500InternalServerError, result.StatusCode);
+        Assert.Equal("Database error occurred", result.ErrorMsg);
     }
 }

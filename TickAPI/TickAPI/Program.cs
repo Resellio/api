@@ -39,6 +39,18 @@ using TickAPI.Common.Redis.Abstractions;
 using TickAPI.Common.Redis.Services;
 using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Mail.Services;
+using TickAPI.Common.Payment.Abstractions;
+using TickAPI.Common.Payment.Health;
+using TickAPI.Common.Payment.Services;
+using TickAPI.Common.QR.Abstractions;
+using TickAPI.Common.QR.Services;
+using TickAPI.ShoppingCarts.Abstractions;
+using TickAPI.ShoppingCarts.Background;
+using TickAPI.ShoppingCarts.Options;
+using TickAPI.ShoppingCarts.Repositories;
+using TickAPI.ShoppingCarts.Services;
+using TickAPI.TicketTypes.Abstractions;
+using TickAPI.TicketTypes.Repositories;
 
 // Builder constants
 const string allowClientPolicyName = "AllowClient";
@@ -113,6 +125,16 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
+// Add shopping cart services.
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
+builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
+builder.Services.AddHostedService<ShoppingCartSyncBackgroundService>();
+builder.Services.Configure<ShoppingCartOptions>(
+    builder.Configuration.GetSection("ShoppingCart"));
+
+// Add ticket type services
+builder.Services.AddScoped<ITicketTypeRepository, TicketTypeRepository>();
+
 // Add common services.
 builder.Services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
@@ -122,6 +144,8 @@ builder.Services.AddScoped<IDateTimeService, DateTimeService>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -180,7 +204,9 @@ builder.Services.AddCors(options =>
 
 // TODO: when we start using redis we should probably also check here if we can connect to it
 // Setup healtcheck
-builder.Services.AddHealthChecks().AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "");
+builder.Services.AddHealthChecks()
+    .AddSqlServer(connectionString: builder.Configuration.GetConnectionString("ResellioDatabase") ?? "")
+    .AddCheck<PaymentGatewayHealthCheck>("PaymentGateway");
 
 // Add http client
 builder.Services.AddHttpClient();

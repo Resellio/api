@@ -3,7 +3,7 @@
 public record AboutMeOrganizerResponseDto(
     string Email,
     string FirstName,
-    string LastName,
+    string? LastName,
     string DisplayName,
     bool IsVerified,
     DateTime CreationDate

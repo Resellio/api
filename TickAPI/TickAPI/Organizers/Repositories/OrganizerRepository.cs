@@ -53,4 +53,9 @@ public class OrganizerRepository : IOrganizerRepository
         
         return Result.Success();
     }
+
+    public IQueryable<Organizer> GetOrganizers()
+    {
+        return _tickApiDbContext.Organizers;
+    }
 }

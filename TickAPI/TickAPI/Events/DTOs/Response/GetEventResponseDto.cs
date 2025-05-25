@@ -9,8 +9,8 @@ public record GetEventResponseDto(
     DateTime StartDate,
     DateTime EndDate,
     uint? MinimumAge,
-    decimal MinimumPrice,
-    decimal MaximumPrice,
+    GetEventResponsePriceInfoDto MinimumPrice,
+    GetEventResponsePriceInfoDto MaximumPrice,
     List<GetEventResponseCategoryDto> Categories,
     EventStatus Status,
     GetEventResponseAddressDto Address

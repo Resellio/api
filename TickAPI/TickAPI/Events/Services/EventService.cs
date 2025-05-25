@@ -4,6 +4,7 @@ using TickAPI.Common.Pagination.Abstractions;
 using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
+using TickAPI.Common.Results;
 using TickAPI.Common.Time.Abstractions;
 using TickAPI.Events.Abstractions;
 using TickAPI.Events.Models;
@@ -40,36 +41,13 @@ public class EventService : IEventService
         _ticketService = ticketService;
     }
 
-    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description,  DateTime startDate, DateTime endDate, 
+    public async Task<Result<Event>> CreateNewEventAsync(string name, string  description, DateTime startDate, DateTime endDate, 
         uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories, List<CreateEventTicketTypeDto> ticketTypes,
         EventStatus eventStatus, string organizerEmail)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
             return Result<Event>.PropagateError(organizerResult);
-        
-
-        if (endDate < startDate)
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
-        
-        if (startDate < _dateTimeService.GetCurrentDateTime())
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
-
-        if (ticketTypes.Any(t => t.AvailableFrom > endDate))
-        {
-            return Result<Event>.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
-        }
-        
-        var address = await _addressService.GetOrCreateAddressAsync(createAddress);
-
-        var categoryNames = categories.Select(c => c.CategoryName).ToList();
-
-        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
-        
-        if (categoriesByNameResult.IsError)
-        {
-            return Result<Event>.PropagateError(categoriesByNameResult);
-        }
 
         var ticketTypesConverted = ticketTypes.Select(t => new TicketType
             {
@@ -80,7 +58,23 @@ public class EventService : IEventService
                 Price = t.Price,
             })
             .ToList();
-
+        
+        var datesCheck = CheckEventDates(startDate, endDate, ticketTypesConverted);
+        if (datesCheck.IsError)
+            return Result<Event>.PropagateError(datesCheck);
+        
+        var address = await _addressService.GetOrCreateAddressAsync(createAddress);
+        if (address.IsError)
+        {
+            return Result<Event>.PropagateError(address);
+        }
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        if (categoriesByNameResult.IsError)
+        {
+            return Result<Event>.PropagateError(categoriesByNameResult);
+        }
+        
         var @event = new Event
         {
             Name = name,
@@ -139,10 +133,29 @@ public class EventService : IEventService
             ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList()
             : new List<GetEventResponseCategoryDto>();
         
-        var ticketTypes = ev.TicketTypes.Count > 0
-            ? ev.TicketTypes.Select((t) => new GetEventDetailsResponseTicketTypeDto(t.Id, t.Description, t.Price,
-                t.Currency, t.AvailableFrom, _ticketService.GetNumberOfAvailableTicketsByType(t).Value)).ToList()
-            : new List<GetEventDetailsResponseTicketTypeDto>();
+        var ticketTypes = new List<GetEventDetailsResponseTicketTypeDto>();
+
+        if (ev.TicketTypes.Count > 0)
+        {
+            foreach (var t in ev.TicketTypes)
+            {
+                var availableCountResult = await _ticketService.GetNumberOfAvailableTicketsByTypeAsync(t);
+
+                if (availableCountResult.IsError)
+                {
+                    return Result<GetEventDetailsResponseDto>.PropagateError(availableCountResult);
+                }
+        
+                ticketTypes.Add(new GetEventDetailsResponseTicketTypeDto(
+                    t.Id,
+                    t.Description,
+                    t.Price,
+                    t.Currency,
+                    t.AvailableFrom,
+                    availableCountResult.Value
+                ));
+            }
+        }
         
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode,
             ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
@@ -161,6 +174,51 @@ public class EventService : IEventService
         );
         
         return Result<GetEventDetailsResponseDto>.Success(details);
+    }
+
+    public async Task<Result<Event>> EditEventAsync(Organizer organizer, Guid eventId, string name, string description, DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto editAddress, List<EditEventCategoryDto> categories,
+        EventStatus eventStatus)
+    {
+        var existingEventResult = await _eventRepository.GetEventByIdAndOrganizerAsync(eventId, organizer);
+        if (existingEventResult.IsError)
+        {
+            return existingEventResult;
+        }
+        var existingEvent = existingEventResult.Value!;
+        
+        var datesCheck = CheckEventDates(startDate, endDate, existingEvent.TicketTypes, existingEvent.StartDate == startDate);
+        if (datesCheck.IsError)
+            return Result<Event>.PropagateError(datesCheck);
+
+        var address = await _addressService.GetOrCreateAddressAsync(editAddress);
+        if (address.IsError)
+        {
+            return Result<Event>.PropagateError(address);
+        }
+        
+        var categoryNames = categories.Select(c => c.CategoryName).ToList();
+        var categoriesByNameResult = _categoryService.GetCategoriesByNames(categoryNames);
+        if (categoriesByNameResult.IsError)
+        {
+            return Result<Event>.PropagateError(categoriesByNameResult);
+        }
+
+        existingEvent.Name = name;
+        existingEvent.Description = description;
+        existingEvent.StartDate = startDate;
+        existingEvent.EndDate = endDate;
+        existingEvent.MinimumAge = minimumAge;
+        existingEvent.Address = address.Value!;
+        existingEvent.Categories = categoriesByNameResult.Value!;
+        existingEvent.EventStatus = eventStatus;
+
+        var saveResult = await _eventRepository.SaveEventAsync(existingEvent);
+        if (saveResult.IsError)
+        {
+            return Result<Event>.PropagateError(saveResult);
+        }
+
+        return Result<Event>.Success(existingEvent);
     }
 
     private async Task<Result<PaginatedData<GetEventResponseDto>>> GetPaginatedEventsAsync(IQueryable<Event> events, int page, int pageSize)
@@ -193,10 +251,30 @@ public class EventService : IEventService
         var categories = ev.Categories.Count > 0 ? ev.Categories.Select((c) => new GetEventResponseCategoryDto(c.Name)).ToList() : new List<GetEventResponseCategoryDto>(); 
         var address = new GetEventResponseAddressDto(ev.Address.Country, ev.Address.City, ev.Address.PostalCode, ev.Address.Street, ev.Address.HouseNumber, ev.Address.FlatNumber);
         
-        var minimumPrice = ev.TicketTypes.Min(t => t.Price);
-        var maximumPrice = ev.TicketTypes.Max(t => t.Price);
+        // Here we assume that there is at least one ticket type in each event
+        var ttMinimumPrice = ev.TicketTypes.MinBy(t => t.Price)!;
+        var ttMaximumPrice = ev.TicketTypes.MaxBy(t => t.Price)!;
+
+        var minimumPrice = new GetEventResponsePriceInfoDto(ttMinimumPrice.Price, ttMinimumPrice.Currency);
+        var maximumPrice = new GetEventResponsePriceInfoDto(ttMaximumPrice.Price, ttMaximumPrice.Currency);
         
         return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
             minimumPrice, maximumPrice, categories, ev.EventStatus, address);
+    }
+
+    private Result CheckEventDates(DateTime startDate, DateTime endDate, IEnumerable<TicketType> ticketTypes, bool skipStartDateEvaluation = false)
+    {
+        if (endDate < startDate)
+            return Result.Failure(StatusCodes.Status400BadRequest, "End date should be after start date");
+        
+        if (!skipStartDateEvaluation && startDate < _dateTimeService.GetCurrentDateTime())
+            return Result.Failure(StatusCodes.Status400BadRequest, "Start date is in the past");
+        
+        if (ticketTypes.Any(t => t.AvailableFrom > endDate))
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, "Tickets can't be available after the event is over");
+        }
+
+        return Result.Success();
     }
 }
