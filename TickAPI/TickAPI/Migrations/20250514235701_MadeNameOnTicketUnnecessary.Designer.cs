@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TickAPI.Common.TickApiDbContext;
 
@@ -11,9 +12,11 @@ using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Migrations
 {
     [DbContext(typeof(TickApiDbContext))]
-    partial class TickApiDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250514235701_MadeNameOnTicketUnnecessary")]
+    partial class MadeNameOnTicketUnnecessary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,7 +37,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("EventsId");
 
-                    b.ToTable("CategoryEvent", (string)null);
+                    b.ToTable("CategoryEvent");
                 });
 
             modelBuilder.Entity("TickAPI.Addresses.Models.Address", b =>
@@ -66,7 +69,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("TickAPI.Admins.Models.Admin", b =>
@@ -85,7 +88,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins", (string)null);
+                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("TickAPI.Categories.Models.Category", b =>
@@ -100,7 +103,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
 
                     b.HasData(
                         new
@@ -157,7 +160,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("TickAPI.Events.Models.Event", b =>
@@ -198,7 +201,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("OrganizerId");
 
-                    b.ToTable("Events", (string)null);
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("TickAPI.Organizers.Models.Organizer", b =>
@@ -230,7 +233,7 @@ namespace TickAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Organizers", (string)null);
+                    b.ToTable("Organizers");
                 });
 
             modelBuilder.Entity("TickAPI.TicketTypes.Models.TicketType", b =>
@@ -263,7 +266,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("TicketTypes", (string)null);
+                    b.ToTable("TicketTypes");
                 });
 
             modelBuilder.Entity("TickAPI.Tickets.Models.Ticket", b =>
@@ -281,9 +284,6 @@ namespace TickAPI.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal?>("ResellPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Seats")
                         .HasColumnType("nvarchar(max)");
 
@@ -299,7 +299,7 @@ namespace TickAPI.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("CategoryEvent", b =>

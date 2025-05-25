@@ -13,4 +13,5 @@ public interface ITicketRepository
     public IQueryable<Ticket> GetTicketsByCustomerEmail(string email);
     public Task<Result> MarkTicketAsUsed(Guid id);
     public Task<Result> SetTicketForResell(Guid ticketId, decimal newPrice);
+    public Task<Result> AddTicketAsync(Ticket ticket);
 }
