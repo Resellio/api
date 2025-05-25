@@ -64,16 +64,16 @@ public class TicketsController : ControllerBase
        return res.ToObjectResult();
     }
 
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpPost("resell/{id:guid}")]
-
-    public async Task<ActionResult<bool>> SetTicketForResell(Guid id, [FromBody] SetTicketForResellDataDto data)
+    public async Task<ActionResult<bool>> SetTicketForResell([FromRoute] Guid id, [FromBody] SetTicketForResellDataDto data)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
         {
             return emailResult.ToObjectResult();
         }
-        var res = await _ticketService.SetTicketForResellAsync(id, emailResult.Value!, data.ResellPrice);
+        var res = await _ticketService.SetTicketForResellAsync(id, emailResult.Value!, data.ResellPrice, data.ResellCurrency);
         return res.ToObjectResult();
     }
     

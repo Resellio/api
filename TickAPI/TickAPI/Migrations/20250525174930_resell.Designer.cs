@@ -12,8 +12,8 @@ using TickAPI.Common.TickApiDbContext;
 namespace TickAPI.Migrations
 {
     [DbContext(typeof(TickApiDbContext))]
-    [Migration("20250524104655_resellprice")]
-    partial class resellprice
+    [Migration("20250525174930_resell")]
+    partial class resell
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -279,11 +279,13 @@ namespace TickAPI.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("NameOnTicket")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ResellCurrency")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("ResellPrice")
                         .HasColumnType("decimal(18,2)");

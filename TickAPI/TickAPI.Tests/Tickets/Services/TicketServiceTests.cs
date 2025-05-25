@@ -651,7 +651,7 @@ public class TicketServiceTests
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
-        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 0);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 0, "zl");
 
         Assert.True(result.IsError);
         Assert.Equal(500, result.StatusCode);
@@ -672,7 +672,7 @@ public class TicketServiceTests
         var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
-        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 160);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 160, "zl");
 
         Assert.True(result.IsError);
         Assert.Equal(500, result.StatusCode);
@@ -692,7 +692,7 @@ public class TicketServiceTests
         var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
-        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120, "zl");
 
         Assert.True(result.IsError);
         Assert.Equal(500, result.StatusCode);
@@ -714,7 +714,7 @@ public class TicketServiceTests
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
         
-        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120, "zl");
 
         Assert.True(result.IsError);
         Assert.Equal(500, result.StatusCode);
@@ -732,7 +732,7 @@ public class TicketServiceTests
             .ReturnsAsync(Result<Ticket>.Success(ticket));
 
         ticketRepositoryMock
-            .Setup(r => r.SetTicketForResell(It.IsAny<Guid>(), It.IsAny<decimal>()))
+            .Setup(r => r.SetTicketForResell(It.IsAny<Guid>(), It.IsAny<decimal>(), It.IsAny<string>()))
             .ReturnsAsync(Result.Success());
         
         var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
@@ -740,7 +740,7 @@ public class TicketServiceTests
         var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
             shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
 
-        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 130);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 130, "zl");
 
         Assert.False(result.IsError);
     }

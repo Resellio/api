@@ -185,7 +185,7 @@ public class TicketService : ITicketService
         return res;
     }
 
-    public async Task<Result> SetTicketForResellAsync(Guid ticketId, string email, decimal resellPrice)
+    public async Task<Result> SetTicketForResellAsync(Guid ticketId, string email, decimal resellPrice, string resellCurrency)
     {
         if (resellPrice <= 0)
         {
@@ -213,7 +213,7 @@ public class TicketService : ITicketService
             return Result.Failure(StatusCodes.Status500InternalServerError, "Ticket is already used");
         }
         
-        var res = await _ticketRepository.SetTicketForResell(ticketId, resellPrice);
+        var res = await _ticketRepository.SetTicketForResell(ticketId, resellPrice, resellCurrency);
         return res;
     }
 }

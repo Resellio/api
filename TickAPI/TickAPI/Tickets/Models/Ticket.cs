@@ -12,5 +12,6 @@ public class Ticket
     public string? Seats { get; set; }
     public bool ForResell { get; set; }
     public decimal? ResellPrice { get; set; }
+    public string? ResellCurrency { get; set; }
     public bool Used { get; set; }
 }

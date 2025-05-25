@@ -2,5 +2,6 @@
 
 public record SetTicketForResellDataDto
 (
-    decimal ResellPrice
+    decimal ResellPrice,
+    string ResellCurrency
 );
