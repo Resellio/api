@@ -4,10 +4,15 @@ using TickAPI.Common.Pagination.Responses;
 using TickAPI.Common.QR.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Customers.Abstractions;
+using TickAPI.Customers.Models;
+using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Tickets.Filters;
+using TickAPI.Tickets.Models;
+using TickAPI.TicketTypes.Abstractions;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Services;
@@ -15,21 +20,34 @@ namespace TickAPI.Tickets.Services;
 public class TicketService : ITicketService
 {
     private readonly ITicketRepository _ticketRepository;
+    private readonly ITicketTypeRepository _ticketTypeRepository;
+    private readonly IShoppingCartRepository _shoppingCartRepository;
     private readonly IPaginationService _paginationService;
     private readonly IQRCodeService _qrCodeService;
-    public TicketService(ITicketRepository ticketRepository, IPaginationService paginationService, IQRCodeService qrCodeService)
+
+    public TicketService(ITicketRepository ticketRepository, ITicketTypeRepository ticketTypeRepository, 
+        IShoppingCartRepository shoppingCartRepository, IPaginationService paginationService, IQRCodeService qrCodeService)
     {
         _ticketRepository = ticketRepository;
+        _ticketTypeRepository = ticketTypeRepository;
+        _shoppingCartRepository = shoppingCartRepository;
         _paginationService = paginationService;
         _qrCodeService = qrCodeService;
     }
     
-    // TODO: Update this method to also count tickets cached in Redis as unavailable
-    public Result<uint> GetNumberOfAvailableTicketsByType(TicketType ticketType)
+    public async Task<Result<uint>> GetNumberOfAvailableTicketsByTypeAsync(TicketType ticketType)
     {
         var unavailableTickets = _ticketRepository.GetAllTicketsByTicketType(ticketType);
+        var reservedTicketsAmountResult = await _shoppingCartRepository.GetAmountOfTicketTypeAsync(ticketType.Id);
+
+        if (reservedTicketsAmountResult.IsError)
+        {
+            return Result<uint>.PropagateError(reservedTicketsAmountResult);
+        }
         
-        var availableCount = ticketType.MaxCount - unavailableTickets.Count();
+        var reservedTicketsAmount = reservedTicketsAmountResult.Value;
+        
+        var availableCount = ticketType.MaxCount - unavailableTickets.Count() - reservedTicketsAmount;
 
         if (availableCount < 0)
         {
@@ -38,6 +56,32 @@ public class TicketService : ITicketService
         }
         
         return Result<uint>.Success((uint)availableCount);
+    }
+
+    public async Task<Result<uint>> GetNumberOfAvailableTicketsByTypeIdAsync(Guid ticketTypeId)
+    {
+        var ticketTypeResult = await _ticketTypeRepository.GetTicketTypeByIdAsync(ticketTypeId);
+
+        if (ticketTypeResult.IsError)
+        {
+            return Result<uint>.PropagateError(ticketTypeResult);
+        }
+        
+        return await GetNumberOfAvailableTicketsByTypeAsync(ticketTypeResult.Value!);
+    }
+
+    public async Task<Result<bool>> CheckTicketAvailabilityByTypeIdAsync(Guid ticketTypeId, uint amount)
+    {
+        var numberOfTicketsResult = await GetNumberOfAvailableTicketsByTypeIdAsync(ticketTypeId);
+
+        if (numberOfTicketsResult.IsError)
+        {
+            return Result<bool>.PropagateError(numberOfTicketsResult);
+        }
+        
+        var availableAmount = numberOfTicketsResult.Value!;
+
+        return availableAmount >= amount ? Result<bool>.Success(true) : Result<bool>.Success(false);
     }
 
     public async Task<Result<PaginatedData<GetTicketForResellResponseDto>>> GetTicketsForResellAsync(Guid eventId, int page, int pageSize)
@@ -105,11 +149,39 @@ public class TicketService : ITicketService
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
 
+    public async Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId)
+    {
+        var ticketTypeResult = await _ticketTypeRepository.GetTicketTypeByIdAsync(ticketTypeId);
+
+        if (ticketTypeResult.IsError)
+        {
+            return Result<TicketType>.PropagateError(ticketTypeResult);
+        }
+        
+        return Result<TicketType>.Success(ticketTypeResult.Value!);
+    }
+
+    public async Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+        string? seats = null)
+    {
+        var ticket = new Ticket
+        {
+            Type = type,
+            Owner = owner,
+            NameOnTicket = nameOnTicket,
+            Seats = seats,
+            ForResell = false,
+            Used = false,
+        };
+        
+        var addTicketResult = await _ticketRepository.AddTicketAsync(ticket);
+
+        return addTicketResult;
+    }
+
     public async Task<Result> ScanTicket(Guid ticketGuid)
     {
         var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);
         return res;
     }
-    
-    
 }
