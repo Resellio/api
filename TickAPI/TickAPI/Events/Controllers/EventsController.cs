@@ -141,4 +141,26 @@ public class EventsController : ControllerBase
         
         return Ok("Event edited succesfully");
     }
+
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [HttpPost("{id:guid}/message-to-participants")]
+    public async Task<ActionResult> SendMessageToEventParticipants([FromRoute] Guid id, [FromBody] SendMessageToParticipantsDto request)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var organizerResult = await _organizerService.GetOrganizerByEmailAsync(email);
+        if (organizerResult.IsError)
+        {
+            return organizerResult.ToObjectResult();
+        }
+        var organizer = organizerResult.Value!;
+
+        var result = await _eventService.SendMessageToParticipants(organizer, id, request.Subject, request.Message);
+        return result.ToObjectResult();
+    }
 }

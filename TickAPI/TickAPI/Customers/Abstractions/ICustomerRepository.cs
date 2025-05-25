@@ -7,4 +7,5 @@ public interface ICustomerRepository
 {
     Task<Result<Customer>> GetCustomerByEmailAsync(string customerEmail);
     Task AddNewCustomerAsync(Customer customer);
+    IQueryable<Customer> GetCustomersWithTicketForEvent(Guid eventId);
 }
