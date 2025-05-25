@@ -638,4 +638,121 @@ public class TicketServiceTests
         // Assert
         Assert.True(res.IsSuccess);
     }
+    
+      [Fact]
+    public async Task SetTicketForResellAsync_ReturnsFailure_WhenPriceIsZero()
+    {
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
+        var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
+        
+        var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
+            shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 0, "zl");
+
+        Assert.True(result.IsError);
+        Assert.Equal(500, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetTicketForResellAsync_ReturnsFailure_WhenPriceTooHigh()
+    {
+        var ticket = CreateTicketForResellTest(price: 100);
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        ticketRepositoryMock
+            .Setup(r => r.GetTicketWithDetailsByIdAndEmailAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<Ticket>.Success(ticket));
+        
+        var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
+        var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
+        var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
+            shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 160, "zl");
+
+        Assert.True(result.IsError);
+        Assert.Equal(500, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetTicketForResellAsync_ReturnsFailure_WhenAlreadyForResell()
+    {
+        var ticket = CreateTicketForResellTest(price: 100, forResell: true);
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        ticketRepositoryMock
+            .Setup(r => r.GetTicketWithDetailsByIdAndEmailAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<Ticket>.Success(ticket));
+        var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
+        var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
+        var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
+            shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120, "zl");
+
+        Assert.True(result.IsError);
+        Assert.Equal(500, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetTicketForResellAsync_ReturnsFailure_WhenTicketIsUsed()
+    {
+        var ticket = CreateTicketForResellTest(price: 100, used: true);
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        
+        ticketRepositoryMock
+            .Setup(r => r.GetTicketWithDetailsByIdAndEmailAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<Ticket>.Success(ticket));
+        var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
+        var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
+        var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
+            shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+        
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 120, "zl");
+
+        Assert.True(result.IsError);
+        Assert.Equal(500, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetTicketForResellAsync_ReturnsSuccess_WhenValid()
+    {
+        var ticketRepositoryMock = new Mock<ITicketRepository>();
+        var paginationServiceMock = new Mock<IPaginationService>();
+        var qrServiceMock = new Mock<IQRCodeService>();
+        var ticket = CreateTicketForResellTest(price: 100);
+        ticketRepositoryMock
+            .Setup(r => r.GetTicketWithDetailsByIdAndEmailAsync(It.IsAny<Guid>(), It.IsAny<string>()))
+            .ReturnsAsync(Result<Ticket>.Success(ticket));
+
+        ticketRepositoryMock
+            .Setup(r => r.SetTicketForResell(It.IsAny<Guid>(), It.IsAny<decimal>(), It.IsAny<string>()))
+            .ReturnsAsync(Result.Success());
+        
+        var ticketTypeRepositoryMock = new Mock<ITicketTypeRepository>();
+        var shoppingCartRepositoryMock = new Mock<IShoppingCartRepository>();
+        var sut = new TicketService(ticketRepositoryMock.Object, ticketTypeRepositoryMock.Object,
+            shoppingCartRepositoryMock.Object, paginationServiceMock.Object, qrServiceMock.Object);
+
+        var result = await sut.SetTicketForResellAsync(Guid.NewGuid(), "test@example.com", 130, "zl");
+
+        Assert.False(result.IsError);
+    }
+
+    private Ticket CreateTicketForResellTest(decimal price, bool forResell = false, bool used = false)
+    {
+        return new Ticket
+        {
+            Id = Guid.NewGuid(),
+            Type = new TicketType { Price = price },
+            ForResell = forResell,
+            Used = used
+        };
+    }
 }

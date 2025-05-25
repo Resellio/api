@@ -87,4 +87,18 @@ public class TicketRepository : ITicketRepository
         
         return Result.Success();
     }
+
+    public async Task<Result> SetTicketForResell(Guid ticketId, decimal newPrice, string currency)
+    {
+        var ticket = await _tickApiDbContext.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
+        if (ticket == null)
+        {
+            return Result.Failure(StatusCodes.Status404NotFound, "Ticket with this id doesn't exist");
+        }
+        ticket.ForResell = true;
+        ticket.ResellCurrency = currency;
+        ticket.ResellPrice = newPrice;
+        await _tickApiDbContext.SaveChangesAsync();
+        return Result.Success();
+    }
 }

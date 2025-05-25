@@ -184,4 +184,36 @@ public class TicketService : ITicketService
         var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);
         return res;
     }
+
+    public async Task<Result> SetTicketForResellAsync(Guid ticketId, string email, decimal resellPrice, string resellCurrency)
+    {
+        if (resellPrice <= 0)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "Price must be greater than zero");
+        }
+        var ticketRes = await _ticketRepository.GetTicketWithDetailsByIdAndEmailAsync(ticketId, email);
+        if (ticketRes.IsError)
+        {
+            return Result.PropagateError(ticketRes);
+        }
+
+        if (ticketRes.Value!.Type.Price*1.5m < resellPrice)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "Resell price cannot exceed " +
+                                                                            "value of original price times 1.5");
+        }
+
+        if (ticketRes.Value!.ForResell)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "Ticket is already set for resell");
+        }
+
+        if (ticketRes.Value!.Used)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "Ticket is already used");
+        }
+        
+        var res = await _ticketRepository.SetTicketForResell(ticketId, resellPrice, resellCurrency);
+        return res;
+    }
 }
