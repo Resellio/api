@@ -13,6 +13,6 @@ public interface IEventRepository
     public Task<Result<Event>> GetEventByIdAsync(Guid eventId);
     public Task<Result> SaveEventAsync(Event ev);
     public Task<Result<Event>> GetEventByIdAndOrganizerAsync(Guid eventId, Organizer organizer);
-    public Task<Result<decimal>> GetEventRevenue(Guid eventId);
-    public Task<Result<int>> GetEventSoldTicketsCount(Guid eventId);
+    public Task<decimal> GetEventRevenue(Guid eventId);
+    public Task<int> GetEventSoldTicketsCount(Guid eventId);
 }
