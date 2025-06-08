@@ -116,6 +116,14 @@ public class EventsController : ControllerBase
     }
 
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
+    [HttpGet("organizer/{id:guid}")]
+    public async Task<ActionResult<GetEventDetailsOrganizerResponseDto>> GetEventDetailsOrganizer([FromRoute] Guid id)
+    {
+        var eventDetailsResult = await _eventService.GetEventDetailsOrganizerAsync(id);
+        return eventDetailsResult.ToObjectResult();
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<EditEventResponseDto>> EditEvent([FromRoute] Guid id, [FromBody] EditEventDto request)
     {

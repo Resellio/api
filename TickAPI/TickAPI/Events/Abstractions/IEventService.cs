@@ -23,4 +23,5 @@ public interface IEventService
     public Task<Result<GetEventDetailsResponseDto>> GetEventDetailsAsync(Guid eventId);
     public Task<Result<Event>> EditEventAsync(Organizer organizer, Guid eventId, string name, string description, DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto editAddress, List<EditEventCategoryDto> categories, EventStatus eventStatus);
     public Task<Result> SendMessageToParticipants(Organizer organizer, Guid eventId, string subject, string message);
+    public Task<Result<GetEventDetailsOrganizerResponseDto>> GetEventDetailsOrganizerAsync(Guid eventId);
 }

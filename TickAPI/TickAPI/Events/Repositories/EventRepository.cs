@@ -75,4 +75,26 @@ public class EventRepository : IEventRepository
         }
         return Result<Event>.Success(ev);
     }
+
+    public async Task<decimal> GetEventRevenue(Guid eventId)
+    {
+        var query = from tickets in _tickApiDbContext.Tickets
+            join _ticketTypes in _tickApiDbContext.TicketTypes on tickets.Type.Id equals _ticketTypes.Id
+            join events in _tickApiDbContext.Events on _ticketTypes.Event.Id equals events.Id
+            where events.Id == eventId
+            select new { price = _ticketTypes.Price };
+        var val = await query.SumAsync(x => x.price);
+        return val;
+    }
+    
+    public async Task<int> GetEventSoldTicketsCount(Guid eventId)
+    {
+        var query = from tickets in _tickApiDbContext.Tickets
+            join _ticketTypes in _tickApiDbContext.TicketTypes on tickets.Type.Id equals _ticketTypes.Id
+            join events in _tickApiDbContext.Events on _ticketTypes.Event.Id equals events.Id
+            where events.Id == eventId
+            select new { id = tickets.Id };
+        var val = await query.CountAsync();
+        return val;
+    }
 }
