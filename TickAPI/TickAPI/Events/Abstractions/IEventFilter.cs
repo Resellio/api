@@ -5,8 +5,7 @@ namespace TickAPI.Events.Abstractions;
 public interface IEventFilter
 {
     IQueryable<Event> GetEvents();
-    void FilterByName(string name);
-    void FilterByDescription(string description);
+    void FilterByNameOrDescription(string name);
     void FilterByStartDate(DateTime startDate);
     void FilterByMinStartDate(DateTime startDate);
     void FilterByMaxStartDate(DateTime startDate);
