@@ -184,6 +184,20 @@ public class EventService : IEventService
         return Result<GetEventDetailsResponseDto>.Success(details);
     }
 
+    public async Task<Result<GetEventDetailsOrganizerResponseDto>> GetEventDetailsOrganizerAsync(Guid eventId)
+    {
+        var details = await GetEventDetailsAsync(eventId);
+        if (details.IsError)
+        {
+            return Result<GetEventDetailsOrganizerResponseDto>.PropagateError(details);
+        }
+
+        var val = await _eventRepository.GetEventRevenue(eventId);
+        var count = await _eventRepository.GetEventSoldTicketsCount(eventId);
+        var ret = new GetEventDetailsOrganizerResponseDto(details.Value!, val.Value!, count.Value!);
+        return Result<GetEventDetailsOrganizerResponseDto>.Success(ret);
+    }
+
     public async Task<Result<Event>> EditEventAsync(Organizer organizer, Guid eventId, string name, string description, DateTime startDate, DateTime endDate, uint? minimumAge, CreateAddressDto editAddress, List<EditEventCategoryDto> categories,
         EventStatus eventStatus)
     {
