@@ -93,7 +93,7 @@ public class EventRepository : IEventRepository
             join _ticketTypes in _tickApiDbContext.TicketTypes on tickets.Type.Id equals _ticketTypes.Id
             join events in _tickApiDbContext.Events on _ticketTypes.Event.Id equals events.Id
             where events.Id == eventId
-            select new { price = _ticketTypes.Price };
+            select new { id = tickets.Id };
         var val = await query.CountAsync();
         return Result<int>.Success(val);
     }
