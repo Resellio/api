@@ -14,11 +14,7 @@ public class EventFilterApplier : IEventFilterApplier
         _eventFilter = eventFilter;
         _filterActions = new Dictionary<Func<EventFiltersDto, bool>, Action<EventFiltersDto>>
         {
-            { f => !string.IsNullOrEmpty(f.SearchQuery), f =>
-                {
-                    _eventFilter.FilterByName(f.SearchQuery!);
-                    _eventFilter.FilterByDescription(f.SearchQuery!);
-                }
+            { f => !string.IsNullOrEmpty(f.SearchQuery), f => _eventFilter.FilterByNameOrDescription(f.SearchQuery!)
             },
             { f => f.StartDate.HasValue, f => _eventFilter.FilterByStartDate(f.StartDate!.Value) },
             { f => f.MinStartDate.HasValue, f => _eventFilter.FilterByMinStartDate(f.MinStartDate!.Value) },
