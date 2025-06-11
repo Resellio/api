@@ -225,7 +225,6 @@ public class ShoppingCartService : IShoppingCartService
                 
                 for (var i = 0; i < ticket.Quantity; i++)
                 {
-                    // TODO: add seats/name on ticket setting
                     var createTicketResult = await _ticketService.CreateTicketAsync(type, owner);
 
                     if (createTicketResult.IsError)

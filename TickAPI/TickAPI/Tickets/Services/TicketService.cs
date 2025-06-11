@@ -168,7 +168,7 @@ public class TicketService : ITicketService
         {
             Type = type,
             Owner = owner,
-            NameOnTicket = nameOnTicket,
+            NameOnTicket = nameOnTicket ?? owner.FirstName + " " + owner.LastName,
             Seats = seats,
             ForResell = false,
             Used = false,
