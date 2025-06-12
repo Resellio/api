@@ -44,7 +44,16 @@ public class ShoppingCartsController : ControllerBase
     [HttpPost("{ticketId:guid}")]
     public async Task<ActionResult> AddResellTicket([FromRoute] Guid ticketId)
     {
-        throw new NotImplementedException();
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var addTicketResult = await _shoppingCartService.AddResellTicketToCartAsync(ticketId, email);
+        
+        return addTicketResult.ToObjectResult();
     }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
@@ -85,7 +94,16 @@ public class ShoppingCartsController : ControllerBase
     [HttpDelete("{ticketId:guid}")]
     public async Task<ActionResult> RemoveResellTicket([FromRoute] Guid ticketId)
     {
-        throw new NotImplementedException();
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var removeTicketResult = await _shoppingCartService.RemoveResellTicketFromCartAsync(ticketId, email);
+
+        return removeTicketResult.ToObjectResult();
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]

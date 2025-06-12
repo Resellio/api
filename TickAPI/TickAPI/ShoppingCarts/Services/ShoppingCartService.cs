@@ -54,6 +54,11 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
+    public Task<Result> AddResellTicketToCartAsync(Guid ticketId, string customerEmail)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail)
     {
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
@@ -100,6 +105,11 @@ public class ShoppingCartService : IShoppingCartService
         }
         
         return Result.Success();
+    }
+
+    public Task<Result> RemoveResellTicketFromCartAsync(Guid ticketId, string customerEmail)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task<Result<Dictionary<string, decimal>>> GetDueAmountAsync(string customerEmail)
