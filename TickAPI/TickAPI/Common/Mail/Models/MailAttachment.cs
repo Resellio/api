@@ -1,8 +1,7 @@
 ﻿namespace TickAPI.Common.Mail.Models;
 
-public class MailAttachment
-{
-    public string fileName { get; set; }
-    public string base64Content { get; set; }
-    public string fileType  { get; set; }
-}
+public record MailAttachment(
+    string FileName,
+    string Base64Content,
+    string FileType
+);

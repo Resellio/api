@@ -102,7 +102,7 @@ public class EventFilterTests
 
         // Act
         var eventFilter = new EventFilter(events.AsQueryable());
-        eventFilter.FilterByName("concert");
+        eventFilter.FilterByNameOrDescription("concert");
         var result = eventFilter.GetEvents().ToList();
 
         // Assert
@@ -119,7 +119,7 @@ public class EventFilterTests
 
         // Act
         var eventFilter = new EventFilter(events.AsQueryable());
-        eventFilter.FilterByDescription("tech");
+        eventFilter.FilterByNameOrDescription("tech");
         var result = eventFilter.GetEvents().ToList();
 
         // Assert

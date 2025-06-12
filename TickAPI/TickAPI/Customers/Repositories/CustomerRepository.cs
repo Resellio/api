@@ -32,4 +32,10 @@ public class CustomerRepository : ICustomerRepository
         _tickApiDbContext.Customers.Add(customer);
         await _tickApiDbContext.SaveChangesAsync();
     }
+
+    public IQueryable<Customer> GetCustomersWithTicketForEvent(Guid eventId)
+    {
+        return _tickApiDbContext.Customers
+            .Where(c => c.Tickets.Any(t => t.Type.Event.Id == eventId));
+    }
 }

@@ -17,16 +17,11 @@ public class EventFilter : IEventFilter
         return _events;
     }
 
-    public void FilterByName(string name)
+    public void FilterByNameOrDescription(string searchQuery)
     {
-        _events = _events.Where(e => e.Name.ToLower().Contains(name.ToLower()));
+        _events = _events.Where(e => e.Name.ToLower().Contains(searchQuery.ToLower()) || e.Description.ToLower().Contains(searchQuery.ToLower()));
     }
-
-    public void FilterByDescription(string description)
-    {
-        _events = _events.Where(e => e.Description.ToLower().Contains(description.ToLower()));
-    }
-
+    
     public void FilterByStartDate(DateTime startDate)
     {
         _events = _events.Where(e => e.StartDate.Date == startDate.Date);
