@@ -28,7 +28,7 @@ public class EventsController : ControllerBase
     
     [AuthorizeWithPolicy(AuthPolicies.VerifiedOrganizerPolicy)]
     [HttpPost]
-    public async Task<ActionResult<CreateEventResponseDto>> CreateEvent([FromBody] CreateEventDto request)
+    public async Task<ActionResult<CreateEventResponseDto>> CreateEvent([FromForm] CreateEventDto request)
     {
         var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
         if (emailResult.IsError)
