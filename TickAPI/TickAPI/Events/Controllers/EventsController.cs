@@ -39,7 +39,7 @@ public class EventsController : ControllerBase
         
         var newEventResult = await _eventService.CreateNewEventAsync(request.Name, request.Description, 
             request.StartDate, request.EndDate, request.MinimumAge,  request.CreateAddress, request.Categories 
-            , request.TicketTypes ,request.EventStatus, email);
+            , request.TicketTypes ,request.EventStatus, email, request.Image);
 
         if (newEventResult.IsError)
             return newEventResult.ToObjectResult();

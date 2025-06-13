@@ -21,6 +21,7 @@ using TickAPI.Organizers.Models;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.TicketTypes.DTOs.Request;
 using TickAPI.TicketTypes.Models;
+using TickAPI.Common.Blob.Abstractions;
 
 namespace TickAPI.Events.Services;
 
@@ -35,8 +36,9 @@ public class EventService : IEventService
     private readonly ITicketService _ticketService;
     private readonly ICustomerRepository _customerRepository;
     private readonly IMailService _mailService;
+    private readonly IBlobService _blobService;
 
-    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService, ITicketService ticketService, ICustomerRepository customerRepository, IMailService mailService)
+    public EventService(IEventRepository eventRepository, IOrganizerService organizerService, IAddressService addressService, IDateTimeService dateTimeService, IPaginationService paginationService, ICategoryService categoryService, ITicketService ticketService, ICustomerRepository customerRepository, IMailService mailService, IBlobService blobService)
     {
         _eventRepository = eventRepository;
         _organizerService = organizerService;
@@ -47,11 +49,12 @@ public class EventService : IEventService
         _ticketService = ticketService;
         _customerRepository = customerRepository;
         _mailService = mailService;
+        _blobService = blobService;
     }
 
     public async Task<Result<Event>> CreateNewEventAsync(string name, string  description, DateTime startDate, DateTime endDate, 
         uint? minimumAge, CreateAddressDto createAddress, List<CreateEventCategoryDto> categories, List<CreateEventTicketTypeDto> ticketTypes,
-        EventStatus eventStatus, string organizerEmail)
+        EventStatus eventStatus, string organizerEmail, IFormFile? image)
     {
         var organizerResult = await _organizerService.GetOrganizerByEmailAsync(organizerEmail);
         if (!organizerResult.IsSuccess)
@@ -82,7 +85,12 @@ public class EventService : IEventService
         {
             return Result<Event>.PropagateError(categoriesByNameResult);
         }
-        
+
+        string? imageUrl = null;
+        if (image != null)
+        {
+            imageUrl = await _blobService.UploadToBlobContainerAsync(name, image);
+        }
         var @event = new Event
         {
             Name = name,
@@ -95,6 +103,7 @@ public class EventService : IEventService
             Organizer = organizerResult.Value!,
             EventStatus = eventStatus,
             TicketTypes = ticketTypesConverted,
+            ImageUrl = imageUrl
         };
         await _eventRepository.AddNewEventAsync(@event);
         return Result<Event>.Success(@event);
