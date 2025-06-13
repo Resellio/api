@@ -194,7 +194,20 @@ public class EventService : IEventService
 
         var val = await _eventRepository.GetEventRevenue(eventId);
         var count = await _eventRepository.GetEventSoldTicketsCount(eventId);
-        var ret = new GetEventDetailsOrganizerResponseDto(details.Value!, val, count);
+        var ev = details.Value!;
+        
+        var ret = new GetEventDetailsOrganizerResponseDto(      ev.Id,
+            ev.Name,
+            ev.Description,
+            ev.StartDate,
+            ev.EndDate,
+            ev.MinimumAge,
+            ev.Categories,
+            ev.TicketTypes,
+            ev.Status,
+            ev.Address,
+            val,
+            count);
         return Result<GetEventDetailsOrganizerResponseDto>.Success(ret);
     }
 
