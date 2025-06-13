@@ -17,4 +17,5 @@ public interface IShoppingCartRepository
     public Task<Result> RemoveAmountOfTicketTypeAsync(Guid ticketTypeId);
     public Task<Result> AddResellTicketToCartAsync(string customerEmail, Guid ticketId);
     public Task<Result<bool>> CheckResellTicketAvailabilityAsync(Guid ticketId);
+    public Task<Result> RemoveResellTicketFromCartAsync(string customerEmail, Guid ticketId);
 }

@@ -141,9 +141,16 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public Task<Result> RemoveResellTicketFromCartAsync(Guid ticketId, string customerEmail)
+    public async Task<Result> RemoveResellTicketFromCartAsync(Guid ticketId, string customerEmail)
     {
-        throw new NotImplementedException();
+        var removeTicketFromCartResult = await _shoppingCartRepository.RemoveResellTicketFromCartAsync(customerEmail, ticketId);
+
+        if (removeTicketFromCartResult.IsError)
+        {
+            return Result.PropagateError(removeTicketFromCartResult);
+        }
+        
+        return Result.Success();
     }
 
     public async Task<Result<Dictionary<string, decimal>>> GetDueAmountAsync(string customerEmail)

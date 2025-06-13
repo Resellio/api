@@ -29,8 +29,8 @@ public static class ShoppingCartMapper
             ticket.Type.Description,
             ticket.Type.Event.Organizer.DisplayName,
             ticket.Owner.Email,
-            ticket.Type.Price,
-            ticket.Type.Currency
+            ticket.ResellPrice ?? ticket.Type.Price,
+            ticket.ResellCurrency ?? ticket.Type.Currency
         );
     }
 }
