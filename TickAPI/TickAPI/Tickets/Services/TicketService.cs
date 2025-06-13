@@ -93,10 +93,29 @@ public class TicketService : ITicketService
         {
             return Result<PaginatedData<GetTicketForResellResponseDto>>.PropagateError(paginatedTicketsResult);
         }
+        
         var paginatedResult = _paginationService.MapData(paginatedTicketsResult.Value!,
-            t => new GetTicketForResellResponseDto(t.Id, t.Type.Price, t.Type.Currency, t.Type.Description, t.Seats));
+            t =>
+            {
+                decimal price;
+                string currency;
+                if (t.ResellPrice is not null && t.ResellCurrency is not null)
+                {
+                    price = t.ResellPrice.Value;
+                    currency = t.ResellCurrency;
+                }
+                else
+                {
+                    price = t.Type.Price;
+                    currency = t.Type.Currency;
+                }
+                    
+                return new GetTicketForResellResponseDto(t.Id, price, currency, t.Type.Description,
+                    t.Seats);
+            });
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
+    
     public async Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page, int pageSize, TicketFiltersDto ? ticketFilters = null)
     {
         var customerTickets = _ticketRepository.GetTicketsByCustomerEmail(email);
