@@ -54,9 +54,28 @@ public class ShoppingCartService : IShoppingCartService
         return Result.Success();
     }
 
-    public Task<Result> AddResellTicketToCartAsync(Guid ticketId, string customerEmail)
+    public async Task<Result> AddResellTicketToCartAsync(Guid ticketId, string customerEmail)
     {
-        throw new NotImplementedException();
+        var availabilityResult = await _shoppingCartRepository.CheckResellTicketAvailabilityAsync(ticketId);
+
+        if (availabilityResult.IsError)
+        {
+            return Result.PropagateError(availabilityResult);
+        }
+
+        if (!availabilityResult.Value)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, $"the ticket you are trying to add isn't currently available");
+        }
+        
+        var addTicketToCartResult = await _shoppingCartRepository.AddResellTicketToCartAsync(customerEmail, ticketId);
+        
+        if (addTicketToCartResult.IsError)
+        {
+            return Result.PropagateError(addTicketToCartResult);
+        }
+        
+        return Result.Success();
     }
 
     public async Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail)
@@ -71,6 +90,7 @@ public class ShoppingCartService : IShoppingCartService
         var cart = getShoppingCartResult.Value!;
         
         var newTickets = new List<GetShoppingCartTicketsNewTicketDetailsResponseDto>();
+        var resellTickets = new List<GetShoppingCartTicketsResellTicketDetailsResponseDto>();
 
         foreach (var ticket in cart.NewTickets)
         {
@@ -87,10 +107,24 @@ public class ShoppingCartService : IShoppingCartService
             
             newTickets.Add(newTicket);
         }
+
+        foreach (var ticket in cart.ResellTickets)
+        {
+            var resellTicketResult = await _ticketService.GetTicketByIdAsync(ticket.TicketId);
+
+            if (resellTicketResult.IsError)
+            {
+                return Result<GetShoppingCartTicketsResponseDto>.PropagateError(resellTicketResult);
+            }
+
+            var resellTicket =
+                ShoppingCartMapper.MapTicketToGetShoppingCartTicketsResellTicketDetailsResponseDto(resellTicketResult
+                    .Value!);
+            
+            resellTickets.Add(resellTicket);
+        }
         
-        // TODO: Add resell ticket parsing
-        
-        var result = new GetShoppingCartTicketsResponseDto(newTickets, []);
+        var result = new GetShoppingCartTicketsResponseDto(newTickets, resellTickets);
         
         return Result<GetShoppingCartTicketsResponseDto>.Success(result);
     }
@@ -145,8 +179,41 @@ public class ShoppingCartService : IShoppingCartService
                 dueAmount.Add(ticketType.Currency, newTicket.Quantity * ticketType.Price);
             }
         }
-        
-        // TODO: Add resell tickets to the calculations
+
+        foreach (var resellTicket in cart.ResellTickets)
+        {
+            var ticketResult = await _ticketService.GetTicketByIdAsync(resellTicket.TicketId);
+
+            if (ticketResult.IsError)
+            {
+                return Result<Dictionary<string, decimal>>.PropagateError(ticketResult);
+            }
+            
+            var ticket = ticketResult.Value!;
+
+            if (ticket.ResellPrice is not null && ticket.ResellCurrency is not null)
+            {
+                if (dueAmount.ContainsKey(ticket.ResellCurrency))
+                {
+                    dueAmount[ticket.ResellCurrency] += ticket.ResellPrice.Value;
+                }
+                else
+                {
+                    dueAmount.Add(ticket.ResellCurrency, ticket.ResellPrice.Value);
+                }
+            }
+            else
+            {
+                if (dueAmount.ContainsKey(ticket.Type.Currency))
+                {
+                    dueAmount[ticket.Type.Currency] += ticket.Type.Price;
+                }
+                else
+                {
+                    dueAmount.Add(ticket.Type.Currency, ticket.Type.Price);
+                }
+            }
+        }
         
         return Result<Dictionary<string, decimal>>.Success(dueAmount);
     }

@@ -4,6 +4,7 @@ using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Models;
 using TickAPI.Tickets.DTOs.Request;
 using TickAPI.Tickets.DTOs.Response;
+using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
 
 namespace TickAPI.Tickets.Abstractions;
@@ -20,8 +21,8 @@ public interface ITicketService
     public Task<Result> ScanTicket(Guid ticketGuid);
     public Task<Result<GetTicketDetailsResponseDto>> GetTicketDetailsAsync(Guid ticketGuid, string email,
         string scanUrl);
-
     public Task<Result> SetTicketForResellAsync(Guid ticketId, string email, decimal resellPrice, string resellCurrency);
+    public Task<Result<Ticket>> GetTicketByIdAsync(Guid ticketId);
     public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
     public Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
         string? seats = null);

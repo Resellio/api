@@ -254,6 +254,73 @@ public class ShoppingCartRepository : IShoppingCartRepository
         return Result.Success();
     }
 
+    public async Task<Result> AddResellTicketToCartAsync(string customerEmail, Guid ticketId)
+    {
+        var getShoppingCartResult = await GetShoppingCartByEmailAsync(customerEmail);
+
+        if (getShoppingCartResult.IsError)
+        {
+            return Result.PropagateError(getShoppingCartResult);
+        }
+        
+        var cart = getShoppingCartResult.Value!;
+        
+        cart.ResellTickets.Add(new ShoppingCartResellTicket {TicketId = ticketId});
+        
+        var setKeyResult = await SetTicketKeyAsync(ticketId);
+
+        if (setKeyResult.IsError)
+        {
+            return Result.PropagateError(setKeyResult);
+        }
+        
+        var updateShoppingCartResult = await UpdateShoppingCartAsync(customerEmail, cart);
+
+        if (updateShoppingCartResult.IsError)
+        {
+            return Result.PropagateError(updateShoppingCartResult);
+        }
+        
+        return Result.Success();
+    }
+
+    public async Task<Result<bool>> CheckResellTicketAvailabilityAsync(Guid ticketId)
+    {
+        bool exists;
+        
+        try
+        {
+            exists = await _redisService.KeyExistsAsync(GetResellTicketKey(ticketId));
+        }
+        catch (Exception e)
+        {
+            return Result<bool>.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+        
+        return Result<bool>.Success(!exists);
+    }
+    
+    private async Task<Result> SetTicketKeyAsync(Guid ticketId)
+    {
+        bool success;
+        
+        try
+        {
+            success = await _redisService.SetStringAsync(GetResellTicketKey(ticketId), string.Empty);
+        }
+        catch (Exception e)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, e.Message);
+        }
+
+        if (!success)
+        {
+            return Result.Failure(StatusCodes.Status500InternalServerError, "the ticket key could not be updated");
+        }
+        
+        return Result.Success();
+    }
+
     private static string GetCartKey(string customerEmail)
     {
         return $"cart:{customerEmail}";
@@ -262,5 +329,10 @@ public class ShoppingCartRepository : IShoppingCartRepository
     private static string GetAmountKey(Guid ticketTypeId)
     {
         return $"amount:{ticketTypeId}";
+    }
+
+    private static string GetResellTicketKey(Guid ticketId)
+    {
+        return $"resell:{ticketId}";
     }
 }

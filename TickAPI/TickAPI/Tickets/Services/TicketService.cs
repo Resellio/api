@@ -168,6 +168,18 @@ public class TicketService : ITicketService
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
 
+    public async Task<Result<Ticket>> GetTicketByIdAsync(Guid ticketId)
+    {
+        var ticketResult = await _ticketRepository.GetTicketWithDetailsByIdAsync(ticketId);
+
+        if (ticketResult.IsError)
+        {
+            return Result<Ticket>.PropagateError(ticketResult);
+        }
+        
+        return Result<Ticket>.Success(ticketResult.Value!);
+    }
+
     public async Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId)
     {
         var ticketTypeResult = await _ticketTypeRepository.GetTicketTypeByIdAsync(ticketTypeId);
