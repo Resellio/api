@@ -12,5 +12,6 @@ public record GetEventDetailsResponseDto(
     List<GetEventResponseCategoryDto> Categories,
     List<GetEventDetailsResponseTicketTypeDto> TicketTypes,
     EventStatus Status,
-    GetEventResponseAddressDto Address
+    GetEventResponseAddressDto Address,
+    string? ImageUrl
 );

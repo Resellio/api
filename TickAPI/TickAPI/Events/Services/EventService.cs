@@ -89,7 +89,7 @@ public class EventService : IEventService
         string? imageUrl = null;
         if (image != null)
         {
-            imageUrl = await _blobService.UploadToBlobContainerAsync(name, image);
+            imageUrl = await _blobService.UploadToBlobContainerAsync(image);
         }
         var @event = new Event
         {
@@ -187,7 +187,8 @@ public class EventService : IEventService
             categories,
             ticketTypes,
             ev.EventStatus,
-            address
+            address,
+            ev.ImageUrl
         );
         
         return Result<GetEventDetailsResponseDto>.Success(details);
@@ -318,7 +319,7 @@ public class EventService : IEventService
         var maximumPrice = new GetEventResponsePriceInfoDto(ttMaximumPrice.Price, ttMaximumPrice.Currency);
         
         return new GetEventResponseDto(ev.Id, ev.Name, ev.Description, ev.StartDate, ev.EndDate, ev.MinimumAge, 
-            minimumPrice, maximumPrice, categories, ev.EventStatus, address);
+            minimumPrice, maximumPrice, categories, ev.EventStatus, address, ev.ImageUrl);
     }
 
     private Result CheckEventDates(DateTime startDate, DateTime endDate, IEnumerable<TicketType> ticketTypes, bool skipStartDateEvaluation = false)

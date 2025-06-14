@@ -2,5 +2,5 @@
 
 public interface IBlobService
 {
-    public Task<string> UploadToBlobContainerAsync(string name, IFormFile image);
+    public Task<string> UploadToBlobContainerAsync(IFormFile image);
 }
