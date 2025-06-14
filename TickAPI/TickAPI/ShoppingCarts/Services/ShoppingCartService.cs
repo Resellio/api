@@ -4,10 +4,12 @@ using TickAPI.Common.Payment.Models;
 using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Customers.Abstractions;
+using TickAPI.Customers.Models;
 using TickAPI.Events.Models;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Response;
 using TickAPI.ShoppingCarts.Mappers;
+using TickAPI.ShoppingCarts.Models;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Abstractions;
@@ -277,26 +279,11 @@ public class ShoppingCartService : IShoppingCartService
             return Result<PaymentResponsePG>.PropagateError(paymentResult);
         }
         
-        var generateTicketsResult = await GenerateBoughtTicketsAsync(customerEmail, currency);
-        // TODO: Add passing ownership of resell tickets
-
-        if (generateTicketsResult.IsError)
-        {
-            return Result<PaymentResponsePG>.PropagateError(generateTicketsResult);
-        }
-        
-        var payment = paymentResult.Value!;
-
-        return Result<PaymentResponsePG>.Success(payment);
-    }
-
-    private async Task<Result> GenerateBoughtTicketsAsync(string customerEmail, string currency)
-    {
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
         if (getShoppingCartResult.IsError)
         {
-            return Result.PropagateError(getShoppingCartResult);
+            return Result<PaymentResponsePG>.PropagateError(getShoppingCartResult);
         }
         
         var cart = getShoppingCartResult.Value!;
@@ -305,10 +292,32 @@ public class ShoppingCartService : IShoppingCartService
 
         if (getCustomerResult.IsError)
         {
-            return Result.PropagateError(getCustomerResult);
+            return Result<PaymentResponsePG>.PropagateError(getCustomerResult);
         }
         
         var owner = getCustomerResult.Value!;
+        
+        var generateTicketsResult = await GenerateBoughtTicketsAsync(cart, owner, currency);
+
+        if (generateTicketsResult.IsError)
+        {
+            return Result<PaymentResponsePG>.PropagateError(generateTicketsResult);
+        }
+
+        var passOwnershipResult = await PassTicketOwnershipAsync(cart, owner, currency);
+
+        if (passOwnershipResult.IsError)
+        {
+            return Result<PaymentResponsePG>.PropagateError(passOwnershipResult);
+        }
+        
+        var payment = paymentResult.Value!;
+
+        return Result<PaymentResponsePG>.Success(payment);
+    }
+
+    private async Task<Result> GenerateBoughtTicketsAsync(ShoppingCart cart, Customer owner, string currency)
+    {
         var removals = new List<(Guid id, uint amount)>();
 
         foreach (var ticket in cart.NewTickets)
@@ -340,7 +349,48 @@ public class ShoppingCartService : IShoppingCartService
 
         foreach (var (id, amount) in removals)
         {
-            var removalResult = await RemoveNewTicketsFromCartAsync(id, amount, customerEmail);
+            var removalResult = await RemoveNewTicketsFromCartAsync(id, amount, owner.Email);
+
+            if (removalResult.IsError)
+            {
+                return Result.PropagateError(removalResult);
+            }
+        }
+
+        return Result.Success();
+    }
+    
+    private async Task<Result> PassTicketOwnershipAsync(ShoppingCart cart, Customer newOwner, string currency)
+    {
+        var removals = new List<Guid>();
+
+        foreach (var resellTicket in cart.ResellTickets)
+        {
+            var ticketResult = await _ticketService.GetTicketByIdAsync(resellTicket.TicketId);
+
+            if (ticketResult.IsError)
+            {  
+                return Result.PropagateError(ticketResult);
+            }
+            
+            var ticket = ticketResult.Value!;
+
+            if ((ticket.ResellCurrency ?? ticket.Type.Currency) == currency)
+            {
+                removals.Add(ticket.Id);
+
+                var createTicketResult = await _ticketService.ChangeTicketOwnershipViaResellAsync(ticket, newOwner);
+
+                if (createTicketResult.IsError)
+                {
+                    return Result.PropagateError(createTicketResult);
+                }
+            }
+        }
+
+        foreach (var id in removals)
+        {
+            var removalResult = await RemoveResellTicketFromCartAsync(id, newOwner.Email);
 
             if (removalResult.IsError)
             {

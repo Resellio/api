@@ -1,5 +1,6 @@
 ﻿using TickAPI.Common.Results;
 using TickAPI.Common.Results.Generic;
+using TickAPI.Customers.Models;
 using TickAPI.Tickets.Models;
 using TickAPI.TicketTypes.Models;
 
@@ -15,4 +16,5 @@ public interface ITicketRepository
     public Task<Result> SetTicketForResell(Guid ticketId, decimal newPrice, string currency);
     public Task<Result> AddTicketAsync(Ticket ticket);
     public Task<Result<Ticket>> GetTicketWithDetailsByIdAsync(Guid id);
+    public Task<Result> ChangeTicketOwnershipAsync(Ticket ticket, Customer newOwner, string? nameOnTicket = null);
 }

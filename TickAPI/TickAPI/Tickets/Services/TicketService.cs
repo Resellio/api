@@ -210,6 +210,13 @@ public class TicketService : ITicketService
         return addTicketResult;
     }
 
+    public async Task<Result> ChangeTicketOwnershipViaResellAsync(Ticket ticket, Customer newOwner, string? nameOnTicket = null)
+    {
+       var updateTicketResult = await _ticketRepository.ChangeTicketOwnershipAsync(ticket, newOwner);
+       
+       return updateTicketResult;
+    }
+
     public async Task<Result> ScanTicket(Guid ticketGuid)
     {
         var res = await _ticketRepository.MarkTicketAsUsed(ticketGuid);

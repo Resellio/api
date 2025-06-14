@@ -105,6 +105,36 @@ public class TicketRepository : ITicketRepository
         return Result<Ticket>.Success(ticket);
     }
 
+    public async Task<Result> ChangeTicketOwnershipAsync(Ticket ticket, Customer newOwner, string? nameOnTicket = null)
+    {
+        var ticketFromDb = await _tickApiDbContext.Tickets
+            .Include(t => t.Owner) // Include if needed
+            .FirstOrDefaultAsync(t => t.Id == ticket.Id);
+
+        var newOwnerFromDb = await _tickApiDbContext.Customers
+            .FirstOrDefaultAsync(c => c.Id == newOwner.Id);
+
+        if (ticketFromDb == null || newOwnerFromDb == null)
+        {
+            return Result.Failure(StatusCodes.Status404NotFound, "Ticket or new owner not found");
+        }
+        if (!ticketFromDb.ForResell)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, "This ticket can't have its ownership passed");
+        }
+        if (ticketFromDb.Owner.Id == newOwnerFromDb.Id)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, "You can't change the owner of the ticket to be the same");
+        }
+
+        ticketFromDb.Owner = newOwnerFromDb;
+        ticketFromDb.NameOnTicket = nameOnTicket ?? $"{newOwnerFromDb.FirstName} {newOwnerFromDb.LastName}";
+
+        await _tickApiDbContext.SaveChangesAsync();
+
+        return Result.Success();
+    }
+
     public async Task<Result> SetTicketForResell(Guid ticketId, decimal newPrice, string currency)
     {
         var ticket = await _tickApiDbContext.Tickets.FirstOrDefaultAsync(t => t.Id == ticketId);
