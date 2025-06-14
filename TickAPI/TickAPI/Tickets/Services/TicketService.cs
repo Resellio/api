@@ -93,10 +93,29 @@ public class TicketService : ITicketService
         {
             return Result<PaginatedData<GetTicketForResellResponseDto>>.PropagateError(paginatedTicketsResult);
         }
+        
         var paginatedResult = _paginationService.MapData(paginatedTicketsResult.Value!,
-            t => new GetTicketForResellResponseDto(t.Id, t.Type.Price, t.Type.Currency, t.Type.Description, t.Seats));
+            t =>
+            {
+                decimal price;
+                string currency;
+                if (t.ResellPrice is not null && t.ResellCurrency is not null)
+                {
+                    price = t.ResellPrice.Value;
+                    currency = t.ResellCurrency;
+                }
+                else
+                {
+                    price = t.Type.Price;
+                    currency = t.Type.Currency;
+                }
+                    
+                return new GetTicketForResellResponseDto(t.Id, price, currency, t.Type.Description,
+                    t.Seats);
+            });
         return Result<PaginatedData<GetTicketForResellResponseDto>>.Success(paginatedResult);
     }
+    
     public async Task<Result<PaginatedData<GetTicketForCustomerDto>>> GetTicketsForCustomerAsync(string email, int page, int pageSize, TicketFiltersDto ? ticketFilters = null)
     {
         var customerTickets = _ticketRepository.GetTicketsByCustomerEmail(email);
@@ -144,9 +163,17 @@ public class TicketService : ITicketService
             ticket.Type.Event.EndDate,
             address,
             ticket.Type.Event.Id,
-            qrcode
+            qrcode,
+            ticket.Used
         );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
+    }
+
+    public async Task<Result<Ticket>> GetTicketByIdAsync(Guid ticketId)
+    {
+        var ticketResult = await _ticketRepository.GetTicketWithDetailsByIdAsync(ticketId);
+
+        return ticketResult;
     }
 
     public async Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId)
@@ -168,7 +195,7 @@ public class TicketService : ITicketService
         {
             Type = type,
             Owner = owner,
-            NameOnTicket = nameOnTicket,
+            NameOnTicket = nameOnTicket ?? owner.FirstName + " " + owner.LastName,
             Seats = seats,
             ForResell = false,
             Used = false,
@@ -177,6 +204,13 @@ public class TicketService : ITicketService
         var addTicketResult = await _ticketRepository.AddTicketAsync(ticket);
 
         return addTicketResult;
+    }
+
+    public async Task<Result> ChangeTicketOwnershipViaResellAsync(Ticket ticket, Customer newOwner, string? nameOnTicket = null)
+    {
+       var updateTicketResult = await _ticketRepository.ChangeTicketOwnershipAsync(ticket, newOwner);
+       
+       return updateTicketResult;
     }
 
     public async Task<Result> ScanTicket(Guid ticketGuid)

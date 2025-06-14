@@ -45,11 +45,11 @@ public class EventsControllerTests
             new CreateEventTicketTypeDto("V.I.P", 10, 500.9m, "zł",  new DateTime(2025, 5, 10)),
         ];
         CreateAddressDto createAddress = new CreateAddressDto("United States", "New York", "Main st", 20, null, "00-000");
-        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress);
+        CreateEventDto eventDto = new CreateEventDto(name,  description, startDate,  endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress, null);
         
         var eventServiceMock = new Mock<IEventService>();
         eventServiceMock
-            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories , ticketTypes, eventStatus, email))
+            .Setup(m => m.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories , ticketTypes, eventStatus, email, null))
             .ReturnsAsync(Result<Event>.Success(new Event()));
 
         var claims = new List<Claim>
@@ -123,7 +123,7 @@ public class EventsControllerTests
         };
         
         // act
-        var res = await sut.CreateEvent(new CreateEventDto(name, description, startDate, endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress));
+        var res = await sut.CreateEvent(new CreateEventDto(name, description, startDate, endDate, minimumAge, categories, ticketTypes, eventStatus, createAddress, null));
         
         // Assert
         var result = Assert.IsType<ActionResult<CreateEventResponseDto>>(res);

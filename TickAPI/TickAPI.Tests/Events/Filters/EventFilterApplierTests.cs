@@ -48,8 +48,7 @@ public class EventFilterApplierTests
         _eventFilterApplier.ApplyFilters(filters);
 
         // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByName(filters.SearchQuery!), Times.Once);
-        _mockEventFilter.Verify(ef => ef.FilterByDescription(filters.SearchQuery!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByNameOrDescription(filters.SearchQuery!), Times.Once);
         _mockEventFilter.Verify(ef => ef.GetEvents(), Times.Once);
     }
     
@@ -660,8 +659,7 @@ public class EventFilterApplierTests
         _eventFilterApplier.ApplyFilters(filters);
 
         // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByName(filters.SearchQuery!), Times.Once);
-        _mockEventFilter.Verify(ef => ef.FilterByDescription(filters.SearchQuery!), Times.Once);
+        _mockEventFilter.Verify(ef => ef.FilterByNameOrDescription(filters.SearchQuery!), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByStartDate(filters.StartDate!.Value), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByMinPrice(filters.MinPrice!.Value), Times.Once);
         _mockEventFilter.Verify(ef => ef.FilterByMaxPrice(filters.MaxPrice!.Value), Times.Once);
@@ -703,8 +701,7 @@ public class EventFilterApplierTests
         var result = _eventFilterApplier.ApplyFilters(filters);
 
         // Assert
-        _mockEventFilter.Verify(ef => ef.FilterByName(It.IsAny<string>()), Times.Never);
-        _mockEventFilter.Verify(ef => ef.FilterByDescription(It.IsAny<string>()), Times.Never);
+        _mockEventFilter.Verify(ef => ef.FilterByNameOrDescription(It.IsAny<string>()), Times.Never);
         _mockEventFilter.Verify(ef => ef.FilterByStartDate(It.IsAny<DateTime>()), Times.Never);
         _mockEventFilter.Verify(ef => ef.FilterByMinStartDate(It.IsAny<DateTime>()), Times.Never);
         _mockEventFilter.Verify(ef => ef.FilterByMaxStartDate(It.IsAny<DateTime>()), Times.Never);

@@ -1,8 +1,10 @@
 ﻿using TickAPI.Events.Models;
+using TickAPI.Events.DTOs.Response;
 
 namespace TickAPI.Events.DTOs.Response;
 
-public record GetEventDetailsResponseDto(
+
+public record GetEventDetailsOrganizerResponseDto(
     Guid Id,
     string Name,
     string Description,
@@ -13,5 +15,8 @@ public record GetEventDetailsResponseDto(
     List<GetEventDetailsResponseTicketTypeDto> TicketTypes,
     EventStatus Status,
     GetEventResponseAddressDto Address,
-    string? ImageUrl
-);
+    decimal Revenue,
+    int SoldTicketsCount
+    );
+    
+  

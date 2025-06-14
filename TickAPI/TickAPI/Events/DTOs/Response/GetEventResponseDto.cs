@@ -13,5 +13,6 @@ public record GetEventResponseDto(
     GetEventResponsePriceInfoDto MaximumPrice,
     List<GetEventResponseCategoryDto> Categories,
     EventStatus Status,
-    GetEventResponseAddressDto Address
+    GetEventResponseAddressDto Address,
+    string? ImageUrl
 );

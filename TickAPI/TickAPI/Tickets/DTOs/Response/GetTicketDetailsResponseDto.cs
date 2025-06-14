@@ -14,5 +14,6 @@ public record GetTicketDetailsResponseDto
     DateTime EndDate,
     GetTicketDetailsAddressDto Address,
     Guid eventId,
-    string qrcode
+    string qrcode,
+    bool Used
 );

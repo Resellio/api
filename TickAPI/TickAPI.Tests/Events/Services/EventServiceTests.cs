@@ -9,12 +9,15 @@ using TickAPI.Common.Pagination.Responses;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.DTOs.Request;
 using TickAPI.Categories.Models;
+using TickAPI.Common.Blob.Abstractions;
+using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Results;
 using TickAPI.Events.Models;
 using TickAPI.Organizers.Abstractions;
 using TickAPI.Organizers.Models;
 using TickAPI.Common.Results.Generic;
 using TickAPI.Common.Time.Abstractions;
+using TickAPI.Customers.Abstractions;
 using TickAPI.Events.DTOs.Response;
 using TickAPI.Events.Services;
 using TickAPI.Tickets.Abstractions;
@@ -111,10 +114,13 @@ public class EventServiceTests
         var paginationServiceMock = new Mock<IPaginationService>();
         
         var ticketServiceMock = new Mock<ITicketService>();
-        
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
         // Act
-        var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
+        var result = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail, null);
         
         // Assert
         Assert.True(result.IsSuccess);
@@ -184,11 +190,15 @@ public class EventServiceTests
         
         var ticketServiceMock = new Mock<ITicketService>();
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
         
         // Act
         
-        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge,  createAddress, categories, ticketTypes, eventStatus, organizerEmail);
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge,  createAddress, categories, ticketTypes, eventStatus, organizerEmail, null);
         
         // Assert
         Assert.False(res.IsSuccess);
@@ -239,10 +249,13 @@ public class EventServiceTests
         
         var ticketServiceMock = new Mock<ITicketService>();
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
         
         // Act
-        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail, null);
         
         // Assert
         Assert.False(res.IsSuccess);
@@ -292,10 +305,14 @@ public class EventServiceTests
         
         var ticketServiceMock = new Mock<ITicketService>();
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
         
         // Act
-        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail);
+        var res = await sut.CreateNewEventAsync(name, description, startDate, endDate, minimumAge, createAddress, categories, ticketTypes, eventStatus, organizerEmail, null);
         
         // Assert
         Assert.False(res.IsSuccess);
@@ -359,9 +376,12 @@ public class EventServiceTests
                 false,
                 new PaginationDetails(1, 3)
             ));
-
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object,  categoryServiceMock.Object, ticketServiceMock.Object);
+        
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
 
         // Act
         var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
@@ -411,8 +431,11 @@ public class EventServiceTests
             .Setup(p => p.PaginateAsync(organizerEvents, pageSize, page))
             .ReturnsAsync(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
 
         // Act
         var result = await sut.GetOrganizerEventsAsync(organizer, page, pageSize);
@@ -475,9 +498,12 @@ public class EventServiceTests
                 new PaginationDetails(1, 3)
             ));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
-
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
+        
         // Act
         var result = await sut.GetEventsAsync(page, pageSize);
 
@@ -521,8 +547,11 @@ public class EventServiceTests
             .Setup(p => p.PaginateAsync(eventsQueryable, pageSize, page))
             .ReturnsAsync(Result<PaginatedData<Event>>.Failure(StatusCodes.Status400BadRequest, "Invalid page number"));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
 
         // Act
         var result = await sut.GetEventsAsync(page, pageSize);
@@ -561,9 +590,12 @@ public class EventServiceTests
             .Setup(p => p.GetPaginationDetailsAsync(eventsQueryable, pageSize))
             .ReturnsAsync(Result<PaginationDetails>.Success(paginationDetails));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
-
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);
+        
         // Act
         var result = await sut.GetEventsPaginationDetailsAsync(pageSize);
 
@@ -599,9 +631,12 @@ public class EventServiceTests
             .Setup(p => p.GetPaginationDetailsAsync(eventsQueryable, pageSize))
             .ReturnsAsync(Result<PaginationDetails>.Failure(StatusCodes.Status400BadRequest, "Invalid page size"));
 
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
-
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
+        
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.GetEventsPaginationDetailsAsync(pageSize);
 
@@ -636,9 +671,12 @@ public class EventServiceTests
                 Result<uint>.Success((uint)(input.Price / 10))
             );
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.GetEventDetailsAsync(@event.Id);
         
@@ -673,9 +711,12 @@ public class EventServiceTests
             .Setup(m => m.GetEventByIdAsync(@event.Id))
             .ReturnsAsync(Result<Event>.Failure(StatusCodes.Status404NotFound, $"event with id {@event.Id} not found"));
         
-        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, 
-            dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object);
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
+        var blobServiceMock = new Mock<IBlobService>();
+        
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.GetEventDetailsAsync(@event.Id);
         
@@ -778,16 +819,12 @@ public class EventServiceTests
 
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -852,16 +889,12 @@ public class EventServiceTests
         var categoryServiceMock = new Mock<ICategoryService>();
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -929,16 +962,12 @@ public class EventServiceTests
         var categoryServiceMock = new Mock<ICategoryService>();
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1007,16 +1036,12 @@ public class EventServiceTests
         var categoryServiceMock = new Mock<ICategoryService>();
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1129,16 +1154,12 @@ public class EventServiceTests
 
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1220,16 +1241,12 @@ public class EventServiceTests
         var categoryServiceMock = new Mock<ICategoryService>();
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1301,16 +1318,12 @@ public class EventServiceTests
         var categoryServiceMock = new Mock<ICategoryService>();
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1395,16 +1408,12 @@ public class EventServiceTests
         
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 
@@ -1497,16 +1506,12 @@ public class EventServiceTests
         
         var paginationServiceMock = new Mock<IPaginationService>();
         var ticketServiceMock = new Mock<ITicketService>();
+        var customerRepositoryMock = new Mock<ICustomerRepository>();
+        var mailServiceMock = new Mock<IMailService>();
         
-        var sut = new EventService(
-            eventRepositoryMock.Object, 
-            organizerServiceMock.Object, 
-            addressServiceMock.Object, 
-            dateTimeServiceMock.Object, 
-            paginationServiceMock.Object, 
-            categoryServiceMock.Object, 
-            ticketServiceMock.Object);
+        var blobServiceMock = new Mock<IBlobService>();
         
+        var sut = new EventService(eventRepositoryMock.Object, organizerServiceMock.Object, addressServiceMock.Object, dateTimeServiceMock.Object, paginationServiceMock.Object, categoryServiceMock.Object, ticketServiceMock.Object, customerRepositoryMock.Object, mailServiceMock.Object, blobServiceMock.Object);        
         // Act
         var result = await sut.EditEventAsync(
             organizer, 

@@ -39,6 +39,22 @@ public class ShoppingCartsController : ControllerBase
         
         return addTicketResult.ToObjectResult();
     }
+
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpPost("{ticketId:guid}")]
+    public async Task<ActionResult> AddResellTicket([FromRoute] Guid ticketId)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var addTicketResult = await _shoppingCartService.AddResellTicketToCartAsync(ticketId, email);
+        
+        return addTicketResult.ToObjectResult();
+    }
     
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
     [HttpGet]
@@ -70,6 +86,22 @@ public class ShoppingCartsController : ControllerBase
         var removeTicketResult =
             await _shoppingCartService.RemoveNewTicketsFromCartAsync(removeTicketDto.TicketTypeId, removeTicketDto.Amount,
                 email);
+
+        return removeTicketResult.ToObjectResult();
+    }
+
+    [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
+    [HttpDelete("{ticketId:guid}")]
+    public async Task<ActionResult> RemoveResellTicket([FromRoute] Guid ticketId)
+    {
+        var emailResult = _claimsService.GetEmailFromClaims(User.Claims);
+        if (emailResult.IsError)
+        {
+            return emailResult.ToObjectResult();
+        }
+        var email = emailResult.Value!;
+
+        var removeTicketResult = await _shoppingCartService.RemoveResellTicketFromCartAsync(ticketId, email);
 
         return removeTicketResult.ToObjectResult();
     }

@@ -51,7 +51,8 @@ public static class Utils
             new GetEventResponsePriceInfoDto(300, "PLN"),
             [new GetEventResponseCategoryDto("Test")],
             EventStatus.TicketsAvailable,
-            new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null)
+            new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null),
+            null
         );
     }
 
@@ -69,7 +70,8 @@ public static class Utils
                 new GetEventDetailsResponseTicketTypeDto(Guid.Parse("7ecfc61a-32d2-4124-a95c-cb5834a49990"), "Description #2", 300, "PLN", new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc), 30),
                 new GetEventDetailsResponseTicketTypeDto(Guid.Parse("7be2ae57-2394-4854-bf11-9567ce7e0ab6"), "Description #3", 200, "PLN", new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc), 20)],
             EventStatus.TicketsAvailable,
-            new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null)
+            new GetEventResponseAddressDto("United States", "New York", "10001", "Main St", 123, null),
+            null
         );
     }
 }
