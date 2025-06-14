@@ -89,7 +89,14 @@ public class EventService : IEventService
         string? imageUrl = null;
         if (image != null)
         {
-            imageUrl = await _blobService.UploadToBlobContainerAsync(image);
+            try
+            {
+                imageUrl = await _blobService.UploadToBlobContainerAsync(image);
+            }
+            catch (Exception e)
+            {
+                return Result<Event>.Failure(statusCode:500, e.Message);
+            }
         }
         var @event = new Event
         {

@@ -18,23 +18,15 @@ public class BlobService : IBlobService
 
     public async Task<string> UploadToBlobContainerAsync(IFormFile image)
     {
-        try
-        {
-            var container = new BlobContainerClient(_connectionString, _containerName);
-            Guid id = Guid.NewGuid();
-            string blobName = id.ToString();
-            var blob = container.GetBlobClient(blobName);
-            var stream = new MemoryStream();
-            await image.CopyToAsync(stream);
-            stream.Position = 0;
-            var response = await blob.UploadAsync(stream);
-
-            return blob.Uri.ToString();
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-
+        var container =  new BlobContainerClient(_connectionString, _containerName);
+        Guid id = Guid.NewGuid();
+        string blobName = id.ToString();
+        var blob =  container.GetBlobClient(blobName);
+        var stream = new MemoryStream();
+        await image.CopyToAsync(stream);
+        stream.Position = 0;
+        var response = await blob.UploadAsync(stream);
+        
+        return blob.Uri.ToString();
     }
 }
