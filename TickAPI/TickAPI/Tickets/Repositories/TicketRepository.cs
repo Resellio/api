@@ -129,6 +129,9 @@ public class TicketRepository : ITicketRepository
 
         ticketFromDb.Owner = newOwnerFromDb;
         ticketFromDb.NameOnTicket = nameOnTicket ?? $"{newOwnerFromDb.FirstName} {newOwnerFromDb.LastName}";
+        ticketFromDb.ForResell = false;
+        ticketFromDb.ResellCurrency = null;
+        ticketFromDb.ResellPrice = null;
 
         await _tickApiDbContext.SaveChangesAsync();
 
