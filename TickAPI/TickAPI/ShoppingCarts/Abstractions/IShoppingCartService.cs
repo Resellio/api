@@ -8,8 +8,10 @@ namespace TickAPI.ShoppingCarts.Abstractions;
 public interface IShoppingCartService
 {
     public Task<Result> AddNewTicketsToCartAsync(Guid ticketTypeId, uint amount, string customerEmail);
+    public Task<Result> AddResellTicketToCartAsync(Guid ticketId, string customerEmail);
     public Task<Result<GetShoppingCartTicketsResponseDto>> GetTicketsFromCartAsync(string customerEmail);
     public Task<Result> RemoveNewTicketsFromCartAsync(Guid ticketTypeId, uint amount, string customerEmail);
+    public Task<Result> RemoveResellTicketFromCartAsync(Guid ticketId, string customerEmail);
     public Task<Result<Dictionary<string, decimal>>> GetDueAmountAsync(string customerEmail);
     public Task<Result<PaymentResponsePG>> CheckoutAsync(string customerEmail, decimal amount, string currency,
         string cardNumber, string cardExpiry, string cvv);
