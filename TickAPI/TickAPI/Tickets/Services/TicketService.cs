@@ -144,7 +144,8 @@ public class TicketService : ITicketService
             ticket.Type.Event.EndDate,
             address,
             ticket.Type.Event.Id,
-            qrcode
+            qrcode,
+            ticket.Used
         );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
