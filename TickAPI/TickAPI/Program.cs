@@ -33,6 +33,8 @@ using TickAPI.Addresses.Services;
 using TickAPI.Categories.Abstractions;
 using TickAPI.Categories.Respositories;
 using TickAPI.Categories.Services;
+using TickAPI.Common.Blob.Abstractions;
+using TickAPI.Common.Blob.Services;
 using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Common.Claims.Services;
 using TickAPI.Common.Redis.Abstractions;
@@ -146,6 +148,7 @@ builder.Services.AddScoped<IRedisService, RedisService>();
 builder.Services.AddScoped<IMailService, MailService>();
 builder.Services.AddScoped<IPaymentGatewayService, PaymentGatewayService>();
 builder.Services.AddScoped<IQRCodeService, QRCodeService>();
+builder.Services.AddScoped<IBlobService, BlobService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

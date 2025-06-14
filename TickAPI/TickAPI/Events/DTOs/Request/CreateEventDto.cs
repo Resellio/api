@@ -14,5 +14,6 @@ public record CreateEventDto(
     List<CreateEventCategoryDto> Categories,
     List<CreateEventTicketTypeDto> TicketTypes,
     EventStatus EventStatus,
-    CreateAddressDto CreateAddress
+    CreateAddressDto CreateAddress,
+    IFormFile? Image
 );

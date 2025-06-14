@@ -18,6 +18,7 @@ public class Event
     public ICollection<TicketType> TicketTypes { get; set; }
     public EventStatus EventStatus { get; set; }
     public Address Address { get; set; }
+    public string? ImageUrl { get; set; }
 }
 
 public enum EventStatus
