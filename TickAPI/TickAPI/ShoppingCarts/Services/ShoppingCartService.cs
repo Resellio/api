@@ -56,6 +56,25 @@ public class ShoppingCartService : IShoppingCartService
 
     public async Task<Result> AddResellTicketToCartAsync(Guid ticketId, string customerEmail)
     {
+        var ticketResult = await _ticketService.GetTicketByIdAsync(ticketId);
+
+        if (ticketResult.IsError)
+        {
+            return Result.PropagateError(ticketResult);
+        }
+        
+        var ticket = ticketResult.Value!;
+
+        if (!ticket.ForResell)
+        {
+            return Result.Failure(StatusCodes.Status400BadRequest, $"chosen ticket is not available for resell");
+        }
+
+        if (ticket.Owner.Email == customerEmail)
+        {
+            return Result.Failure(StatusCodes.Status403Forbidden, "you can't buy ticket sold from your account");
+        }
+        
         var availabilityResult = await _shoppingCartRepository.CheckResellTicketAvailabilityAsync(ticketId);
 
         if (availabilityResult.IsError)
