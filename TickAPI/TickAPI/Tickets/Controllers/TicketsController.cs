@@ -5,7 +5,6 @@ using TickAPI.Common.Claims.Abstractions;
 using TickAPI.Tickets.Abstractions;
 using TickAPI.Tickets.DTOs.Response;
 using TickAPI.Common.Pagination.Responses;
-using TickAPI.Common.Results;
 using TickAPI.Tickets.DTOs.Request;
 
 namespace TickAPI.Tickets.Controllers;

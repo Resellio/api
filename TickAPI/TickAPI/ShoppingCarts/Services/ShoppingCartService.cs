@@ -246,27 +246,27 @@ public class ShoppingCartService : IShoppingCartService
         return Result<Dictionary<string, decimal>>.Success(dueAmount);
     }
 
-    public async Task<Result<PaymentResponsePG>> CheckoutAsync(string customerEmail, decimal amount, string currency,
+    public async Task<Result<CheckoutResult>> CheckoutAsync(string customerEmail, decimal amount, string currency,
         string cardNumber, string cardExpiry, string cvv)
     {
         var dueAmountResult = await GetDueAmountAsync(customerEmail);
 
         if (dueAmountResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(dueAmountResult);
+            return Result<CheckoutResult>.PropagateError(dueAmountResult);
         }
 
         var currencyExists = dueAmountResult.Value!.TryGetValue(currency, out var dueAmount);
 
         if (!currencyExists)
         {
-            return Result<PaymentResponsePG>.Failure(StatusCodes.Status400BadRequest,
+            return Result<CheckoutResult>.Failure(StatusCodes.Status400BadRequest,
                 $"no tickets paid in {currency} found in cart");
         }
         
         if (dueAmount != amount)
         {
-            return Result<PaymentResponsePG>.Failure(StatusCodes.Status400BadRequest,
+            return Result<CheckoutResult>.Failure(StatusCodes.Status400BadRequest,
                 $"the given amount {amount} {currency} is different than the expected amount of {dueAmount} {currency}");
         }
 
@@ -276,14 +276,14 @@ public class ShoppingCartService : IShoppingCartService
 
         if (paymentResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(paymentResult);
+            return Result<CheckoutResult>.PropagateError(paymentResult);
         }
         
         var getShoppingCartResult = await _shoppingCartRepository.GetShoppingCartByEmailAsync(customerEmail);
 
         if (getShoppingCartResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(getShoppingCartResult);
+            return Result<CheckoutResult>.PropagateError(getShoppingCartResult);
         }
         
         var cart = getShoppingCartResult.Value!;
@@ -292,7 +292,7 @@ public class ShoppingCartService : IShoppingCartService
 
         if (getCustomerResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(getCustomerResult);
+            return Result<CheckoutResult>.PropagateError(getCustomerResult);
         }
         
         var owner = getCustomerResult.Value!;
@@ -301,32 +301,40 @@ public class ShoppingCartService : IShoppingCartService
 
         if (generateTicketsResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(generateTicketsResult);
+            return Result<CheckoutResult>.PropagateError(generateTicketsResult);
         }
+
+        var boughtTickets = generateTicketsResult.Value!;
 
         var passOwnershipResult = await PassTicketOwnershipAsync(cart, owner, currency);
 
         if (passOwnershipResult.IsError)
         {
-            return Result<PaymentResponsePG>.PropagateError(passOwnershipResult);
+            return Result<CheckoutResult>.PropagateError(passOwnershipResult);
         }
+
+        var resoldTickets = passOwnershipResult.Value!;
+
+        List<Ticket> allTickets = [..boughtTickets, ..resoldTickets];
         
         var payment = paymentResult.Value!;
 
-        return Result<PaymentResponsePG>.Success(payment);
+        return Result<CheckoutResult>.Success(new CheckoutResult(allTickets, payment));
     }
 
-    private async Task<Result> GenerateBoughtTicketsAsync(ShoppingCart cart, Customer owner, string currency)
+    private async Task<Result<List<Ticket>>> GenerateBoughtTicketsAsync(ShoppingCart cart, Customer owner, string currency)
     {
         var removals = new List<(Guid id, uint amount)>();
 
+        var newTickets = new List<Ticket>();
+        
         foreach (var ticket in cart.NewTickets)
         {
             var ticketTypeResult = await _ticketService.GetTicketTypeByIdAsync(ticket.TicketTypeId);
 
             if (ticketTypeResult.IsError)
             {  
-                return Result.PropagateError(ticketTypeResult);
+                return Result<List<Ticket>>.PropagateError(ticketTypeResult);
             }
             
             var type = ticketTypeResult.Value!;
@@ -341,8 +349,10 @@ public class ShoppingCartService : IShoppingCartService
 
                     if (createTicketResult.IsError)
                     {
-                        return Result.PropagateError(createTicketResult);
+                        return Result<List<Ticket>>.PropagateError(createTicketResult);
                     }
+                    
+                    newTickets.Add(createTicketResult.Value!);
                 }
             }
         }
@@ -353,24 +363,26 @@ public class ShoppingCartService : IShoppingCartService
 
             if (removalResult.IsError)
             {
-                return Result.PropagateError(removalResult);
+                return Result<List<Ticket>>.PropagateError(removalResult);
             }
         }
 
-        return Result.Success();
+        return Result<List<Ticket>>.Success(newTickets);
     }
     
-    private async Task<Result> PassTicketOwnershipAsync(ShoppingCart cart, Customer newOwner, string currency)
+    private async Task<Result<List<Ticket>>> PassTicketOwnershipAsync(ShoppingCart cart, Customer newOwner, string currency)
     {
         var removals = new List<Guid>();
 
+        var resoldTickets = new List<Ticket>();
+        
         foreach (var resellTicket in cart.ResellTickets)
         {
             var ticketResult = await _ticketService.GetTicketByIdAsync(resellTicket.TicketId);
 
             if (ticketResult.IsError)
             {  
-                return Result.PropagateError(ticketResult);
+                return Result<List<Ticket>>.PropagateError(ticketResult);
             }
             
             var ticket = ticketResult.Value!;
@@ -383,8 +395,10 @@ public class ShoppingCartService : IShoppingCartService
 
                 if (createTicketResult.IsError)
                 {
-                    return Result.PropagateError(createTicketResult);
+                    return Result<List<Ticket>>.PropagateError(createTicketResult);
                 }
+                
+                resoldTickets.Add(ticket);
             }
         }
 
@@ -394,10 +408,10 @@ public class ShoppingCartService : IShoppingCartService
 
             if (removalResult.IsError)
             {
-                return Result.PropagateError(removalResult);
+                return Result<List<Ticket>>.PropagateError(removalResult);
             }
         }
 
-        return Result.Success();
+        return Result<List<Ticket>>.Success(resoldTickets);
     }
 }

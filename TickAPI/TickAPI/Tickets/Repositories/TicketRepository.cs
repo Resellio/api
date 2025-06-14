@@ -72,20 +72,20 @@ public class TicketRepository : ITicketRepository
         return Result.Success();
     }
 
-    public async Task<Result> AddTicketAsync(Ticket ticket)
+    public async Task<Result<Ticket>> AddTicketAsync(Ticket ticket)
     {
         var maxCount = ticket.Type.MaxCount;
 
         if (maxCount <= _tickApiDbContext.Tickets.Count(t => t.Type.Id == ticket.Type.Id))
         {
-            return Result.Failure(StatusCodes.Status400BadRequest,
+            return Result<Ticket>.Failure(StatusCodes.Status400BadRequest,
                 "The ticket you are trying to buy has already reached its max count");
         }
         
         _tickApiDbContext.Tickets.Add(ticket);
         await _tickApiDbContext.SaveChangesAsync();
         
-        return Result.Success();
+        return Result<Ticket>.Success(ticket);
     }
 
     public async Task<Result<Ticket>> GetTicketWithDetailsByIdAsync(Guid id)

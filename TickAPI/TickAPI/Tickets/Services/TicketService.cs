@@ -188,7 +188,7 @@ public class TicketService : ITicketService
         return Result<TicketType>.Success(ticketTypeResult.Value!);
     }
 
-    public async Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+    public async Task<Result<Ticket>> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
         string? seats = null)
     {
         var ticket = new Ticket
