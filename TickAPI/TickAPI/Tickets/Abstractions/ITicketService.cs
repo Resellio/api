@@ -24,7 +24,7 @@ public interface ITicketService
     public Task<Result> SetTicketForResellAsync(Guid ticketId, string email, decimal resellPrice, string resellCurrency);
     public Task<Result<Ticket>> GetTicketByIdAsync(Guid ticketId);
     public Task<Result<TicketType>> GetTicketTypeByIdAsync(Guid ticketTypeId);
-    public Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+    public Task<Result<Ticket>> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
         string? seats = null);
     public Task<Result> ChangeTicketOwnershipViaResellAsync(Ticket ticket, Customer newOwner, string? nameOnTicket = null);
 }

@@ -2,10 +2,13 @@
 using TickAPI.Common.Auth.Attributes;
 using TickAPI.Common.Auth.Enums;
 using TickAPI.Common.Claims.Abstractions;
+using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Payment.Models;
+using TickAPI.Customers.Abstractions;
 using TickAPI.ShoppingCarts.Abstractions;
 using TickAPI.ShoppingCarts.DTOs.Request;
 using TickAPI.ShoppingCarts.DTOs.Response;
+using TickAPI.Tickets.Models;
 
 namespace TickAPI.ShoppingCarts.Controllers;
 
@@ -15,11 +18,15 @@ public class ShoppingCartsController : ControllerBase
 {
     private readonly IShoppingCartService _shoppingCartService;
     private readonly IClaimsService _claimsService;
+    private readonly IMailService _mailService;
+    private readonly ICustomerService _customerService;
 
-    public ShoppingCartsController(IShoppingCartService shoppingCartService, IClaimsService claimsService)
+    public ShoppingCartsController(IShoppingCartService shoppingCartService, IClaimsService claimsService, IMailService mailService, ICustomerService customerService)
     {
         _shoppingCartService = shoppingCartService;
         _claimsService = claimsService;
+        _mailService = mailService;
+        _customerService = customerService;
     }
 
     [AuthorizeWithPolicy(AuthPolicies.CustomerPolicy)]
@@ -136,6 +143,27 @@ public class ShoppingCartsController : ControllerBase
         var checkoutResult = await _shoppingCartService.CheckoutAsync(email, checkoutDto.Amount, checkoutDto.Currency,
             checkoutDto.CardNumber, checkoutDto.CardExpiry, checkoutDto.Cvv);
 
-        return checkoutResult.ToObjectResult();
+        if (checkoutResult.IsError)
+        {
+            return checkoutResult.ToObjectResult();
+        }
+
+        var checkout = checkoutResult.Value!;
+
+        var customerResult = await _customerService.GetCustomerByEmailAsync(email);
+        if (customerResult.IsError)
+        {
+            return customerResult.ToObjectResult();
+        }
+
+        var customer = customerResult.Value!;
+        
+        await _mailService.SendTicketsAsync(customer, checkout.BoughtTickets.Select(t =>
+        {
+            var scanUrl = Url.Action("ScanTicket", "Tickets", new { id = t.Id }, Request.Scheme)!;
+            return new TicketWithScanUrl(t, scanUrl);
+        }).ToList());
+
+        return checkout.PaymentResponse;
     }
 }
