@@ -1,8 +1,11 @@
-﻿using SendGrid;
+﻿using System.Text;
+using SendGrid;
 using SendGrid.Helpers.Mail;
 using TickAPI.Common.Mail.Abstractions;
 using TickAPI.Common.Mail.Models;
 using TickAPI.Common.Results;
+using TickAPI.Customers.Models;
+using TickAPI.Tickets.Models;
 
 namespace TickAPI.Common.Mail.Services;
 
@@ -19,19 +22,29 @@ public class MailService : IMailService
         var fromName = configuration["SendGrid:FromName"];
         _fromEmailAddress = new EmailAddress(fromEmail, fromName);
     }
-
-    public async Task<Result> SendTicketAsync(MailRecipient recipient, string eventName, byte[] pdfData)
+    
+    public async Task<Result> SendTicketsAsync(Customer customer, List<Ticket> tickets)
     {
-        var subject = $"Ticket for {eventName}";
-        var htmlContent = "<strong>Download your ticket from attachments</strong>";
-        var base64Content = Convert.ToBase64String(pdfData);
-        List<MailAttachment> attachments = [
-            new MailAttachment("ticket.pdf", base64Content, "application/pdf")
-        ];
-        var res = await SendMailAsync([recipient], subject, htmlContent, attachments);
-        return res;
-    }
+        var subject = "Your New Tickets";
+        var htmlContent = new StringBuilder();
+        htmlContent.AppendLine("<strong>You have purchased tickets for following events:</strong><br/><ul>");
+        
+        foreach (var ticket in tickets)
+        {
+            var eventName = ticket.Type.Event.Name;
+            var eventDate = ticket.Type.Event.StartDate.ToString("yyyy-MM-dd");
+           
+            htmlContent.AppendLine(
+                $"<li><b>{eventName}</b> on {eventDate} (ticket: {ticket.Type.Description})</li>"
+            );
+        }
 
+        htmlContent.AppendLine("</ul>");
+
+        var recipient = new MailRecipient(customer.Email, customer.FirstName);
+        return await SendMailAsync([recipient], subject, htmlContent.ToString(), []);
+    }
+    
     public async Task<Result> SendMailAsync(IEnumerable<MailRecipient> recipients, string subject, string content,
         List<MailAttachment>? attachments = null)
     {

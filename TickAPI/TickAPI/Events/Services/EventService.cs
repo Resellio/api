@@ -118,27 +118,27 @@ public class EventService : IEventService
 
     public async Task<Result<PaginatedData<GetEventResponseDto>>> GetOrganizerEventsAsync(Organizer organizer, int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
-        var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
+        var organizerEvents = await _eventRepository.GetEventsByOranizerAsync(organizer);
         var filteredOrganizerEvents = ApplyEventFilters(organizerEvents, eventFilters);
         return await GetPaginatedEventsAsync(filteredOrganizerEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetOrganizerEventsPaginationDetailsAsync(Organizer organizer, int pageSize)
     {
-        var organizerEvents = _eventRepository.GetEventsByOranizer(organizer);
+        var organizerEvents = await _eventRepository.GetEventsByOranizerAsync(organizer);
         return await _paginationService.GetPaginationDetailsAsync(organizerEvents, pageSize);
     }
 
     public async Task<Result<PaginatedData<GetEventResponseDto>>> GetEventsAsync(int page, int pageSize, EventFiltersDto? eventFilters = null)
     {
-        var events = _eventRepository.GetEvents();
+        var events = await _eventRepository.GetEventsAsync();
         var filteredEvents = ApplyEventFilters(events, eventFilters);
         return await GetPaginatedEventsAsync(filteredEvents, page, pageSize);
     }
 
     public async Task<Result<PaginationDetails>> GetEventsPaginationDetailsAsync(int pageSize)
     {
-        var events = _eventRepository.GetEvents();
+        var events = await _eventRepository.GetEventsAsync();
         return await _paginationService.GetPaginationDetailsAsync(events, pageSize);
     }
 

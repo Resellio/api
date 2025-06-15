@@ -10,91 +10,110 @@ namespace TickAPI.Events.Repositories;
 
 public class EventRepository : IEventRepository
 {
+    private readonly BaseEventRepository _baseEventRepository;
     private readonly TickApiDbContext _tickApiDbContext;
 
-    public EventRepository(TickApiDbContext tickApiDbContext)
+    public EventRepository(BaseEventRepository baseEventRepository, TickApiDbContext tickApiDbContext)
     {
+        _baseEventRepository = baseEventRepository;
         _tickApiDbContext = tickApiDbContext;
     }
-    
-    public async Task AddNewEventAsync(Event @event)
+
+    public Task AddNewEventAsync(Event @event)
     {
-        _tickApiDbContext.Events.Add(@event);
-        await _tickApiDbContext.SaveChangesAsync();
+        return _baseEventRepository.AddNewEventAsync(@event);
     }
 
-    public IQueryable<Event> GetEvents()
+    public async Task<IQueryable<Event>> GetEventsAsync()
     {
-        return _tickApiDbContext.Events
-            .Include(e => e.Address)
-            .Include(e => e.TicketTypes)
-            .Include(e => e.Categories);
+        var events = await _baseEventRepository.GetEventsAsync();
+        await UpdateEventsStatuses(events);
+        return events;
     }
 
-    public IQueryable<Event> GetEventsByOranizer(Organizer organizer)
+    public async Task<IQueryable<Event>> GetEventsByOranizerAsync(Organizer organizer)
     {
-        return _tickApiDbContext.Events
-            .Include(e => e.Address)
-            .Include(e => e.TicketTypes)
-            .Include(e => e.Categories)
-            .Where(e => e.Organizer.Id == organizer.Id);
+        var events = await _baseEventRepository.GetEventsByOranizerAsync(organizer);
+        await UpdateEventsStatuses(events);
+        return events;
     }
 
     public async Task<Result<Event>> GetEventByIdAsync(Guid eventId)
     {
-        var @event = await _tickApiDbContext.Events
-            .Include(e => e.Address)
-            .Include(e => e.TicketTypes)
-            .Include(e => e.Categories)
-            .FirstOrDefaultAsync(e => e.Id == eventId);
-
-        if (@event == null)
-        {
-            return Result<Event>.Failure(StatusCodes.Status404NotFound, $"event with id {eventId} not found");
-        }
-        
-        return Result<Event>.Success(@event);
+        var evResult = await _baseEventRepository.GetEventByIdAsync(eventId);
+        if (evResult.IsError)
+            return evResult;
+        var ev = evResult.Value!;
+        await UpdateEventStatuses([ev.Id]);
+        return Result<Event>.Success(ev);
     }
 
-    public async Task<Result> SaveEventAsync(Event ev)
+    public Task<Result> SaveEventAsync(Event ev)
     {
-        var fromDb = await GetEventByIdAsync(ev.Id);
-        if (fromDb.IsError)
-            return Result.PropagateError(fromDb);
-        await _tickApiDbContext.SaveChangesAsync();
-        return Result.Success();
+        return _baseEventRepository.SaveEventAsync(ev);
     }
 
     public async Task<Result<Event>> GetEventByIdAndOrganizerAsync(Guid eventId, Organizer organizer)
     {
-        var organizerEvents = GetEventsByOranizer(organizer);
-        var ev = await organizerEvents.Where(e => e.Id == eventId).FirstAsync();
-        if (ev is null)
-        {
-            return Result<Event>.Failure(StatusCodes.Status404NotFound, $"Event with id {eventId} not found for organizer with id {organizer.Id}");
-        }
+        var evResult = await _baseEventRepository.GetEventByIdAndOrganizerAsync(eventId, organizer);
+        if (evResult.IsError)
+            return evResult;
+        var ev = evResult.Value!;
+        await UpdateEventStatuses([ev.Id]);
         return Result<Event>.Success(ev);
     }
 
-    public async Task<decimal> GetEventRevenue(Guid eventId)
+    public Task<decimal> GetEventRevenue(Guid eventId)
     {
-        var query = from tickets in _tickApiDbContext.Tickets
-            join _ticketTypes in _tickApiDbContext.TicketTypes on tickets.Type.Id equals _ticketTypes.Id
-            join events in _tickApiDbContext.Events on _ticketTypes.Event.Id equals events.Id
-            where events.Id == eventId
-            select new { price = _ticketTypes.Price };
-        var val = await query.SumAsync(x => x.price);
-        return val;
+        return _baseEventRepository.GetEventRevenue(eventId);
     }
-    
-    public async Task<int> GetEventSoldTicketsCount(Guid eventId)
+
+    public Task<int> GetEventSoldTicketsCount(Guid eventId)
     {
-        var query = from tickets in _tickApiDbContext.Tickets
-            join _ticketTypes in _tickApiDbContext.TicketTypes on tickets.Type.Id equals _ticketTypes.Id
-            join events in _tickApiDbContext.Events on _ticketTypes.Event.Id equals events.Id
-            where events.Id == eventId
-            select new { id = tickets.Id };
-        var val = await query.CountAsync();
-        return val;
+        return _baseEventRepository.GetEventSoldTicketsCount(eventId);
+    }
+
+    private async Task UpdateEventStatuses(List<Guid> guids)
+    {
+        var eventsQuery = _tickApiDbContext.Events
+            .Where(e => guids.Contains(e.Id));
+
+        await UpdateEventsStatuses(eventsQuery);
+    }
+
+    private async Task UpdateEventsStatuses(IQueryable<Event> eventsQuery)
+    {
+        var now = DateTime.UtcNow;
+        var events = await eventsQuery
+            .Include(e => e.TicketTypes)
+            .ThenInclude(tt => tt.Tickets)
+            .ToListAsync();
+
+        foreach (var ev in events)
+        {
+            if (ev.EndDate < now)
+            {
+                ev.EventStatus = EventStatus.Finished;
+            }
+            else if (ev.StartDate <= now && ev.EndDate >= now)
+            {
+                ev.EventStatus = EventStatus.InProgress;
+            }
+            else
+            {
+                var totalTickets = ev.TicketTypes.Sum(tt => tt.MaxCount);
+                var soldTickets = ev.TicketTypes.Sum(tt => tt.Tickets.Count);
+                if (totalTickets > 0 && soldTickets >= totalTickets)
+                {
+                    ev.EventStatus = EventStatus.SoldOut;
+                }
+                else
+                {
+                    ev.EventStatus = EventStatus.TicketsAvailable;
+                }
+            }
+        }
+
+        await _tickApiDbContext.SaveChangesAsync();
     }
 }

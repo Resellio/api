@@ -132,7 +132,7 @@ public class TicketService : ITicketService
         }
 
         var paginatedResult = _paginationService.MapData(paginatedCustomerTickets.Value!,
-            t => new GetTicketForCustomerDto(t.Id, t.Type.Event.Name, t.Type.Event.StartDate, t.Type.Event.EndDate, t.Used));
+            t => new GetTicketForCustomerDto(t.Id, t.Type.Event.Name, t.Type.Event.StartDate, t.Type.Event.EndDate, t.Used, t.ForResell, t.ResellPrice, t.ResellCurrency));
         
         return Result<PaginatedData<GetTicketForCustomerDto>>.Success(paginatedResult);
     }
@@ -164,7 +164,10 @@ public class TicketService : ITicketService
             address,
             ticket.Type.Event.Id,
             qrcode,
-            ticket.Used
+            ticket.Used,
+            ticket.ForResell,
+            ticket.ResellPrice,
+            ticket.ResellCurrency
         );
         return  Result<GetTicketDetailsResponseDto>.Success(ticketDetails);
     }
@@ -188,7 +191,7 @@ public class TicketService : ITicketService
         return Result<TicketType>.Success(ticketTypeResult.Value!);
     }
 
-    public async Task<Result> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
+    public async Task<Result<Ticket>> CreateTicketAsync(TicketType type, Customer owner, string? nameOnTicket = null,
         string? seats = null)
     {
         var ticket = new Ticket
