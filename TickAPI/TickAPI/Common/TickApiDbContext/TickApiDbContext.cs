@@ -28,7 +28,7 @@ public class TickApiDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Ticket>().Property(t => t.ResellPrice).HasColumnType("decimal(18,2)");
+        modelBuilder.Entity<Ticket>().Property(t => t.ResellPrice).IsRequired(false);
         modelBuilder.Entity<TicketType>().Property(t => t.Price).HasColumnType("decimal(18,2)");
         modelBuilder.Entity<Category>().HasData(
             new Category
