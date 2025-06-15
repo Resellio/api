@@ -7,6 +7,6 @@ namespace TickAPI.Common.Mail.Abstractions;
 
 public interface IMailService
 {
-    public Task<Result> SendTicketsAsync(Customer customer, List<TicketWithScanUrl> tickets);
+    public Task<Result> SendTicketsAsync(Customer customer, List<Ticket> tickets);
     public Task<Result> SendMailAsync(IEnumerable<MailRecipient> recipients, string subject, string content, List<MailAttachment>? attachments);
 }
