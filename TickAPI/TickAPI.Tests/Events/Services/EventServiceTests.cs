@@ -356,7 +356,7 @@ public class EventServiceTests
         );
 
         var organizerEvents = organizer.Events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEventsByOranizer(organizer)).Returns(organizerEvents);
+        eventRepositoryMock.Setup(p => p.GetEventsByOranizerAsync(organizer)).ReturnsAsync(organizerEvents);
         
         paginationServiceMock
             .Setup(p => p.PaginateAsync(organizerEvents, pageSize, page))
@@ -425,7 +425,7 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
 
         var organizerEvents = organizer.Events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEventsByOranizer(organizer)).Returns(organizerEvents);
+        eventRepositoryMock.Setup(p => p.GetEventsByOranizerAsync(organizer)).ReturnsAsync(organizerEvents);
         
         paginationServiceMock
             .Setup(p => p.PaginateAsync(organizerEvents, pageSize, page))
@@ -477,7 +477,7 @@ public class EventServiceTests
         );
 
         var eventsQueryable = events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
+        eventRepositoryMock.Setup(p => p.GetEventsAsync()).ReturnsAsync(eventsQueryable);
         
         paginationServiceMock
             .Setup(p => p.PaginateAsync(eventsQueryable, pageSize, page))
@@ -541,7 +541,7 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
 
         var eventsQueryable = events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
+        eventRepositoryMock.Setup(p => p.GetEventsAsync()).ReturnsAsync(eventsQueryable);
         
         paginationServiceMock
             .Setup(p => p.PaginateAsync(eventsQueryable, pageSize, page))
@@ -583,7 +583,7 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
 
         var eventsQueryable = events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
+        eventRepositoryMock.Setup(p => p.GetEventsAsync()).ReturnsAsync(eventsQueryable);
         
         var paginationDetails = new PaginationDetails(1, 3);
         paginationServiceMock
@@ -625,7 +625,7 @@ public class EventServiceTests
         var ticketServiceMock = new Mock<ITicketService>();
 
         var eventsQueryable = events.AsQueryable();
-        eventRepositoryMock.Setup(p => p.GetEvents()).Returns(eventsQueryable);
+        eventRepositoryMock.Setup(p => p.GetEventsAsync()).ReturnsAsync(eventsQueryable);
         
         paginationServiceMock
             .Setup(p => p.GetPaginationDetailsAsync(eventsQueryable, pageSize))
