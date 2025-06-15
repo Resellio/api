@@ -537,8 +537,8 @@ public class TicketServiceTests
             false,
             new PaginationDetails(0, 2)
         );
-        var mappedData1 = new GetTicketForCustomerDto(tickets[0].Id, "EventName", new DateTime(2025, 10, 10), new DateTime(2025, 10, 20), false);
-        var mappedData2 = new GetTicketForCustomerDto(tickets[1].Id, "EventName2", new DateTime(2025, 11, 10), new DateTime(2025, 11, 20), false);
+        var mappedData1 = new GetTicketForCustomerDto(tickets[0].Id, "EventName", new DateTime(2025, 10, 10), new DateTime(2025, 10, 20), false, false, null, null);
+        var mappedData2 = new GetTicketForCustomerDto(tickets[1].Id, "EventName2", new DateTime(2025, 11, 10), new DateTime(2025, 11, 20), false, false, null, null);
         var mappedPaginatedData = new PaginatedData<GetTicketForCustomerDto>
         (
             new List<GetTicketForCustomerDto>{mappedData1, mappedData2},

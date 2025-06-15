@@ -6,5 +6,8 @@ public record GetTicketForCustomerDto
     string EventName,
     DateTime EventStartDate,
     DateTime EventEndDate,
-    bool Used
+    bool Used,
+    bool ForResell,
+    decimal? ResellPrice,
+    string? ResellCurrency
 );
