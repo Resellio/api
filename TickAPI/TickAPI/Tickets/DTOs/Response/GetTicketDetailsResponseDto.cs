@@ -15,5 +15,8 @@ public record GetTicketDetailsResponseDto
     GetTicketDetailsAddressDto Address,
     Guid eventId,
     string qrcode,
-    bool Used
+    bool Used,
+    bool ForResell,
+    decimal? ResellPrice,
+    string? ResellCurrency
 );
