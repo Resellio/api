@@ -158,11 +158,7 @@ public class ShoppingCartsController : ControllerBase
 
         var customer = customerResult.Value!;
         
-        await _mailService.SendTicketsAsync(customer, checkout.BoughtTickets.Select(t =>
-        {
-            var scanUrl = Url.Action("ScanTicket", "Tickets", new { id = t.Id }, Request.Scheme)!;
-            return new TicketWithScanUrl(t, scanUrl);
-        }).ToList());
+        await _mailService.SendTicketsAsync(customer, checkout.BoughtTickets);
 
         return checkout.PaymentResponse;
     }
